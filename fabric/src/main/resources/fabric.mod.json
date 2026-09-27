@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "${modId}",
+  "version": "${modVersion}",
+  "name": "${modName}",
+  "description": "${modDescription}",
+  "authors": [
+    "${modAuthor}"
+  ],
+  "contact": {
+    "homepage": "${modHomepage}",
+    "sources": "${modGitHub}"
+  },
+  "license": "${modLicense}",
+  "icon": "${modId}.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.waterdu.atlantis.AtlantisFabric"
+    ]
+  },
+  "mixins": [
+    "${modId}.mixins.json",
+    "${modId}.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabricLoaderVersion}",
+    "fabric-api": "*",
+    "minecraft": "${minecraftVersion}",
+    "java": ">=${javaVersion}"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}
