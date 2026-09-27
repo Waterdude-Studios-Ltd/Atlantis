@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "de.waterdu.atlantis.mixin",
+  "compatibilityLevel": "JAVA_${javaVersion}",
+  "mixins": [],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

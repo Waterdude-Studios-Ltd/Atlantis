@@ -1,0 +1,24 @@
+{
+  "net/minecraft/world/entity/player/Player": [
+    "de/waterdu/atlantis/ext/player/PlayerExt",
+    "de/waterdu/atlantis/ext/player/PermissionsExt"
+  ],
+  "net/minecraft/resources/ResourceLocation": [
+    "de/waterdu/atlantis/ext/dev/ResourceLocationExt"
+  ],
+  "net/minecraft/world/item/Item": [
+    "de/waterdu/atlantis/ext/item/ItemExt"
+  ],
+  "net/minecraft/world/item/ItemStack": [
+    "de/waterdu/atlantis/ext/item/ItemStackExt"
+  ],
+  "net/minecraft/world/level/block/Block": [
+    "de/waterdu/atlantis/ext/item/BlockExt"
+  ],
+  "net/minecraft/resources/ResourceKey": [
+    "de/waterdu/atlantis/ext/dev/ResourceKeyExt<T>"
+  ],
+  "net/minecraft/commands/CommandSourceStack": [
+    "de/waterdu/atlantis/ext/player/PermissionsExt"
+  ]
+}

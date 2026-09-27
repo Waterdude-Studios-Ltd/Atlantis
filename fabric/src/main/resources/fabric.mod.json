@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "${modId}",
+  "version": "${modVersion}",
+  "name": "${modName}",
+  "description": "${modDescription}",
+  "authors": [
+    "${modAuthor}"
+  ],
+  "contact": {
+    "homepage": "${modHomepage}",
+    "sources": "${modGitHub}"
+  },
+  "license": "${modLicense}",
+  "icon": "${modId}.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "de.waterdu.atlantis.AtlantisFabric"
+    ]
+  },
+  "mixins": [
+    "${modId}.mixins.json",
+    "${modId}.fabric.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabricLoaderVersion}",
+    "fabric-api": "*",
+    "minecraft": "${minecraftVersion}",
+    "java": ">=${javaVersion}"
+  },
+  "suggests": {
+    "another-mod": "*"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/entity/player/Player": [
+        "de/waterdu/atlantis/ext/player/PlayerExt",
+        "de/waterdu/atlantis/ext/player/PermissionsExt",
+        "com/pixelmonmod/pixelmon/api/extensions/PixelmonPlayerExtension"
+      ],
+      "net/minecraft/resources/ResourceLocation": [
+        "de/waterdu/atlantis/ext/dev/ResourceLocationExt"
+      ],
+      "net/minecraft/world/item/Item": [
+        "de/waterdu/atlantis/ext/item/ItemExt"
+      ],
+      "net/minecraft/world/item/ItemStack": [
+        "de/waterdu/atlantis/ext/item/ItemStackExt"
+      ],
+      "net/minecraft/world/level/block/Block": [
+        "de/waterdu/atlantis/ext/item/BlockExt"
+      ],
+      "net/minecraft/resources/ResourceKey": [
+        "de/waterdu/atlantis/ext/dev/ResourceKeyExt<TT;>"
+      ],
+      "net/minecraft/commands/CommandSourceStack": [
+        "de/waterdu/atlantis/ext/player/PermissionsExt"
+      ]
+    }
+  }
+}
