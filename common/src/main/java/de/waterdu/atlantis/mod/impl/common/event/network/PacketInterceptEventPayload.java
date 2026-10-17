@@ -1,5 +1,10 @@
-package de.waterdu.atlantis.network;
+package de.waterdu.atlantis.mod.impl.common.event.network;
 
+import de.waterdu.atlantis.mod.impl.common.event.Cancellable;
+import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
+import de.waterdu.atlantis.network.PacketInterceptWrapper;
+import de.waterdu.atlantis.util.config.Key;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -7,24 +12,23 @@ import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.Event;
-import net.neoforged.bus.api.ICancellableEvent;
 
 import java.util.function.Consumer;
 
-public class PacketInterceptEvent extends Event implements ICancellableEvent {
+public class PacketInterceptEventPayload implements EventPayload, Cancellable {
 
     private final Connection connection;
     private final ServerPlayer player;
     private Packet<?> packet;
     private CustomPacketPayload customPacket;
     private boolean packetChanged = false;
+    private boolean cancelled = false;
 
-    public PacketInterceptEvent(Connection connection, ServerPlayer player, Packet<?> packet) {
+    public PacketInterceptEventPayload(Connection connection, ServerPlayer player, Packet<?> packet) {
         this(connection, player, packet, tryExtractPayload(packet));
     }
 
-    public PacketInterceptEvent(Connection connection, ServerPlayer player, Packet<?> packet, CustomPacketPayload customPacket) {
+    public PacketInterceptEventPayload(Connection connection, ServerPlayer player, Packet<?> packet, CustomPacketPayload customPacket) {
         this.connection = connection;
         this.player = player;
         this.packet = packet;
@@ -132,5 +136,20 @@ public class PacketInterceptEvent extends Event implements ICancellableEvent {
 
     public boolean isPacketChanged() {
         return this.packetChanged;
+    }
+
+    @Override
+    public void cancel() {
+        this.cancelled = true;
+    }
+
+    @Override
+    public boolean cancelled() {
+        return this.cancelled;
+    }
+
+    @Override
+    public Key<?> type() {
+        return UEvent.INTERCEPT_PACKET;
     }
 }

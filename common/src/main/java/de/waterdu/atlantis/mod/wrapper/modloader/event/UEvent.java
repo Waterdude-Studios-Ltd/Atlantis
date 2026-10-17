@@ -13,6 +13,7 @@ import de.waterdu.atlantis.mod.impl.common.event.meta.LeaderboardEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.PageEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.SetPlaceholderProviderEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.registry.RegistryInjectEventPayload;
 import de.waterdu.atlantis.mod.object.ModObject;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
@@ -59,6 +60,8 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
 
     public static final Key<UEvent<PlayerEventPayload.LogIn>> LOG_IN = Key.of(Atlantis.ID, "event/log_in");
     public static final Key<UEvent<PlayerEventPayload.LogOut>> LOG_OUT = Key.of(Atlantis.ID, "event/log_out");
+
+    public static final Key<UEvent<PacketInterceptEventPayload>> INTERCEPT_PACKET = Key.of(Atlantis.ID, "event/intercept_packet");
 
     private final Key<UEvent<Payload>> eventType;
 

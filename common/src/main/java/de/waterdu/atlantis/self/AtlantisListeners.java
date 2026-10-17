@@ -8,8 +8,8 @@ import de.waterdu.atlantis.Settings;
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.mod.impl.common.event.meta.ConfigEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.PageEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
-import de.waterdu.atlantis.network.PacketInterceptEvent;
 import de.waterdu.atlantis.ui.api.Page;
 import de.waterdu.atlantis.ui.api.PageOptions;
 import de.waterdu.atlantis.util.java.ClassNameCache;
@@ -21,8 +21,6 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,8 +53,6 @@ public final class AtlantisListeners {
     private PacketLogger packetLogger;
 
     public AtlantisListeners() {
-        NeoForge.EVENT_BUS.register(this);
-        Atlantis.EVENT_BUS.register(this);
         Mods.modLoader().event(UEvent.CONSTRUCT_PAGE).listen(this::onPageOpen);
     }
 
@@ -119,8 +115,8 @@ public final class AtlantisListeners {
         private final AtomicReference<AtlantisLogger.Severity> logLevel = new AtomicReference<>(AtlantisLogger.Severity.NONE);
 
         private PacketLogger() {
-            Atlantis.EVENT_BUS.register(this);
             Mods.modLoader().event(UEvent.READ_CONFIG).listen(this::onConfigReload);
+            Mods.modLoader().event(UEvent.INTERCEPT_PACKET).listen(this::onInterceptPacket);
             this.logLevel.set(Settings.get().getLogPackets());
         }
 
@@ -131,8 +127,7 @@ public final class AtlantisListeners {
             return InteractionResult.PASS;
         }
 
-        @SubscribeEvent
-        public void onInterceptPacket(PacketInterceptEvent event) {
+        public InteractionResult onInterceptPacket(PacketInterceptEventPayload event) {
             var logLevel = this.logLevel.get();
             if (logLevel != AtlantisLogger.Severity.NONE) {
                 var player = event.player();
@@ -144,6 +139,7 @@ public final class AtlantisListeners {
                         ClassNameCache.name(custom ? event.customPacket().getClass() : event.packet().getClass())
                 );
             }
+            return InteractionResult.PASS;
         }
     }
 }

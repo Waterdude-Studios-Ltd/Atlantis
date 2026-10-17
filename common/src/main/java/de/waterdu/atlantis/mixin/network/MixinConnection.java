@@ -1,8 +1,9 @@
 package de.waterdu.atlantis.mixin.network;
 
-import de.waterdu.atlantis.Atlantis;
+import de.waterdu.atlantis.mod.Mods;
+import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.network.CancelledPacket;
-import de.waterdu.atlantis.network.PacketInterceptEvent;
 import net.minecraft.network.Connection;
 import net.minecraft.network.PacketListener;
 import net.minecraft.network.PacketSendListener;
@@ -58,8 +59,8 @@ public abstract class MixinConnection {
     @Unique
     private Packet<?> atlantis$interceptPacket(Packet<?> packet) {
         if (this.packetListener instanceof ServerPlayerConnection spc) {
-            var event = Atlantis.EVENT_BUS.post(new PacketInterceptEvent((Connection) (Object) this, spc.getPlayer(), packet));
-            if (event.isCanceled()) {
+            var event = Mods.modLoader().event(UEvent.INTERCEPT_PACKET).emit(new PacketInterceptEventPayload((Connection) (Object) this, spc.getPlayer(), packet));
+            if (event.cancelled()) {
                 return CancelledPacket.INSTANCE;
             } else if (event.isPacketChanged()) {
                 return event.packet();
@@ -72,8 +73,8 @@ public abstract class MixinConnection {
     private static Packet<?> atlantis$interceptPacketStatic(Packet<?> packet, PacketListener listener) {
         if (listener instanceof ServerPlayerConnection spc) {
             var connection = ((MixinServerCommonPacketListenerImpl) (Object) spc.getPlayer().connection).atlantis$getConnection();
-            var event = Atlantis.EVENT_BUS.post(new PacketInterceptEvent(connection, spc.getPlayer(), packet));
-            if (event.isCanceled()) {
+            var event = Mods.modLoader().event(UEvent.INTERCEPT_PACKET).emit(new PacketInterceptEventPayload(connection, spc.getPlayer(), packet));
+            if (event.cancelled()) {
                 return CancelledPacket.INSTANCE;
             } else if (event.isPacketChanged()) {
                 return event.packet();
