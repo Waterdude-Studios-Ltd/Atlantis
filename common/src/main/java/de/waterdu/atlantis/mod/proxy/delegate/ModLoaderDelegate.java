@@ -25,7 +25,9 @@ import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.network.NetworkUtils;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -103,4 +105,6 @@ public interface ModLoaderDelegate extends ModProxy {
     UEventBus<?, ?> modEventBus();
 
     UEventBus<?, ?> eventBus();
+
+    @Nullable MinecraftServer server();
 }

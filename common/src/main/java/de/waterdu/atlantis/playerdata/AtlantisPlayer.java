@@ -9,12 +9,12 @@ import de.waterdu.atlantis.comm.UUIDQuery;
 import de.waterdu.atlantis.comm.UsernameQuery;
 import de.waterdu.atlantis.file.auto.FileBackedObject;
 import de.waterdu.atlantis.file.datatypes.PlayerData;
+import de.waterdu.atlantis.util.server.ServerUtils;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.UUID;
 
@@ -92,7 +92,7 @@ public class AtlantisPlayer implements PlayerData {
 
     @Override
     public ServerPlayer entity() {
-        return ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(this.uuid);
+        return ServerUtils.player(this.uuid).orElse(null);
     }
 
     @Override

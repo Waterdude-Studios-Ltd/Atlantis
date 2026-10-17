@@ -12,6 +12,8 @@ import de.waterdu.atlantis.util.config.Key;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,14 +25,18 @@ public class FabricProxy implements ModLoaderDelegate {
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
 
+    private volatile @Nullable MinecraftServer server;
+
     @Override
     public void setup() {
         ServerLifecycleEvents.SERVER_STARTING.register(it -> {
+            this.server = it;
             this.init(it, it::execute);
             this.onServerStarting();
         });
         ServerLifecycleEvents.SERVER_STARTED.register(__ -> this.onServerStarted());
         ServerLifecycleEvents.SERVER_STOPPING.register(__ -> this.onServerStopping());
+        ServerLifecycleEvents.SERVER_STOPPED.register(__ -> this.server = null);
 
         ModLoaderDelegate.super.setup();
     }
@@ -84,5 +90,10 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public UEventBus<?, ?> eventBus() {
         return UEventBus.SinkEventBus.INSTANCE;
+    }
+
+    @Override
+    public @Nullable MinecraftServer server() {
+        return this.server;
     }
 }

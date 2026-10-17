@@ -3,6 +3,7 @@ package de.waterdu.atlantis.util.server;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.level.ConfigurableLevel;
 import de.waterdu.atlantis.util.level.LevelPosition;
@@ -17,7 +18,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -40,7 +40,7 @@ public final class ServerUtils {
 
     //noinspection resource
     public static @Nullable MinecraftServer server() {
-        return ServerLifecycleHooks.getCurrentServer();
+        return Mods.modLoader().server();
     }
 
     public static <T> @Nullable T fromServer(Function<@NonNull MinecraftServer, @Nullable T> getter) {

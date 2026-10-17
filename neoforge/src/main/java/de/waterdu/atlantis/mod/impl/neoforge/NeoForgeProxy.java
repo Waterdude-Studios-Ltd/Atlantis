@@ -12,6 +12,7 @@ import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 import de.waterdu.atlantis.util.config.Key;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -23,6 +24,8 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -102,5 +105,10 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public UEventBus<?, ?> eventBus() {
         return this.neoForgeEventBus;
+    }
+
+    @Override
+    public @Nullable MinecraftServer server() {
+        return ServerLifecycleHooks.getCurrentServer();
     }
 }
