@@ -14,6 +14,7 @@ import de.waterdu.atlantis.file.datatypes.Configuration;
 import de.waterdu.atlantis.file.storage.Flatfile;
 import de.waterdu.atlantis.file.storage.Storage;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforgespi.language.ModFileScanData;
@@ -56,6 +57,7 @@ public final class AtlantisConfigFinder {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    @Entrypoint
     public static void find() {
         if (!AtlantisConfigFinder.FOUND.getAndSet(true)) {
             final var annotations = ModList.get().getAllScanData().stream()

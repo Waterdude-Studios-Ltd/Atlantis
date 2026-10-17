@@ -8,8 +8,22 @@ import net.neoforged.fml.common.Mod;
 @Mod(Atlantis.MOD_ID)
 public class AtlantisNeoForge {
 
+    private static AtlantisNeoForge INSTANCE;
+
+    private final NeoForgeProxy proxy;
+
     public AtlantisNeoForge(IEventBus modEventBus, ModContainer modContainer) {
-        new NeoForgeProxy(modEventBus, modContainer);
+        INSTANCE = this;
+        this.proxy = new NeoForgeProxy(modEventBus, modContainer);
+        this.proxy.setup();
         Atlantis.listeners();
+    }
+
+    public static AtlantisNeoForge instance() {
+        return INSTANCE;
+    }
+
+    public NeoForgeProxy proxy() {
+        return this.proxy;
     }
 }

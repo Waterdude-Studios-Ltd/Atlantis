@@ -5,9 +5,7 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.impl.cobblemon.fabric.CobblemonFabricProxy;
 import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.CobblemonNeoForgeProxy;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
-import de.waterdu.atlantis.mod.impl.fabric.FabricProxy;
 import de.waterdu.atlantis.mod.impl.impactor.ImpactorProxy;
-import de.waterdu.atlantis.mod.impl.neoforge.NeoForgeProxy;
 import de.waterdu.atlantis.mod.impl.pixelmon.PixelmonProxy;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
@@ -61,7 +59,12 @@ public final class Mods {
     public static final ModExtension NEOFORGE = ModExtension.builder()
             .modId(NEOFORGE_ID)
             .mainClass("net.neoforged.neoforge.common.NeoForge")
-            .proxy(ModExtension.Loader.NEOFORGE, () -> NeoForgeProxy.INSTANCE)
+            .reflectiveMethodProxy(
+                    ModExtension.Loader.NEOFORGE,
+                    "de.waterdu.atlantis.AtlantisNeoForge",
+                    "proxy",
+                    "instance"
+            )
             .delegates(ModLoaderDelegate.class)
             .modLoader()
             .language(ModExtension.Language.JAVA)
@@ -71,8 +74,12 @@ public final class Mods {
     public static final ModExtension FABRIC = ModExtension.builder()
             .modId(FABRIC_ID)
             .mainClass("net.fabricmc.loader.api.FabricLoader")
-            .proxy(ModExtension.Loader.FABRIC, () -> FabricProxy.INSTANCE)
-            .reflectiveMethodProxy(ModExtension.Loader.FABRIC, "")
+            .reflectiveMethodProxy(
+                    ModExtension.Loader.FABRIC,
+                    "de.waterdu.atlantis.AtlantisFabric",
+                    "proxy",
+                    "instance"
+            )
             .delegates(ModLoaderDelegate.class)
             .modLoader()
             .language(ModExtension.Language.JAVA)

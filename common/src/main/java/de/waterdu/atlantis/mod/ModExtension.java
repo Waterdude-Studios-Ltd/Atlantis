@@ -10,7 +10,6 @@ import org.jspecify.annotations.NullUnmarked;
 import java.io.InvalidClassException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -203,35 +202,13 @@ public final class ModExtension {
                 String proxyGetterName,
                 String instanceGetterName
         ) {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(classpath);
-            } catch (ClassNotFoundException e) {
-                AtlantisLogger.error("Failed to find class " + classpath, e);
-                return this;
-            }
-
-            Method proxyGetter;
-            try {
-                proxyGetter = clazz.getMethod(proxyGetterName);
-            } catch (NoSuchMethodException e) {
-                AtlantisLogger.error("Failed to find method " + proxyGetterName, e);
-                return this;
-            }
-
-            Method instanceGetter;
-            try {
-                instanceGetter = clazz.getDeclaredMethod(instanceGetterName);
-            } catch (NoSuchMethodException e) {
-                AtlantisLogger.error("Failed to find method " + instanceGetterName, e);
-                return this;
-            }
-
             Supplier<? extends ModProxy> proxy = () -> {
                 try {
-                    return (ModProxy) proxyGetter.invoke(instanceGetter.invoke(null));
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException("Failed to create proxy via reflective method", e);
+                    var clazz = Class.forName(classpath);
+                    var instance = clazz.getDeclaredMethod(instanceGetterName).invoke(null);
+                    return (ModProxy) clazz.getMethod(proxyGetterName).invoke(instance);
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException("Failed to create proxy via reflective method " + classpath + "#" + proxyGetterName, e);
                 }
             };
 

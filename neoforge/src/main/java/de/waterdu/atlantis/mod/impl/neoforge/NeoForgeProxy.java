@@ -31,8 +31,6 @@ import java.util.function.Consumer;
 
 public class NeoForgeProxy implements ModLoaderDelegate {
 
-    public static NeoForgeProxy INSTANCE;
-
     private final NeoForgeEventBus modEventBus;
     private final NeoForgeEventBus neoForgeEventBus;
 
@@ -43,10 +41,8 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     private final List<LiteralArgumentBuilder<CommandSourceStack>> commands = new CopyOnWriteArrayList<>();
 
     public NeoForgeProxy(IEventBus modEventBus, ModContainer modContainer) {
-        INSTANCE = this;
         this.modEventBus = new NeoForgeEventBus(modEventBus);
         this.neoForgeEventBus = new NeoForgeEventBus(NeoForge.EVENT_BUS);
-        this.setup();
     }
 
     @Override

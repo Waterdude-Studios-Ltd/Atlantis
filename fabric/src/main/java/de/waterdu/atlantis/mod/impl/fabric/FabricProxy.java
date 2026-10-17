@@ -17,19 +17,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class FabricProxy implements ModLoaderDelegate, ModInitializer {
-
-    public static FabricProxy INSTANCE;
+public class FabricProxy implements ModLoaderDelegate {
 
     private final Cache<Key<?>, UEvent<?>> events = Caffeine.newBuilder()
             .expireAfterAccess(10, TimeUnit.MINUTES)
             .build();
-
-    @Override
-    public void onInitialize() {
-        INSTANCE = this;
-        this.setup();
-    }
 
     @Override
     public void setup() {
