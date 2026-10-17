@@ -24,6 +24,7 @@ import de.waterdu.atlantis.permission.AtlantisPermission;
 import de.waterdu.atlantis.ui.api.Layout;
 import de.waterdu.atlantis.ui.api.LayoutGroup;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.codec.ResourceOrTagKey;
 import de.waterdu.atlantis.util.config.Configurable;
 import de.waterdu.atlantis.util.config.DatabaseSettings;
@@ -145,6 +146,7 @@ public final class AtlantisConfig {
         Configurable.registerDefaultContexts(this.gsonBuilder);
     }
 
+    @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
         GatherTypeAdaptersEventPayload.retrieve(TYPE_ADAPTERS);

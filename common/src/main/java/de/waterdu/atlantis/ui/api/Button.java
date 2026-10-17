@@ -6,6 +6,7 @@ import de.waterdu.atlantis.Settings;
 import de.waterdu.atlantis.ui.internal.AtlantisContainerMenuInternal;
 import de.waterdu.atlantis.ui.internal.Buttons;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.concurrency.Concurrency;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.item.ConfigurableItemStack;
@@ -1136,6 +1137,7 @@ public class Button {
 
         private static final Map<Long, Predicate<Click>> GUARD_PREDICATES = new HashMap<>();
 
+        @Entrypoint
         @SuppressWarnings("unused")
         private static void bootstrap() {
             for (var mouseButton : Click.Button.valuesAndNull()) {

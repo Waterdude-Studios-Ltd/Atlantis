@@ -2,6 +2,7 @@ package de.waterdu.atlantis.util.placeholder;
 
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.java.ReflectionUtils;
 import de.waterdu.atlantis.util.placeholder.impl.FPAPI;
@@ -30,6 +31,7 @@ public final class AtlantisPlaceholderProxy {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
         for (var provider : AtlantisPlaceholderProxy.PROVIDERS) {

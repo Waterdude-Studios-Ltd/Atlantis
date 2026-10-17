@@ -15,6 +15,7 @@ import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.proxy.delegate.PokemonDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
 import java.util.EnumMap;
@@ -110,6 +111,7 @@ public final class Mods {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
 

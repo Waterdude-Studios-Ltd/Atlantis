@@ -5,6 +5,7 @@ import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.level.level.implementation.AtlantisChunkGenerator;
 import de.waterdu.atlantis.level.level.implementation.VoidStructureGridChunkGenerator;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.java.collection.Pair;
 import de.waterdu.atlantis.util.level.ChunkGeneratorFunction;
@@ -128,6 +129,7 @@ public final class AtlantisLevelRegistry implements IModBusEvent {
         return key;
     }
 
+    @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
         AtlantisLevelStorage.instance().levels().values().forEach(AtlantisLevel::register);
