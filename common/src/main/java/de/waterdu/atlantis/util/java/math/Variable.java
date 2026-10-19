@@ -57,7 +57,8 @@ public class Variable {
                     var valueIndex = 0;
                     for (var value : values) {
                         if (!modified) {
-                            this.operators.add(new Operation(Operator.ADD, values.get(valueIndex++)));
+                            var leading = symbols.size() == values.size() ? Operator.get(symbols.get(symbolIndex++)) : Operator.ADD;
+                            this.operators.add(new Operation(leading, values.get(valueIndex++)));
                             modified = true;
                         } else {
                             this.operators.add(new Operation(Operator.get(symbols.get(symbolIndex++)), values.get(valueIndex++)));
