@@ -97,7 +97,7 @@ public final class ItemUtils {
     }
 
     public static Optional<Item> item(ResourceLocation location, boolean airIsNull) {
-        var item = ItemUtils.itemRegistry().get(location);
+        var item = location == null ? null : ItemUtils.itemRegistry().getOptional(location).orElse(null);
         if (item == null || (airIsNull && item == Items.AIR)) {
             return Optional.empty();
         }
@@ -118,7 +118,7 @@ public final class ItemUtils {
     }
 
     public static Optional<Block> getBlock(ResourceLocation location, boolean airIsNull) {
-        var block = Registries.BLOCK.registryFromRegistryKey().get(location);
+        var block = location == null ? null : Registries.BLOCK.registryFromRegistryKey().getOptional(location).orElse(null);
         if (block == null || (airIsNull && block == Blocks.AIR)) {
             return Optional.empty();
         }

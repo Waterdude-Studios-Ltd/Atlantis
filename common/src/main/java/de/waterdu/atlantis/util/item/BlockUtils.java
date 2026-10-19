@@ -38,7 +38,7 @@ public final class BlockUtils {
     }
 
     public static Optional<Block> getBlock(ResourceLocation location, boolean airIsNull) {
-        var block = Registries.BLOCK.registryFromRegistryKey().get(location);
+        var block = location == null ? null : Registries.BLOCK.registryFromRegistryKey().getOptional(location).orElse(null);
         if (block == null || (airIsNull && block == Blocks.AIR)) {
             return Optional.empty();
         }
