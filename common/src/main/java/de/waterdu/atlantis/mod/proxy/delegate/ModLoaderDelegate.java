@@ -12,6 +12,7 @@ import de.waterdu.atlantis.level.schematic.Schematics;
 import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.PlayerEventPayload;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.ListenerEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 import de.waterdu.atlantis.occasion.OccasionManager;
@@ -97,10 +98,8 @@ public interface ModLoaderDelegate extends ModProxy {
     }
 
     default <Payload extends EventPayload> UEvent<Payload> event(Key<UEvent<Payload>> type) {
-        return this.event(type, this.modEventBus());
+        return ListenerEvent.of(type);
     }
-
-    <Payload extends EventPayload> UEvent<Payload> event(Key<UEvent<Payload>> eventType, UEventBus<?, ?> eventBus);
 
     UEventBus<?, ?> modEventBus();
 

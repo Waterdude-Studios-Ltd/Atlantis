@@ -1,29 +1,17 @@
 package de.waterdu.atlantis.mod.impl.fabric;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
-import de.waterdu.atlantis.mod.impl.fabric.modloader.event.FabricEvent;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
-import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
-import de.waterdu.atlantis.util.config.Key;
-import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class FabricProxy implements ModLoaderDelegate {
-
-    private final Cache<Key<?>, UEvent<?>> events = Caffeine.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .build();
 
     private volatile @Nullable MinecraftServer server;
 
@@ -74,12 +62,6 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public List<LiteralArgumentBuilder<CommandSourceStack>> commandsToRegister() {
         return List.of();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <Payload extends EventPayload> UEvent<Payload> event(Key<UEvent<Payload>> eventType, UEventBus<?, ?> __) {
-        return (UEvent<Payload>) this.events.get(eventType, ___ -> new FabricEvent<>(eventType));
     }
 
     @Override

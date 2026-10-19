@@ -86,7 +86,11 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
 
     public abstract Payload emit(Payload payload);
 
-    public abstract void listen(Function<Payload, InteractionResult> handler);
+    public void listen(Function<Payload, InteractionResult> handler) {
+        this.listen(Priority.NORMAL, handler);
+    }
+
+    public abstract void listen(Priority priority, Function<Payload, InteractionResult> handler);
 
     public enum Priority {
 

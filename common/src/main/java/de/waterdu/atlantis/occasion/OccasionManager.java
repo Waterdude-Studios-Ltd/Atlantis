@@ -43,7 +43,7 @@ public final class OccasionManager {
         if (REGISTERED_HANDLERS.computeIfAbsent(priority, key -> new HashSet<>()).add(event)) {
             @SuppressWarnings("unchecked")
             Key<UEvent<EventPayload>> castKey = (Key<UEvent<EventPayload>>) (Key<?>) event;
-            Mods.modLoader().event(castKey).listen(payload -> {
+            Mods.modLoader().event(castKey).listen(priority, payload -> {
                 handleEvent(payload);
                 return InteractionResult.PASS;
             });
@@ -71,7 +71,7 @@ public final class OccasionManager {
             if (REGISTERED_HANDLERS.computeIfAbsent(priority, key -> new HashSet<>()).add(event.eventType())) {
                 @SuppressWarnings("unchecked")
                 UEvent<EventPayload> castEvent = (UEvent<EventPayload>) event;
-                castEvent.listen(payload -> {
+                castEvent.listen(priority, payload -> {
                     handleEvent(payload);
                     return InteractionResult.PASS;
                 });

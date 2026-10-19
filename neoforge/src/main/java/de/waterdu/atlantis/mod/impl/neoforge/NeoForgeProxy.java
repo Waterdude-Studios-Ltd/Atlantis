@@ -1,16 +1,10 @@
 package de.waterdu.atlantis.mod.impl.neoforge;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
-import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEvent;
 import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEventBus;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
-import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
-import de.waterdu.atlantis.util.config.Key;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,17 +23,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class NeoForgeProxy implements ModLoaderDelegate {
 
     private final NeoForgeEventBus modEventBus;
     private final NeoForgeEventBus neoForgeEventBus;
-
-    private final Cache<Key<?>, UEvent<?>> events = Caffeine.newBuilder()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .build();
 
     private final List<LiteralArgumentBuilder<CommandSourceStack>> commands = new CopyOnWriteArrayList<>();
 
@@ -89,12 +78,6 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public List<LiteralArgumentBuilder<CommandSourceStack>> commandsToRegister() {
         return this.commands;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <Payload extends EventPayload> UEvent<Payload> event(Key<UEvent<Payload>> eventType, UEventBus<?, ?> eventBus) {
-        return (UEvent<Payload>) this.events.get(eventType, __ -> new NeoForgeEvent<>(eventType, (NeoForgeEventBus) eventBus));
     }
 
     @Override
