@@ -36,13 +36,6 @@ dependencies {
 
     "compileOnly"("org.jspecify:jspecify:1.0.0")
     "annotationProcessor"("org.jspecify:jspecify:1.0.0")
-
-    "compileOnly"("net.fabricmc:fabric-loader:${commonMod.dep("fabric_loader")}")
-    "compileOnly"("net.fabricmc.fabric-api:fabric-api:${commonMod.dep("fabric_api")}+${commonMod.mc}")
-    "compileOnly"("net.neoforged:neoforge:${commonMod.dep("neoforge")}:universal")
-    "compileOnly"("net.neoforged.fancymodloader:loader:4.0.35")
-    "compileOnly"("net.neoforged.fancymodloader:earlydisplay:4.0.35")
-    "compileOnly"("net.neoforged:bus:8.0.2")
     "compileOnly"("io.github.llamalad7:mixinextras-common:0.4.1")
 
     if (is_atlantis) {
