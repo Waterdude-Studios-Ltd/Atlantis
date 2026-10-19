@@ -47,6 +47,10 @@ public abstract class DatabaseSettings {
         return this.connections;
     }
 
+    protected String[] propertyArray() {
+        return this.properties.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).toArray(String[]::new);
+    }
+
     public boolean areExtraSettingsDefaults() {
         return this.minIdle == DatabaseSettings.MIN_IDLE_DEFAULT &&
                 this.connectionTimeout == DatabaseSettings.CONNECTION_TIMEOUT_DEFAULT &&
@@ -74,7 +78,7 @@ public abstract class DatabaseSettings {
 
         @Override
         public Database storage(String modid) {
-            return new Database(this.url, modid, this.connections());
+            return new Database(this.url, modid, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
         }
     }
 
@@ -107,7 +111,7 @@ public abstract class DatabaseSettings {
 
         @Override
         public Database storage(String modid) {
-            return new Database(modid, this.ip, this.port, this.username, this.password, this.connections());
+            return new Database(modid, this.ip, this.port, this.username, this.password, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
         }
     }
 
