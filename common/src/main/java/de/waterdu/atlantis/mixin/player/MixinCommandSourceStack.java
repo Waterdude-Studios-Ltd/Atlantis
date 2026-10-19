@@ -1,10 +1,9 @@
 package de.waterdu.atlantis.mixin.player;
 
 import de.waterdu.atlantis.ext.player.PermissionsExt;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.permission.Permissions;
 import net.minecraft.commands.CommandSourceStack;
-import net.neoforged.neoforge.server.permission.PermissionAPI;
-import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -17,12 +16,12 @@ public abstract class MixinCommandSourceStack implements PermissionsExt {
     }
 
     @Override
-    public <T> T hasPermission(PermissionNode<T> node) {
+    public <T> T hasPermission(UPermissionNode<?, T> node) {
         var player = this.self().getPlayer();
         if (player == null) {
             return null;
         }
-        return PermissionAPI.getPermission(player, node);
+        return node.get(player);
     }
 
     @Unique

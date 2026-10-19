@@ -1,6 +1,6 @@
 package de.waterdu.atlantis.ext.player;
 
-import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 
 public interface PermissionsExt {
 
@@ -8,7 +8,7 @@ public interface PermissionsExt {
         return false;
     }
 
-    default <T> T hasPermission(PermissionNode<T> node) {
+    default <T> T hasPermission(UPermissionNode<?, T> node) {
         return null;
     }
 }

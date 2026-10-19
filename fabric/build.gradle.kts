@@ -26,6 +26,7 @@ dependencies {
 
     // Required dependencies
     modImplementation("com.terraformersmc:modmenu:${commonMod.dep("modmenu")}")
+    modImplementation(include("me.lucko:fabric-permissions-api:0.3.1")!!)
 
     listOf(
         "com.github.ben-manes.caffeine:caffeine:3.2.4",

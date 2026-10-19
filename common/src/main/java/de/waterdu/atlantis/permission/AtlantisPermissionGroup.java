@@ -3,8 +3,8 @@ package de.waterdu.atlantis.permission;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.file.auto.FileBackedObject;
 import de.waterdu.atlantis.file.datatypes.NamedData;
-import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
-import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import de.waterdu.atlantis.mod.Mods;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,13 +68,8 @@ public class AtlantisPermissionGroup implements NamedData {
         return false;
     }
 
-    public PermissionNode<Boolean> makeNode() {
-        return new PermissionNode<>(
-                Atlantis.ID,
-                this.node,
-                PermissionTypes.BOOLEAN,
-                (player, uuid, context) -> this.defaultUser.test(player)
-        );
+    public UPermissionNode<?, Boolean> makeNode() {
+        return Mods.modLoader().createBooleanNode(Atlantis.ID, this.node, this.defaultUser::test);
     }
 
     public int permissionLevel() {

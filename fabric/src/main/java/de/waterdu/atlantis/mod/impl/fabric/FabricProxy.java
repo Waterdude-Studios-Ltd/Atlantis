@@ -1,12 +1,18 @@
 package de.waterdu.atlantis.mod.impl.fabric;
 
+import de.waterdu.atlantis.mod.impl.fabric.modloader.permission.FabricPermissionNode;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
+import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
+
+import java.util.function.Predicate;
 
 public class FabricProxy implements ModLoaderDelegate {
 
@@ -20,6 +26,7 @@ public class FabricProxy implements ModLoaderDelegate {
             this.server = it;
             this.init(it, it::execute);
             this.onServerStarting();
+            Permissions.buildNodes(__ -> {});
         });
         ServerLifecycleEvents.SERVER_STARTED.register(__ -> this.onServerStarted());
         ServerLifecycleEvents.SERVER_STOPPING.register(__ -> this.onServerStopping());
@@ -41,5 +48,10 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public @Nullable MinecraftServer server() {
         return this.server;
+    }
+
+    @Override
+    public UPermissionNode<?, Boolean> createBooleanNode(String namespace, String path, Predicate<@Nullable ServerPlayer> defaultResolver) {
+        return new FabricPermissionNode(new FabricPermissionNode.Node(namespace + "." + path, defaultResolver));
     }
 }

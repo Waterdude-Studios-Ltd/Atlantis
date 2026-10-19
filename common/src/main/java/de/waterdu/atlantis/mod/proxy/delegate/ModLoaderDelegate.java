@@ -13,6 +13,7 @@ import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.ListenerEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.occasion.OccasionManager;
 import de.waterdu.atlantis.playerdata.UUIDNameCache;
 import de.waterdu.atlantis.self.AtlantisCommand;
@@ -29,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public interface ModLoaderDelegate extends ModProxy {
 
@@ -93,4 +95,6 @@ public interface ModLoaderDelegate extends ModProxy {
     UEventBus<?, ?> eventBus();
 
     @Nullable MinecraftServer server();
+
+    UPermissionNode<?, Boolean> createBooleanNode(String namespace, String path, Predicate<@Nullable ServerPlayer> defaultResolver);
 }

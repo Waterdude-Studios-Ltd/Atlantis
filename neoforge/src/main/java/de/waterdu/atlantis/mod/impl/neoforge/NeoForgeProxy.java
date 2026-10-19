@@ -2,9 +2,13 @@ package de.waterdu.atlantis.mod.impl.neoforge;
 
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEventBus;
+import de.waterdu.atlantis.mod.impl.neoforge.modloader.permission.NeoForgePermissionNode;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
+import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
@@ -18,14 +22,26 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
+import net.neoforged.neoforge.server.permission.handler.IPermissionHandler;
+import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext;
+import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
+import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class NeoForgeProxy implements ModLoaderDelegate {
 
     private final NeoForgeEventBus modEventBus;
     private final NeoForgeEventBus neoForgeEventBus;
+
+    private final Set<PermissionNode<?>> registeredNodes = new HashSet<>();
 
     public NeoForgeProxy(IEventBus modEventBus, ModContainer modContainer) {
         this.modEventBus = new NeoForgeEventBus(modEventBus);
@@ -51,6 +67,8 @@ public class NeoForgeProxy implements ModLoaderDelegate {
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, this.playerEventHandler(this::onPlayerLogout));
         NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, __ -> this.onServerStarted());
         NeoForge.EVENT_BUS.addListener(ServerStoppingEvent.class, __ -> this.onServerStopping());
+        NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Nodes.class, it -> Permissions.buildNodes(node -> it.addNodes(((NeoForgePermissionNode<?>) node).dereference())));
+        NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Handler.class, this::registerPermissionHandler);
 
         Atlantis.listeners();
 
@@ -63,6 +81,33 @@ public class NeoForgeProxy implements ModLoaderDelegate {
                 scope.accept(player);
             }
         };
+    }
+
+    private void registerPermissionHandler(PermissionGatherEvent.Handler event) {
+        event.addPermissionHandler(Permissions.ATLANTIS_PERMISSIONS_HANDLER, nodes -> {
+            this.registeredNodes.addAll(nodes);
+            return new IPermissionHandler() {
+                @Override
+                public @NonNull ResourceLocation getIdentifier() {
+                    return Permissions.ATLANTIS_PERMISSIONS_HANDLER;
+                }
+
+                @Override
+                public @NonNull Set<PermissionNode<?>> getRegisteredNodes() {
+                    return NeoForgeProxy.this.registeredNodes;
+                }
+
+                @Override
+                public <T> @NonNull T getPermission(@NonNull ServerPlayer serverPlayer, @NonNull PermissionNode<T> permissionNode, PermissionDynamicContext<?> @NonNull ... permissionDynamicContexts) {
+                    return permissionNode.getDefaultResolver().resolve(serverPlayer, serverPlayer.getUUID(), permissionDynamicContexts);
+                }
+
+                @Override
+                public <T> @NonNull T getOfflinePermission(@NonNull UUID uuid, @NonNull PermissionNode<T> permissionNode, PermissionDynamicContext<?> @NonNull ... permissionDynamicContexts) {
+                    return permissionNode.getDefaultResolver().resolve(null, uuid, permissionDynamicContexts);
+                }
+            };
+        });
     }
 
     @Override
@@ -78,5 +123,15 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public @Nullable MinecraftServer server() {
         return ServerLifecycleHooks.getCurrentServer();
+    }
+
+    @Override
+    public UPermissionNode<?, Boolean> createBooleanNode(String namespace, String path, Predicate<@Nullable ServerPlayer> defaultResolver) {
+        return new NeoForgePermissionNode<>(new PermissionNode<>(
+                namespace,
+                path,
+                PermissionTypes.BOOLEAN,
+                (player, uuid, context) -> defaultResolver.test(player)
+        ));
     }
 }
