@@ -71,6 +71,10 @@ public final class PlayerReference {
             if (known != null && !known.isRemoved()) {
                 return Optional.of(known);
             }
+            var server = ServerUtils.server();
+            if (server == null || server.isSameThread()) {
+                return ServerUtils.player(uuid);
+            }
             var future = new CompletableFuture<Optional<ServerPlayer>>();
             Concurrency.sync(() -> future.complete(ServerUtils.player(uuid)));
             return future.join();
