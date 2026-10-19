@@ -154,16 +154,16 @@ public class Schematic {
                         toPlace.add(entry);
                     }
                 }
+                var done = queue.isEmpty();
                 Concurrency.sync(() -> {
                     for (var entry : toPlace) {
                         this.placeMapEntry(level, origin, entry, ignoreAir, history);
                     }
+                    if (done) {
+                        Schematics.offerHistory(history);
+                        future.complete(history);
+                    }
                 });
-                var done = queue.isEmpty();
-                if (done) {
-                    Schematics.offerHistory(history);
-                    future.complete(history);
-                }
                 return done;
             }, millisPerStep, TimeUnit.MILLISECONDS);
         });
