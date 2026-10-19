@@ -92,9 +92,9 @@ public final class EntityUtils {
                 var d2 = (double)l2 + 0.5D - entity.getZ();
                 label293:
 
-                for (var j3 = level.getHeight() - 1; j3 >= 0; --j3) {
+                for (var j3 = level.getMaxBuildHeight() - 1; j3 >= level.getMinBuildHeight(); --j3) {
                     if (level.getBlockState(blockpos$mutableblockpos.set(j2, j3, l2)).isAir()) {
-                        while (j3 > 0 && level.getBlockState(blockpos$mutableblockpos.set(j2, j3 - 1, l2)).isAir()) {
+                        while (j3 > level.getMinBuildHeight() && level.getBlockState(blockpos$mutableblockpos.set(j2, j3 - 1, l2)).isAir()) {
                             --j3;
                         }
 
@@ -145,9 +145,9 @@ public final class EntityUtils {
                     var d4 = (double) j6 + 0.5D - entity.getZ();
                     label231:
 
-                    for (var i7 = level.getHeight() - 1; i7 >= 0; --i7) {
+                    for (var i7 = level.getMaxBuildHeight() - 1; i7 >= level.getMinBuildHeight(); --i7) {
                         if (level.getBlockState(blockpos$mutableblockpos.set(l5, i7, j6)).isAir()) {
-                            while (i7 > 0 && level.getBlockState(blockpos$mutableblockpos.set(l5, i7 - 1, j6)).isAir()) {
+                            while (i7 > level.getMinBuildHeight() && level.getBlockState(blockpos$mutableblockpos.set(l5, i7 - 1, j6)).isAir()) {
                                 --i7;
                             }
 
@@ -184,9 +184,13 @@ public final class EntityUtils {
             }
         }
 
-        var i6 = i1; // X
-        var k2 = j1 + 2; // Y
-        var k6 = k1; // Z
+        if (d0 < 0.0D) {
+            return false;
+        }
+
+        var i6 = i1 + 0.5D; // X
+        var k2 = j1; // Y
+        var k6 = k1 + 0.5D; // Z
 
         if (entity instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.teleport(i6, k2, k6, entity.getYRot(), entity.getXRot());
