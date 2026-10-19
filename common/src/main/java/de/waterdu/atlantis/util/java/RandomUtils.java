@@ -47,7 +47,7 @@ public final class RandomUtils {
             min = max;
             max = temp;
         }
-        return RandomUtils.getRandom().nextInt((int) (max - min + 1L)) + min;
+        return RandomUtils.getRandom().nextLong(max - min + 1L) + min;
     }
 
     public static float getBetween(float min, float max) {
@@ -56,7 +56,7 @@ public final class RandomUtils {
             min = max;
             max = temp;
         }
-        return RandomUtils.getRandom().nextFloat() * (max - min + 1F) + min;
+        return RandomUtils.getRandom().nextFloat() * (max - min) + min;
     }
 
     public static double getBetween(double min, double max) {
@@ -65,6 +65,6 @@ public final class RandomUtils {
             min = max;
             max = temp;
         }
-        return RandomUtils.getRandom().nextDouble() * (max - min + 1D) + min;
+        return RandomUtils.getRandom().nextDouble() * (max - min) + min;
     }
 }
