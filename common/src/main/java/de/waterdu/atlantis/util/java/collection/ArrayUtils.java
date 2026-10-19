@@ -53,7 +53,7 @@ public final class ArrayUtils {
     @SafeVarargs
     @SuppressWarnings("unchecked")
     public static <T> T[] expand(T[] array, T... expansion) {
-        var newArray = (T[]) Array.newInstance(array.getClass(), array.length + expansion.length);
+        var newArray = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length + expansion.length);
         System.arraycopy(array, 0, newArray, 0, array.length);
         System.arraycopy(expansion, 0, newArray, array.length, expansion.length);
         return newArray;
