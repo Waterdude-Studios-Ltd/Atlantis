@@ -8,12 +8,12 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 @SupportedAnnotationTypes({
@@ -30,17 +30,19 @@ public class DatabaseSerializableValidator extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         var messager = this.processingEnv.getMessager();
+        var types = this.processingEnv.getTypeUtils();
         outer:
         for (var element : roundEnv.getElementsAnnotatedWith(DatabaseSerializable.class)) {
             var annotation = element.getAnnotation(DatabaseSerializable.class);
             var type = annotation.type();
-            var javaType = element.asType().toString();
-            var allowedTypes = this.getAllowedTypes(element, type);
+            var erasedType = types.erasure(element.asType());
+            var javaType = erasedType.toString();
+            var allowedTypes = this.getAllowedTypes(type);
             if (allowedTypes != null) {
                 try {
                     if (!allowedTypes.isEmpty()) {
                         for (var clazz : allowedTypes) {
-                            if (clazz.toString().equalsIgnoreCase(javaType)) {
+                            if (types.isSameType(types.erasure(clazz), erasedType)) {
                                 continue outer;
                             }
                         }
@@ -52,18 +54,14 @@ public class DatabaseSerializableValidator extends AbstractProcessor {
         return true;
     }
 
-    private List<TypeMirror> getAllowedTypes(Element self, String type) {
-        for (var element : this.processingEnv.getElementUtils().getPackageOf(self.getAnnotationMirrors().getFirst().getAnnotationType().asElement()).getEnclosedElements()) {
-            if (element.getSimpleName().contentEquals("DatabaseEncoders")) {
-                for (var inner : element.getEnclosedElements()) {
-                    if (inner.getSimpleName().contentEquals("Defaults")) {
-                        for (var field : inner.getEnclosedElements()) {
-                            if (field.getSimpleName().contentEquals(type.toUpperCase(Locale.ROOT))) {
-                                return this.getClassArrayValueFromAnnotation(field, AllowedTypes.class, "value");
-                            }
-                        }
-                    }
-                }
+    private List<TypeMirror> getAllowedTypes(String type) {
+        var defaults = this.processingEnv.getElementUtils().getTypeElement("de.waterdu.atlantis.file.DatabaseEncoders.Defaults");
+        if (defaults == null) {
+            return null;
+        }
+        for (var field : defaults.getEnclosedElements()) {
+            if (field instanceof VariableElement variable && variable.getConstantValue() instanceof String value && value.equalsIgnoreCase(type)) {
+                return this.getClassArrayValueFromAnnotation(field, AllowedTypes.class, "value");
             }
         }
         return null;
