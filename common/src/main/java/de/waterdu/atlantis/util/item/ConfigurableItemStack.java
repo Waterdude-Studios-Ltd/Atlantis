@@ -137,23 +137,11 @@ public class ConfigurableItemStack {
     }
 
     private String[] prepareArgs(String string) {
-        if (!string.contains("{")) {
+        var brace = string.indexOf('{');
+        if (brace < 0) {
             return string.split(" ");
         }
-        String[] step1 = string.split("\\{");
-        if (step1.length <= 1) {
-            return string.split(" ");
-        }
-        StringBuilder step2 = new StringBuilder();
-        boolean first = true;
-        for (String step1Sub : step1) {
-            step2.append(step1Sub);
-            if (first) {
-                step2.append(" {");
-                first = false;
-            }
-        }
-        return step2.toString().split(" ");
+        return (string.substring(0, brace) + " " + string.substring(brace)).split(" ");
     }
 
     private void parse(int start, String... args) throws CommandSyntaxException {
