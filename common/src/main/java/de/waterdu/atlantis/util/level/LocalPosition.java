@@ -111,7 +111,7 @@ public class LocalPosition extends Vec3 {
     }
 
     public BlockPos getBlockPos() {
-        return new BlockPos((int) this.x, (int) this.y, (int) this.z);
+        return BlockPos.containing(this.x, this.y, this.z);
     }
 
     public void teleport(Entity entity) {
