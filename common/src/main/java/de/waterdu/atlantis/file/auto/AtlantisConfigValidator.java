@@ -8,6 +8,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -61,23 +62,20 @@ public final class AtlantisConfigValidator extends AbstractProcessor {
         for (var tm : interfaces) {
             if (types.isAssignable(type, tm)) {
                 if (types.isAssignable(type, dataType)) {
-                    if (this.checkForHCEQTSMethods(elements, element, messager)) {
-                        return;
-                    }
-                } else {
-                    return;
+                    this.validateObjectMethods(elements, element, messager);
                 }
+                return;
             }
         }
         messager.printMessage(Diagnostic.Kind.ERROR, "invalid " + kind + " implementation, must implement one of Configuration, Data, NamedData, PlayerData", element);
     }
 
-    private boolean checkForHCEQTSMethods(Elements elements, Element element, Messager messager) {
+    private boolean validateObjectMethods(Elements elements, Element element, Messager messager) {
         boolean hashCode = false;
         boolean equals = false;
         boolean toString = false;
         for (var member : elements.getAllMembers((TypeElement) element)) {
-            if (member.getKind() == ElementKind.METHOD && !member.getEnclosingElement().getSimpleName().contentEquals("Object")) {
+            if (member.getKind() == ElementKind.METHOD && !member.getModifiers().contains(Modifier.ABSTRACT) && !member.getEnclosingElement().getSimpleName().contentEquals("Object")) {
                 if (member.getSimpleName().contentEquals("hashCode")) {
                     hashCode = true;
                 } else if (member.getSimpleName().contentEquals("equals")) {
