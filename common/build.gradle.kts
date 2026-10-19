@@ -2,7 +2,6 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods.mixin
 import org.gradle.kotlin.dsl.annotationProcessor
 import org.gradle.kotlin.dsl.creating
 import org.gradle.kotlin.dsl.implementation
-import org.gradle.kotlin.dsl.include
 import org.gradle.kotlin.dsl.kotlin
 
 repositories {
@@ -44,7 +43,6 @@ plugins {
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.14"
     id("java-library")
     id("maven-publish")
-    id("com.gradleup.shadow") version "9.3.1"
 }
 
 stonecutter {
@@ -81,8 +79,8 @@ dependencies {
         dependency: (String) -> String,
         localJar: String
     ) {
-        version.takeIf { it.isNotBlank() }?.let { implementation(dependency(it)) }
-            ?: localOptionalJar(localJar)?.let { implementation(files(it)) }
+        version.takeIf { it.isNotBlank() }?.let { compileOnly(dependency(it)) }
+            ?: localOptionalJar(localJar)?.let { compileOnly(files(it)) }
     }
 
     minecraft("com.mojang:minecraft:${commonMod.mc}")
@@ -103,12 +101,12 @@ dependencies {
     })
 
     if (is_atlantis) {
-        shadow("io.netty:netty-all:4.1.86.Final")
-        shadow("com.zaxxer:HikariCP:4.0.3")
-        shadow("mysql:mysql-connector-java:8.0.29")
-        shadow("io.lettuce:lettuce-core:6.2.3.RELEASE")
-        shadow("com.github.ben-manes.caffeine:caffeine:3.2.4")
-        shadow("io.github.classgraph:classgraph:4.8.197")
+        compileOnly("io.netty:netty-all:4.1.86.Final")
+        compileOnly("com.zaxxer:HikariCP:4.0.3")
+        compileOnly("mysql:mysql-connector-java:8.0.29")
+        compileOnly("io.lettuce:lettuce-core:6.2.3.RELEASE")
+        compileOnly("com.github.ben-manes.caffeine:caffeine:3.2.4")
+        compileOnly("io.github.classgraph:classgraph:4.8.197")
 
         compileOnly("org.spigotmc:spigot-api:${commonMod.mc}-R0.1-SNAPSHOT")
     } else {
@@ -154,32 +152,4 @@ artifacts {
             add(commonResources.name, it)
         }
     }
-}
-
-tasks.shadowJar {
-    configurations = listOf(project.configurations["shadow"])
-    archiveClassifier.set("")
-    isZip64 = true
-
-    exclude("dummyThing")
-    exclude("de.waterdu.atlantis.mixin**")
-    relocate("com.google.protobuf", "de.waterdu.atlantis.shade.com.google.protobuf")
-    relocate("com.mysql", "de.waterdu.atlantis.shade.com.mysql")
-    relocate("com.zaxxer", "de.waterdu.atlantis.shade.com.zaxxer")
-    relocate("io.github", "de.waterdu.atlantis.shade.io.github")
-    relocate("io.lettuce", "de.waterdu.atlantis.shade.io.lettuce")
-    relocate("io.netty", "de.waterdu.atlantis.shade.io.netty")
-    relocate("org.reactivestreams", "de.waterdu.atlantis.shade.org.reactivestreams")
-    relocate("org.slf4j", "de.waterdu.atlantis.shade.org.slf4j")
-    relocate("reactor", "de.waterdu.atlantis.shade.reactor")
-    exclude("**/module-info.class")
-    exclude("**/*.properties")
-    exclude("**/*.xml")
-    exclude("META-INF/versions/9/**")
-    exclude("META-INF/native-image/**")
-    exclude("META-INF/services/**")
-}
-
-tasks.jar {
-    finalizedBy(tasks.shadowJar)
 }

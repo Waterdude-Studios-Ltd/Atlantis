@@ -26,6 +26,21 @@ dependencies {
 
     // Required dependencies
     modImplementation("com.terraformersmc:modmenu:${commonMod.dep("modmenu")}")
+
+    listOf(
+        "com.github.ben-manes.caffeine:caffeine:3.2.4",
+        "io.github.classgraph:classgraph:4.8.197",
+        "com.zaxxer:HikariCP:4.0.3",
+        "mysql:mysql-connector-java:8.0.29",
+        "com.google.protobuf:protobuf-java:3.19.4",
+        "io.lettuce:lettuce-core:6.2.3.RELEASE",
+        "io.projectreactor:reactor-core:3.4.27",
+        "org.reactivestreams:reactive-streams:1.0.4",
+    ).forEach { library ->
+        include(implementation(library) {
+            isTransitive = false
+        }!!)
+    }
 }
 
 loom {
@@ -33,6 +48,12 @@ loom {
 
     interfaceInjection {
         enableDependencyInterfaceInjection = true
+    }
+
+    mods {
+        register(commonMod.id) {
+            sourceSet(sourceSets.main.get())
+        }
     }
 
     runs {
