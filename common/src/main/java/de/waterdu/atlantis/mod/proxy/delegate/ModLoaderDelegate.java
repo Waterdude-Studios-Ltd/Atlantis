@@ -22,6 +22,7 @@ import de.waterdu.atlantis.self.AtlantisCommand;
 import de.waterdu.atlantis.ui.api.AtlantisUI;
 import de.waterdu.atlantis.ui.api.Decorations;
 import de.waterdu.atlantis.ui.api.PageOptions;
+import de.waterdu.atlantis.util.bootstrap.Bootstrapper;
 import de.waterdu.atlantis.util.config.Key;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.java.TimeUtils;
@@ -36,12 +37,20 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public interface ModLoaderDelegate extends ModProxy {
+
+    @Override
+    default void setup() {
+        Bootstrapper.bootstrap(this);
+    }
 
     default void init(Object event, Consumer<Runnable> enqueue) {
         AtlantisCommand.setup(enqueue);
@@ -123,6 +132,8 @@ public interface ModLoaderDelegate extends ModProxy {
     List<ModInfo> mods();
 
     boolean isFakePlayer(ServerPlayer player);
+
+    Map<Class<? extends Annotation>, List<String>> scanAnnotatedClasses(Collection<Class<? extends Annotation>> annotations);
 
     boolean onBlockPlace(ServerPlayer player, BlockPos pos);
 

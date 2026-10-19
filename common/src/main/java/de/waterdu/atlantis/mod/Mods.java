@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-@Bootstrapped
+@Bootstrapped(order = -100)
 public final class Mods {
 
     private static final Map<ModExtension.Priority, Map<String, ModExtension>> EXTENSIONS = new EnumMap<>(ModExtension.Priority.class) {{

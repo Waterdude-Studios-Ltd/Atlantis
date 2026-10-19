@@ -8,6 +8,7 @@ import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
+import io.github.classgraph.ClassGraph;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.FakePlayer;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
+import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.fabricmc.loader.api.metadata.Person;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -26,9 +28,15 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 public class FabricProxy implements ModLoaderDelegate {
@@ -112,6 +120,38 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public boolean isFakePlayer(ServerPlayer player) {
         return player instanceof FakePlayer;
+    }
+
+    @Override
+    public Map<Class<? extends Annotation>, List<String>> scanAnnotatedClasses(Collection<Class<? extends Annotation>> annotations) {
+        var paths = new LinkedHashSet<Path>();
+        for (var mod : FabricLoader.getInstance().getAllMods()) {
+            if (FabricProxy.isBuiltin(mod)) {
+                continue;
+            }
+            for (var root : mod.getRootPaths()) {
+                if (root.getFileSystem() == FileSystems.getDefault()) {
+                    paths.add(root);
+                }
+            }
+            if (mod.getOrigin().getKind() == ModOrigin.Kind.PATH) {
+                paths.addAll(mod.getOrigin().getPaths());
+            }
+        }
+
+        var classes = new HashMap<Class<? extends Annotation>, List<String>>();
+        try (var scan = new ClassGraph()
+                .overrideClasspath(paths)
+                .enableClassInfo()
+                .enableAnnotationInfo()
+                .ignoreClassVisibility()
+                .rejectPackages("net.minecraft", "com.mojang", "net.fabricmc")
+                .scan()) {
+            for (var annotation : annotations) {
+                classes.put(annotation, new ArrayList<>(scan.getClassesWithAnnotation(annotation.getName()).getNames()));
+            }
+        }
+        return classes;
     }
 
     private static boolean isBuiltin(ModContainer mod) {

@@ -48,11 +48,16 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import net.neoforged.neoforgespi.language.IModInfo;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.Type;
 
+import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -196,6 +201,25 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public boolean isFakePlayer(ServerPlayer player) {
         return player instanceof FakePlayer;
+    }
+
+    @Override
+    public Map<Class<? extends Annotation>, List<String>> scanAnnotatedClasses(Collection<Class<? extends Annotation>> annotations) {
+        var types = new HashMap<Type, Class<? extends Annotation>>();
+        for (var annotation : annotations) {
+            types.put(Type.getType(annotation), annotation);
+        }
+
+        var classes = new HashMap<Class<? extends Annotation>, List<String>>();
+        for (var scan : ModList.get().getAllScanData()) {
+            for (var data : scan.getAnnotations()) {
+                var annotation = types.get(data.annotationType());
+                if (annotation != null) {
+                    classes.computeIfAbsent(annotation, __ -> new ArrayList<>()).add(data.clazz().getClassName());
+                }
+            }
+        }
+        return classes;
     }
 
     @Override

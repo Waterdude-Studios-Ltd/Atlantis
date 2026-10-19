@@ -51,6 +51,7 @@ dependencies {
         "compileOnly"("mysql:mysql-connector-java:8.0.29")
         "compileOnly"("io.lettuce:lettuce-core:6.2.3.RELEASE")
         "compileOnly"("com.github.ben-manes.caffeine:caffeine:3.2.4")
+        "compileOnly"("io.github.classgraph:classgraph:4.8.197")
         "compileOnly"("org.spigotmc:spigot-api:${commonMod.mc}-R0.1-SNAPSHOT")
     }
 

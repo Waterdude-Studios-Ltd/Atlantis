@@ -1,6 +1,5 @@
 package de.waterdu.atlantis.file;
 
-import com.google.common.collect.Maps;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.file.auto.BasicConfiguration;
@@ -14,18 +13,15 @@ import de.waterdu.atlantis.file.datatypes.Configuration;
 import de.waterdu.atlantis.file.storage.Flatfile;
 import de.waterdu.atlantis.file.storage.Storage;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
+import de.waterdu.atlantis.util.bootstrap.Bootstrapper;
 import de.waterdu.atlantis.util.bootstrap.Entrypoint;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.jetbrains.annotations.ApiStatus;
-import org.objectweb.asm.Type;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -36,17 +32,12 @@ import java.util.function.Supplier;
 @Bootstrapped
 public final class AtlantisConfigFinder {
 
-    private static final Type BASIC_CONFIGURATION_TYPE = Type.getType(BasicConfiguration.class);
-    private static final Type BASIC_DATA_TYPE = Type.getType(BasicData.class);
-    private static final Type I18N_FILE_TYPE = Type.getType(I18nFile.class);
-    private static final Type FILE_BACKED_OBJECT_TYPE = Type.getType(FileBackedObject.class);
-
-    private static final Type[] ANNOTATION_TYPES = new Type[]{
-            BASIC_CONFIGURATION_TYPE,
-            BASIC_DATA_TYPE,
-            I18N_FILE_TYPE,
-            FILE_BACKED_OBJECT_TYPE,
-    };
+    private static final List<Class<? extends Annotation>> ANNOTATIONS = List.of(
+            BasicConfiguration.class,
+            BasicData.class,
+            I18nFile.class,
+            FileBackedObject.class
+    );
 
     private static final Supplier<Storage> DEFAULT_STORAGE = Flatfile::new;
     private static final Map<String, List<ConfigurationInstance<? extends Configuration>>> INSTANCES = new HashMap<>();
@@ -60,58 +51,22 @@ public final class AtlantisConfigFinder {
     @Entrypoint
     public static void find() {
         if (!AtlantisConfigFinder.FOUND.getAndSet(true)) {
-            final var annotations = ModList.get().getAllScanData().stream()
-                    .map(ModFileScanData::getAnnotations)
-                    .flatMap(Collection::stream)
-                    .filter(AtlantisConfigFinder::testAnnotation)
-                    .toList();
+            for (var annotation : ANNOTATIONS) {
+                Bootstrapper.forEachAnnotatedClass(annotation, annotated -> {
+                    if (Configuration.class.isAssignableFrom(annotated.clazz())) {
+                        AtlantisConfigFinder.tryRegister(annotated.annotation(), annotated.clazz().asSubclass(Configuration.class));
+                    }
+                });
+            }
 
-            final var classCache = Maps.<Type, Class<? extends Configuration>>newHashMap();
-
-            AtlantisConfigFinder.scan(annotations, BASIC_CONFIGURATION_TYPE, BasicConfiguration.class, classCache);
-            AtlantisConfigFinder.scan(annotations, BASIC_DATA_TYPE, BasicData.class, classCache);
-            AtlantisConfigFinder.scan(annotations, I18N_FILE_TYPE, I18nFile.class, classCache);
-            AtlantisConfigFinder.scan(annotations, FILE_BACKED_OBJECT_TYPE, FileBackedObject.class, classCache);
+            BACKUP_INSTANCES.clear();
+            BACKUP_INSTANCES.putAll(INSTANCES);
         }
     }
 
     public static void restoreFromBackup() {
         INSTANCES.clear();
         INSTANCES.putAll(BACKUP_INSTANCES);
-    }
-
-    private static boolean testAnnotation(ModFileScanData.AnnotationData data) {
-        for (var type : ANNOTATION_TYPES) {
-            if (type.equals(data.annotationType())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static <A extends Annotation> void scan(List<ModFileScanData.AnnotationData> annotations, Type annotationType, Class<A> annotationClass, Map<Type, Class<? extends Configuration>> classCache) {
-        annotations.stream()
-                .filter(data -> annotationType.equals(data.annotationType()))
-                .forEach(data -> AtlantisConfigFinder.scan(annotationClass, data.clazz(), classCache));
-
-        BACKUP_INSTANCES.clear();
-        BACKUP_INSTANCES.putAll(INSTANCES);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <A extends Annotation> void scan(Class<A> annotationClass, Type objectType, Map<Type, Class<? extends Configuration>> classCache) {
-        Class<? extends Configuration> clazz;
-        if (classCache.containsKey(objectType)) {
-            clazz = classCache.get(objectType);
-        } else {
-            try {
-                clazz = (Class<? extends Configuration>) Class.forName(objectType.getClassName(), false, AtlantisConfigFinder.class.getClassLoader());
-                classCache.put(objectType, clazz);
-            } catch (ClassNotFoundException | ClassCastException ignored) {
-                return;
-            }
-        }
-        AtlantisConfigFinder.tryRegister(clazz.getAnnotation(annotationClass), clazz);
     }
 
     static void tryRegister(Annotation annotation, Class<? extends Configuration> clazz) {

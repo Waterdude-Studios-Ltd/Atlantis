@@ -7,4 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Bootstrapped {}
+public @interface Bootstrapped {
+
+    // lower = earlier
+    int order() default 0;
+}

@@ -1,6 +1,5 @@
 package de.waterdu.atlantis.util.bootstrap;
 
-import io.github.classgraph.AnnotationInfo;
+import java.lang.annotation.Annotation;
 
-public record AnnotatedClass(Class<?> clazz, AnnotationInfo info) {
-}
+public record AnnotatedClass(Class<?> clazz, Annotation annotation) {}
