@@ -144,7 +144,7 @@ public class Range<N extends Number> {
 
         @Override
         public Range<N> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            var split = json.getAsString().split("-");
+            var split = json.getAsString().split("(?<=[0-9.])-");
             if (split.length != 2) {
                 throw new JsonParseException("Invalid range: " + json);
             }
