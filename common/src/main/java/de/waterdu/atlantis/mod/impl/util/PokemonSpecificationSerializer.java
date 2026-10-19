@@ -13,10 +13,13 @@ import de.waterdu.atlantis.util.text.TextUtils;
 public class PokemonSpecificationSerializer {
 
     private static final String SPECIES_SPEC = "species";
-    private static final String DELIMITER = Mods.pokemon().specDelimiter();
 
     private PokemonSpecificationSerializer() {
         ExceptionUtils.throwCannotInstantiateClassException();
+    }
+
+    private static String delimiter() {
+        return Mods.pokemon().specDelimiter();
     }
 
     public static JsonObject serialize(UPokemonSpec<?, ?> spec) {
@@ -31,7 +34,7 @@ public class PokemonSpecificationSerializer {
         var split = spec.split(" ");
         var map = UnaryMap.<String>create(split.length);
         for (var i = 0; i < split.length; i++) {
-            var pair = split[i].split(DELIMITER);
+            var pair = split[i].split(delimiter());
             if (i == 0) {
                 map.put(SPECIES_SPEC, Mods.pokemon().species(pair[0]).name());
             } else {
@@ -106,7 +109,7 @@ public class PokemonSpecificationSerializer {
             if (SPECIES_SPEC.equalsIgnoreCase(this.spec)) {
                 return this.value.toString();
             }
-            return this.spec + DELIMITER + this.value.toString();
+            return this.spec + delimiter() + this.value.toString();
         }
 
         public JsonPrimitive toJson() {
