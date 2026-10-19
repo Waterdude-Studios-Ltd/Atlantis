@@ -114,8 +114,6 @@ dependencies {
         implementation("de.waterdu.atlantis:Atlantis121:0.0.1")
     }
 
-    implementation("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal:${commonMod.pixelmon}")
-
     optionalIntegration(
         commonMod.cobblemon,
         { version -> "com.cobblemon.mod:Cobblemon:$version" },

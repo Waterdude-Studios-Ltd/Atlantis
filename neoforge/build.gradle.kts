@@ -15,7 +15,7 @@ neoForge {
 }
 
 dependencies {
-    interfaceInjectionData("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal-interfaceinjection:${commonMod.pixelmon}@json")
+    compileOnly("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal:${commonMod.pixelmon}")
 
     listOf(
         "com.github.ben-manes.caffeine:caffeine:3.2.4",

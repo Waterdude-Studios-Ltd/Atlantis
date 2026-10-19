@@ -5,7 +5,6 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.impl.cobblemon.fabric.CobblemonFabricProxy;
 import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.CobblemonNeoForgeProxy;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
-import de.waterdu.atlantis.mod.impl.pixelmon.PixelmonProxy;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
@@ -88,7 +87,7 @@ public final class Mods {
     public static final ModExtension PIXELMON = ModExtension.builder()
             .modId("pixelmon")
             .mainClass("com.pixelmonmod.pixelmon.Pixelmon")
-            .proxy(ModExtension.Loader.NEOFORGE, PixelmonProxy::new)
+            .reflectiveConstructorProxy(ModExtension.Loader.NEOFORGE, "de.waterdu.atlantis.mod.impl.pixelmon.PixelmonProxy")
             .delegates(PokemonDelegate.class, EconomyDelegate.class)
             .language(ModExtension.Language.JAVA)
             .priority(ModExtension.Priority.HIGH)

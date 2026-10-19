@@ -34,8 +34,7 @@
     "loom:injected_interfaces": {
       "net/minecraft/world/entity/player/Player": [
         "de/waterdu/atlantis/ext/player/PlayerExt",
-        "de/waterdu/atlantis/ext/player/PermissionsExt",
-        "com/pixelmonmod/pixelmon/api/extensions/PixelmonPlayerExtension"
+        "de/waterdu/atlantis/ext/player/PermissionsExt"
       ],
       "net/minecraft/resources/ResourceLocation": [
         "de/waterdu/atlantis/ext/dev/ResourceLocationExt"

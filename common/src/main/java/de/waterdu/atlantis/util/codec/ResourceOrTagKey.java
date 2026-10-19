@@ -8,14 +8,15 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.mojang.datafixers.util.Either;
-import com.pixelmonmod.pixelmon.api.util.helpers.ResourceLocationHelper;
 import de.waterdu.atlantis.AtlantisLogger;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 
 import java.lang.reflect.Type;
+import java.util.Locale;
 
 public final class ResourceOrTagKey<T> {
 
@@ -70,9 +71,9 @@ public final class ResourceOrTagKey<T> {
 
     private void parseKey() {
         if (this.key.startsWith("#")) {
-            this.tagKey = TagKey.create(this.registry, ResourceLocationHelper.of(this.key.substring(1)));
+            this.tagKey = TagKey.create(this.registry, ResourceLocation.tryParse(this.key.substring(1).toLowerCase(Locale.ROOT)));
         } else {
-            this.resourceKey = ResourceKey.create(this.registry, ResourceLocationHelper.of(this.key));
+            this.resourceKey = ResourceKey.create(this.registry, ResourceLocation.tryParse(this.key.toLowerCase(Locale.ROOT)));
         }
     }
 

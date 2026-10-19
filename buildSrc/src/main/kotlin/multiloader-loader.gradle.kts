@@ -54,9 +54,6 @@ dependencies {
         "compileOnly"("org.spigotmc:spigot-api:${commonMod.mc}-R0.1-SNAPSHOT")
     }
 
-    "compileOnly"("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal:${commonMod.pixelmon}")
-    "compileOnly"("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal-interfaceinjection:${commonMod.pixelmon}@json")
-
     optionalIntegration(
         commonMod.cobblemon,
         { version -> "com.cobblemon.mod:Cobblemon:$version" },
