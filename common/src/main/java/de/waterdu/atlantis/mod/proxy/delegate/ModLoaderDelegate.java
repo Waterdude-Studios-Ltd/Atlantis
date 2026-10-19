@@ -28,6 +28,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -95,6 +96,14 @@ public interface ModLoaderDelegate extends ModProxy {
     UEventBus<?, ?> eventBus();
 
     @Nullable MinecraftServer server();
+
+    Path configDir();
+
+    boolean isDedicatedServer();
+
+    boolean isModLoaded(String modId);
+
+    boolean isFakePlayer(ServerPlayer player);
 
     UPermissionNode<?, Boolean> createBooleanNode(String namespace, String path, Predicate<@Nullable ServerPlayer> defaultResolver);
 }

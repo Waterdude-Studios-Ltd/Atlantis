@@ -16,11 +16,10 @@ import de.waterdu.atlantis.file.FieldHolder;
 import de.waterdu.atlantis.file.datatypes.Configuration;
 import de.waterdu.atlantis.file.datatypes.Data;
 import de.waterdu.atlantis.file.datatypes.NamedData;
+import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.text.IncompleteString;
 import de.waterdu.atlantis.util.text.TextUtils;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.io.File;
 import java.io.InvalidClassException;
@@ -209,7 +208,7 @@ public class Database implements Storage {
 
     @Override
     public <T extends Configuration> void destruct(Config<T> config) {
-        if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
+        if (Mods.modLoader().isDedicatedServer()) {
             this.hikari.close();
         }
     }

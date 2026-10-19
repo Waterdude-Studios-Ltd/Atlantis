@@ -1,12 +1,12 @@
 package de.waterdu.atlantis.ui.internal;
 
+import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.ui.api.AtlantisUI;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
@@ -29,7 +29,7 @@ public class InventoryListener {
             var uuid = entry.getKey();
             var page = entry.getValue();
             var player = PlayerReference.get(uuid).entityDirect();
-            if (player == null || player instanceof FakePlayer) {
+            if (player == null || Mods.modLoader().isFakePlayer(player)) {
                 continue;
             }
             if (page.closureMarker()) {

@@ -3,6 +3,7 @@ package de.waterdu.atlantis.level.schematic;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.Settings;
+import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.NbtAccounter;
@@ -27,7 +28,7 @@ public final class Schematics {
     }
 
     public static void loadAll() {
-        var dir = new File("./config/" + Atlantis.ID + "/schematics");
+        var dir = Mods.modLoader().configDir().resolve(Atlantis.ID).resolve("schematics").toFile();
         if (dir.mkdirs()) {
             AtlantisLogger.info("Created schematics directory at {}", dir.getPath());
         }

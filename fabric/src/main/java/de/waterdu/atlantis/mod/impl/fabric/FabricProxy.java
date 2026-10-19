@@ -6,12 +6,16 @@ import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.function.Predicate;
 
 public class FabricProxy implements ModLoaderDelegate {
@@ -48,6 +52,26 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public @Nullable MinecraftServer server() {
         return this.server;
+    }
+
+    @Override
+    public Path configDir() {
+        return FabricLoader.getInstance().getConfigDir();
+    }
+
+    @Override
+    public boolean isDedicatedServer() {
+        return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    @Override
+    public boolean isFakePlayer(ServerPlayer player) {
+        return player instanceof FakePlayer;
     }
 
     @Override

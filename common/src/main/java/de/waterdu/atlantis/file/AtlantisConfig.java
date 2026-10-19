@@ -192,16 +192,19 @@ public final class AtlantisConfig {
     @SuppressWarnings("all")
     @ApiStatus.Internal
     static AtlantisConfig preRegistration0(String mod) {
-        var root = new File(".");
-        var all = new File(root, "config");
+        var instance = new AtlantisConfig();
+        instance.dir = AtlantisConfig.resolveDir(mod);
+        return instance;
+    }
+
+    private static File resolveDir(String mod) {
+        var all = Mods.modLoader().configDir().toFile();
         if (all.mkdir()) {
             AtlantisLogger.info("Created config directory");
         }
-        var config = new File(all, mod);
-        var instance = new AtlantisConfig();
-        instance.dir = config;
-        instance.dir.mkdir();
-        return instance;
+        var dir = new File(all, mod);
+        dir.mkdir();
+        return dir;
     }
 
     @SuppressWarnings("unchecked")
@@ -266,7 +269,11 @@ public final class AtlantisConfig {
     }
 
     public static File dirOf(String mod) {
-        return AtlantisConfig.of(mod).dir;
+        var instance = AtlantisConfig.of(mod);
+        if (instance.dir == null) {
+            instance.dir = AtlantisConfig.resolveDir(mod);
+        }
+        return instance.dir;
     }
     
     @SuppressWarnings("unchecked")

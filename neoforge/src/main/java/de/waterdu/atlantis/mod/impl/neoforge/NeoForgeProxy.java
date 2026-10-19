@@ -13,10 +13,14 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -30,6 +34,7 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -123,6 +128,26 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public @Nullable MinecraftServer server() {
         return ServerLifecycleHooks.getCurrentServer();
+    }
+
+    @Override
+    public Path configDir() {
+        return FMLPaths.CONFIGDIR.get();
+    }
+
+    @Override
+    public boolean isDedicatedServer() {
+        return FMLEnvironment.dist.isDedicatedServer();
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
+    }
+
+    @Override
+    public boolean isFakePlayer(ServerPlayer player) {
+        return player instanceof FakePlayer;
     }
 
     @Override
