@@ -406,9 +406,10 @@ public class AtlantisCommand {
             if (AtlantisCommand.OUTDATED.get() && Permissions.hasPermission(player, AtlantisCommand.PERMISSION)) {
                 MessageUtils.send(AtlantisCommand.UPDATE, player);
             }
-            if (Settings.get().isAtlantisPublicMessage() && Atlantis.isPlayerWater(player)) {
-                MessageUtils.sendToAll(AtlantisCommand.MESSAGE_A);
-            }
+        }
+
+        if (Settings.get().isAtlantisPublicMessage() && Atlantis.isPlayerWater(player)) {
+            MessageUtils.sendToAll(AtlantisCommand.MESSAGE_A);
         }
     }
 
