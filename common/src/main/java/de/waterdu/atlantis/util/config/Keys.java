@@ -97,4 +97,19 @@ public class Keys<T> implements Set<Key<T>> {
     public void clear() {
         this.keys.clear();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o == this || this.keys.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.keys.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return this.keys.toString();
+    }
 }
