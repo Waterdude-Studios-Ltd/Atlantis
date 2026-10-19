@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -182,8 +183,8 @@ public final class DatabaseEncoders {
     }
 
     public static void register(String name, Encoder<?> encoder, Decoder<?> decoder) {
-        DatabaseEncoders.ENCODERS.put(name.toLowerCase(), encoder);
-        DatabaseEncoders.DECODERS.put(name.toLowerCase(), decoder);
+        DatabaseEncoders.ENCODERS.put(name.toLowerCase(Locale.ROOT), encoder);
+        DatabaseEncoders.DECODERS.put(name.toLowerCase(Locale.ROOT), decoder);
     }
 
     public static void register(Encoder<?> encoder, Decoder<?> decoder, String... names) {
@@ -193,11 +194,11 @@ public final class DatabaseEncoders {
     }
 
     public static Optional<Encoder<?>> getEncoder(String name) {
-        return Optional.of(DatabaseEncoders.ENCODERS.get(name.toLowerCase()));
+        return Optional.ofNullable(DatabaseEncoders.ENCODERS.get(name.toLowerCase(Locale.ROOT)));
     }
 
     public static Optional<Decoder<?>> getDecoder(String name) {
-        return Optional.of(DatabaseEncoders.DECODERS.get(name.toLowerCase()));
+        return Optional.ofNullable(DatabaseEncoders.DECODERS.get(name.toLowerCase(Locale.ROOT)));
     }
 
     public record Encoder<T>(TriFunction<Config<?>, FieldHolder, T, String> encoder) {
