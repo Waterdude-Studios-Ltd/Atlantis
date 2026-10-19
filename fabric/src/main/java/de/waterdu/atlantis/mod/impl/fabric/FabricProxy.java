@@ -53,7 +53,6 @@ public class FabricProxy implements ModLoaderDelegate {
 
         ServerLifecycleEvents.SERVER_STARTING.register(it -> {
             this.server = it;
-            this.init(it, it::execute);
             this.onServerStarting();
             Permissions.buildNodes(__ -> {});
         });
@@ -65,6 +64,8 @@ public class FabricProxy implements ModLoaderDelegate {
         ServerTickEvents.END_SERVER_TICK.register(this::onServerTickPost);
 
         ModLoaderDelegate.super.setup();
+
+        this.init(null, Runnable::run);
     }
 
     @Override
