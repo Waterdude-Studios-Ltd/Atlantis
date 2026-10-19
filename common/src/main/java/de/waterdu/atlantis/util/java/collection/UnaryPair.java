@@ -26,6 +26,16 @@ public class UnaryPair<T> extends Pair<T, T> {
         }
 
         @Override
+        public void setA(T a) {
+            throw new UnsupportedOperationException("Cannot modify an immutable Pair");
+        }
+
+        @Override
+        public void setB(T b) {
+            throw new UnsupportedOperationException("Cannot modify an immutable Pair");
+        }
+
+        @Override
         public String toString() {
             return "UnaryPair.Immutable{[" + (this.getA() == null ? "null" : this.getA().toString()) + "],[" + (this.getB() == null ? "null" : this.getB().toString()) + "]}";
         }
