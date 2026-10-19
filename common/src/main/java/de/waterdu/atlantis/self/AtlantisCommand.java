@@ -159,7 +159,7 @@ public class AtlantisCommand {
                                                     }
 
                                                     if (floor) {
-                                                        while (location.getY() > 0 && dimension.getBlockState(location).isAir()) {
+                                                        while (location.getY() > dimension.getMinBuildHeight() && dimension.getBlockState(location).isAir()) {
                                                             location = location.below();
                                                         }
                                                         location = location.above();
