@@ -1,7 +1,6 @@
 package de.waterdu.atlantis.level.chunk;
 
 import de.waterdu.atlantis.util.java.ExceptionUtils;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 import java.util.function.Consumer;
 

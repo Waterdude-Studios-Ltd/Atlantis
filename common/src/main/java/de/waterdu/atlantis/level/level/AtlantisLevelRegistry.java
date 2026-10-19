@@ -26,8 +26,6 @@ import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
-import net.neoforged.fml.event.IModBusEvent;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,7 +38,7 @@ import java.util.OptionalLong;
  * Class for registering various elements for use by an AtlantisLevel.
  */
 @Bootstrapped
-public final class AtlantisLevelRegistry implements IModBusEvent {
+public final class AtlantisLevelRegistry {
 
     private static final ChunkGeneratorFunction NULL_CHUNK_GENERATOR_FUNCTION = (level, biomes, args) -> null;
     private static final LevelElementFunction<DimensionType> NULL_DIMENSION_TYPE_FUNCTION = (level, args) -> Pair.of(null, null);
@@ -84,7 +82,7 @@ public final class AtlantisLevelRegistry implements IModBusEvent {
 
     /**
      * Registers a new {@link ChunkGenerator}.
-     * Should be done during {@link FMLCommonSetupEvent} or a mod constructor.
+     * Should be done during mod initialization.
      *
      * @param namespace The namespace of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
      * @param path The path of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
@@ -116,7 +114,7 @@ public final class AtlantisLevelRegistry implements IModBusEvent {
 
     /**
      * Registers a new {@link DimensionType}.
-     * Should be done during {@link FMLCommonSetupEvent} or a mod constructor.
+     * Should be done during mod initialization.
      *
      * @param namespace The namespace of the {@link ResourceLocation} key of this {@link DimensionType}.
      * @param path The path of the {@link ResourceLocation} key of this {@link DimensionType}.
