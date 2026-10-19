@@ -170,7 +170,7 @@ public class Moment extends EventHandler<Moment> {
 
         private Builder(Occasion.Builder parent) {
             this.parent = parent;
-            this.moment = Moment.create(this.parent.build());
+            this.moment = Moment.create(this.parent.occasion());
         }
 
         public Builder duration(long duration) {

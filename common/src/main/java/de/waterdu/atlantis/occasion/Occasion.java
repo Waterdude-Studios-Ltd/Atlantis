@@ -412,6 +412,10 @@ public class Occasion extends EventHandler<Occasion> {
             return Moment.builder(this);
         }
 
+        protected Occasion occasion() {
+            return this.occasion;
+        }
+
         public Builder repeats() {
             this.occasion.repeats.set(true);
             return this;
