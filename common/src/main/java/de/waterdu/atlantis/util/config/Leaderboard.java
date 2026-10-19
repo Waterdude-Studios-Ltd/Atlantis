@@ -250,11 +250,8 @@ public class Leaderboard<T extends Data, V extends Comparable<V>> {
 
     public static void recalculateAll(boolean multithreaded) {
         if (!Mods.modLoader().event(UEvent.RECALCULATE_LEADERBOARD_PRE_ALL).emit(new LeaderboardEventPayload.Recalculate.PreAll<>(null)).cancelled()) {
-            var future = CompletableFuture.<Void>completedFuture(null);
-            for (var leaderboard : Leaderboard.ALL_LEADERBOARDS.values()) {
-                future = leaderboard.recalculate(multithreaded);
-            }
-            future.whenComplete((v, err) -> Concurrency.sync(() -> Mods.modLoader().event(UEvent.RECALCULATE_LEADERBOARD_POST_ALL).emit(new LeaderboardEventPayload.Recalculate.PostAll<>(null))));
+            var futures = Leaderboard.ALL_LEADERBOARDS.values().stream().map(leaderboard -> leaderboard.recalculate(multithreaded)).toArray(CompletableFuture[]::new);
+            CompletableFuture.allOf(futures).whenComplete((v, err) -> Concurrency.sync(() -> Mods.modLoader().event(UEvent.RECALCULATE_LEADERBOARD_POST_ALL).emit(new LeaderboardEventPayload.Recalculate.PostAll<>(null))));
         }
     }
 
