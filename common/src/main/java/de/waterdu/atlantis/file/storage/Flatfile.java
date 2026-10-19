@@ -33,8 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Flatfile implements Storage {
 
-    private static final File ERROR_BIN = new File(AtlantisConfig.dirOf(Atlantis.ID) + File.separator + "bin");
-
     private static final String INVALID_EXT = ".invalid";
     private static final String BACKUP_EXT = ".backup";
 
@@ -503,16 +501,21 @@ public class Flatfile implements Storage {
         return file.renameTo(dest);
     }
 
+    private static File errorBin() {
+        return new File(AtlantisConfig.dirOf(Atlantis.ID), "bin");
+    }
+
     private <T extends Configuration> boolean moveToBin(Config<T> config, File file) {
-        if (!Flatfile.ERROR_BIN.exists()) {
-            if (Flatfile.ERROR_BIN.mkdirs()) {
+        var errorBin = Flatfile.errorBin();
+        if (!errorBin.exists()) {
+            if (errorBin.mkdirs()) {
                 AtlantisLogger.log(Settings.get().getLogLoadMessages(), "Creating new directory for error bin");
             }
         }
         var i = 1;
-        var dest = new File(Flatfile.ERROR_BIN, file.getName() + "_" + config.owner() + "_" + config.key() + BACKUP_EXT);
+        var dest = new File(errorBin, file.getName() + "_" + config.owner() + "_" + config.key() + BACKUP_EXT);
         while (dest.exists()) {
-            dest = new File(Flatfile.ERROR_BIN, file.getName() + "_" + config.owner() + "_" + config.key() + "(" + i++ + ")" + BACKUP_EXT);
+            dest = new File(errorBin, file.getName() + "_" + config.owner() + "_" + config.key() + "(" + i++ + ")" + BACKUP_EXT);
         }
         return file.renameTo(dest);
     }
