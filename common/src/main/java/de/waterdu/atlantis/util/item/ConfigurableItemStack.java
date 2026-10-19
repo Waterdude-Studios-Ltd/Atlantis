@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -412,19 +413,18 @@ public class ConfigurableItemStack {
             COUNT = register(COUNT_IDENTIFIER, (kv, s) -> s.setCount(Integer.parseInt(kv[1])));
             DAMAGE = register(DAMAGE_IDENTIFIER, (kv, s) -> s.setDamageValue(Integer.parseInt(kv[1])));
             ENCHANTMENT = register(ENCHANTMENT_IDENTIFIER, (kv, s) -> {
-                var ekv = kv[1].split("-");
-                int level;
-                if (ekv.length == 2) {
-                    level = Integer.parseInt(ekv[1]);
-                } else {
-                    level = 1;
+                var value = String.join(":", Arrays.copyOfRange(kv, 1, kv.length)).toLowerCase(Locale.ROOT);
+                var id = value;
+                var level = 1;
+                var separator = value.lastIndexOf('-');
+                if (separator > 0 && TextUtils.isNumber(value.substring(separator + 1))) {
+                    id = value.substring(0, separator);
+                    level = Integer.parseInt(value.substring(separator + 1));
                 }
-                for (var enchantment : Registries.ENCHANTMENT.registryFromRegistryKey()) {
-                    var holder = Registries.ENCHANTMENT.registryFromRegistryKey().wrapAsHolder(enchantment);
-                    if (holder.unwrapKey().map(k -> k.location().toString()).orElse("").equalsIgnoreCase(ekv[0])) {
-                        ItemUtils.addEnchantment(s, holder, level);
-                        break;
-                    }
+                var location = ResourceLocation.tryParse(id);
+                if (location != null) {
+                    var tier = level;
+                    Registries.ENCHANTMENT.registryFromRegistryKey().getHolder(location).ifPresent(holder -> ItemUtils.addEnchantment(s, holder, tier));
                 }
             });
             GLOW = register(GLOW_IDENTIFIER, (kv, s) -> ItemUtils.applyGlow(s));
