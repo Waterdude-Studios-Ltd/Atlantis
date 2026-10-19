@@ -22,36 +22,17 @@ public interface EconomyDelegate<Account> extends ModProxy {
     CompletableFuture<Transaction.Result> deposit(PlayerReference player, BigDecimal amount);
 
     default CompletableFuture<Transaction.Result> transfer(PlayerReference source, PlayerReference destination, BigDecimal amount) {
-        return this.withdraw(source, amount)
-                .thenCompose(result -> {
-                    if (result.successful()) {
-                        return this.deposit(destination, amount);
-                    } else {
-                        return CompletableFuture.completedFuture(new Transaction.Result.Ignore(result));
-                    }
-                })
-                .thenApply(result -> switch (result) {
-                    case Transaction.Result.Success success -> new Transaction.Result.Success(success);
-                    case Transaction.Result.Ignore ignore -> new Transaction.Result.Failure(ignore);
-                    case Transaction.Result.Failure failure -> {
-                        var newResult = new Transaction.Result.Failure(failure);
-                        this.deposit(source, amount).thenAccept(innerResult -> {
-                            if (innerResult.successful()) {
-                                newResult.transact(source, amount);
-                            }
-                        });
-                        yield new Transaction.Result.Failure(failure).transact(source, amount);
-                    }
-                    case Transaction.Result.Error error -> {
-                        var newResult = new Transaction.Result.Failure(error);
-                        this.deposit(source, amount).thenAccept(innerResult -> {
-                            if (innerResult.successful()) {
-                                newResult.transact(source, amount);
-                            }
-                        });
-                        yield new Transaction.Result.Failure(error).transact(source, amount);
-                    }
-                });
+        return this.withdraw(source, amount).thenCompose(withdrawal -> {
+            if (!withdrawal.successful()) {
+                return CompletableFuture.completedFuture(new Transaction.Result.Failure(withdrawal));
+            }
+            return this.deposit(destination, amount).thenCompose(deposit -> {
+                if (deposit.successful()) {
+                    return CompletableFuture.completedFuture(new Transaction.Result.Success(withdrawal).include(deposit));
+                }
+                return this.deposit(source, amount).thenApply(refund -> new Transaction.Result.Failure(withdrawal).include(deposit).include(refund));
+            });
+        });
     }
 
     record Transaction(PlayerReference player, BigDecimal change) {
@@ -83,6 +64,11 @@ public interface EconomyDelegate<Account> extends ModProxy {
 
             public Result transact(PlayerReference player, BigDecimal change) {
                 return this.transact(new Transaction(player, change));
+            }
+
+            public Result include(Result other) {
+                this.transactions.addAll(other.transactions);
+                return this;
             }
 
             public static final class Success extends Result {
