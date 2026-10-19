@@ -60,6 +60,10 @@ public class Volatile implements Storage {
     @Override
     public <T extends Configuration> CompletableFuture<T> delete(Config<T> config, T data) {
         CompletableFuture<T> result = new CompletableFuture<>();
+        if (data == null) {
+            result.complete(null);
+            return result;
+        }
         T removed = config.uuidDataMap().remove(data.uuid());
         config.filenameDataMap().remove(data.identifier() + config.dataFileExtension());
         if (data instanceof NamedData) {
@@ -74,6 +78,7 @@ public class Volatile implements Storage {
     public <T extends Configuration> CompletableFuture<T> deleteFromUUID(Config<T> config, UUID uuid) {
         CompletableFuture<T> result = new CompletableFuture<>();
         if (!this.isServerAlive()) {
+            result.complete(null);
             return result;
         }
         CompletableFuture<T> data = config.get(uuid);
@@ -90,6 +95,7 @@ public class Volatile implements Storage {
     public <T extends Configuration> CompletableFuture<T> deleteFromName(Config<T> config, String name) {
         CompletableFuture<T> result = new CompletableFuture<>();
         if (!this.isServerAlive()) {
+            result.complete(null);
             return result;
         }
         T data = config.get(name);
