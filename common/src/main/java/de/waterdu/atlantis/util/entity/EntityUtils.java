@@ -239,7 +239,7 @@ public final class EntityUtils {
         return position.createEntity(type).map(entity -> {
             if (noop) {
                 if (type.equals(EntityType.ARMOR_STAND)) {
-                    entity.getEntityData().set(ArmorStand.DATA_CLIENT_FLAGS, NumberUtils.setBit(entity.getEntityData().get(ArmorStand.DATA_CLIENT_FLAGS), 8, true));
+                    entity.getEntityData().set(ArmorStand.DATA_CLIENT_FLAGS, NumberUtils.setBit(entity.getEntityData().get(ArmorStand.DATA_CLIENT_FLAGS), ArmorStand.CLIENT_FLAG_MARKER, true));
                 }
                 entity.setInvulnerable(true);
                 entity.setSilent(true);
