@@ -89,7 +89,11 @@ public final class AtlantisData {
     }
 
     public static CompletableFuture<AtlantisPlayer> get(Player player) {
-        return AtlantisData.get(player.getUUID()).whenComplete((p, err) -> p.setNameAndUpdate(player.getName().getString()));
+        return AtlantisData.get(player.getUUID()).whenComplete((p, err) -> {
+            if (p != null) {
+                p.setNameAndUpdate(player.getName().getString());
+            }
+        });
     }
 
     public static CompletableFuture<AtlantisPlayer> get(UUID uuid) {
