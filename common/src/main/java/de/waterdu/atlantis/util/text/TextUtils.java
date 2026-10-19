@@ -66,7 +66,7 @@ public final class TextUtils {
             if (str.startsWith(TextUtils.HEX_CHAR)) {
                 str = str.substring(1);
                 if (!first) {
-                    builder.append(str);
+                    builder.append(s);
                     first = true;
                 } else {
                     if (!builder.isEmpty()) {
