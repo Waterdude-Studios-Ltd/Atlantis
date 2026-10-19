@@ -76,7 +76,7 @@ public class PokemonSpecificationSerializer {
             this.spec = spec;
             this.value = value;
             this.isBoolean = value instanceof Boolean;
-            this.isNumber = value instanceof Double;
+            this.isNumber = value instanceof Number;
             this.isString = value instanceof String;
         }
 
@@ -88,7 +88,7 @@ public class PokemonSpecificationSerializer {
                     return new SpecValue<>(spec.getA(), true);
                 }
             } else if (TextUtils.isNumberParsable(spec.getB())) {
-                return new SpecValue<>(spec.getA(), Double.parseDouble(spec.getB()));
+                return new SpecValue<>(spec.getA(), SpecValue.number(spec.getB()));
             } else {
                 return new SpecValue<>(spec.getA(), spec.getB());
             }
@@ -99,9 +99,17 @@ public class PokemonSpecificationSerializer {
             if (value.equals("true") || value.equals("false")) {
                 return new SpecValue<>(spec, Boolean.parseBoolean(value));
             } else if (TextUtils.isNumberParsable(value)) {
-                return new SpecValue<>(spec, Double.parseDouble(value));
+                return new SpecValue<>(spec, SpecValue.number(value));
             } else {
                 return new SpecValue<>(spec, value);
+            }
+        }
+
+        private static Number number(String value) {
+            try {
+                return Long.parseLong(value);
+            } catch (NumberFormatException e) {
+                return Double.parseDouble(value);
             }
         }
 
@@ -116,7 +124,7 @@ public class PokemonSpecificationSerializer {
             if (this.isBoolean) {
                 return new JsonPrimitive((Boolean) this.value);
             } else if (this.isNumber) {
-                return new JsonPrimitive((Double) this.value);
+                return new JsonPrimitive((Number) this.value);
             } else if (this.isString) {
                 return new JsonPrimitive((String) this.value);
             } else {
