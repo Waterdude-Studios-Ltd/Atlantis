@@ -24,7 +24,8 @@ public class Atlantis {
     public static final String ERROR_TEXT = "An error occurred in Atlantis";
     public static final Supplier<Component> ERROR_MESSAGE = () -> Text.of("&cAn error occurred in Atlantis!").compile();
 
-    public static final AtlantisThreadPool THREAD_POOL = AtlantisThreadPool.createNewThreadPool(NAME, 4, true);
+    public static final int DEFAULT_THREADS = 4;
+    public static final AtlantisThreadPool THREAD_POOL = AtlantisThreadPool.createNewThreadPool(NAME, DEFAULT_THREADS, true);
     public static final AtlantisConfigProxy.Impl CONFIG = AtlantisConfigProxy.of(ID);
 
     private static AtlantisListeners LISTENERS;

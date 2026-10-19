@@ -39,7 +39,7 @@ public final class AtlantisData {
                 var settings = Settings.get();
                 var threads = settings.getThreads();
                 if (threads <= 0) {
-                    threads = AtlantisCommand.countAtlantisMods() * 2 + 1;
+                    threads = AtlantisData.automaticThreadCount(AtlantisCommand.countAtlantisMods());
                     AtlantisLogger.info("Automatically creating {} threads", threads);
                 } else {
                     AtlantisLogger.info("Creating {} threads", threads);
@@ -65,6 +65,10 @@ public final class AtlantisData {
 
             AtlantisData.REGISTERED.set(true);
         }
+    }
+
+    public static int automaticThreadCount(int atlantisMods) {
+        return Math.max(Atlantis.DEFAULT_THREADS, atlantisMods * 2 + 1);
     }
 
     public static void mapDecorations() {
