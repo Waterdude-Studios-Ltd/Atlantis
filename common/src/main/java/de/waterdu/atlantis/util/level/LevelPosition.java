@@ -17,6 +17,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 
 import java.lang.reflect.Type;
+import java.util.Objects;
 import java.util.Optional;
 
 public class LevelPosition {
@@ -119,6 +120,22 @@ public class LevelPosition {
 
     public void teleport(Entity entity) {
         this.position.teleport(entity, this.level);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.level, this.position);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!(obj instanceof LevelPosition other)) {
+            return false;
+        }
+        return this.level.equals(other.level) && this.position.equals(other.position);
     }
 
     public static class TypeAdapter implements JsonSerializer<LevelPosition>, JsonDeserializer<LevelPosition> {
