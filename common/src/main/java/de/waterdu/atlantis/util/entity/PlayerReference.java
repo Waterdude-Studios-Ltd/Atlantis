@@ -139,7 +139,12 @@ public final class PlayerReference {
     }
 
     public Optional<ServerPlayer> entity() {
-        return this.entity.get();
+        var entity = this.entity.get();
+        if (entity.isPresent() && entity.get().isRemoved()) {
+            this.entity.reset();
+            entity = this.entity.get().filter(player -> !player.isRemoved());
+        }
+        return entity;
     }
 
     @Nullable
