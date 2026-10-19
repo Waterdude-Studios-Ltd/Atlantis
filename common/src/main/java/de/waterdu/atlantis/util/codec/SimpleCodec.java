@@ -123,6 +123,9 @@ public class SimpleCodec<T> {
     public T deserialize(JsonObject object, JsonDeserializationContext context) {
         var newInstance = this.supplier.get();
         for (var entry : this.fields.entrySet()) {
+            if (!object.has(entry.getKey())) {
+                continue;
+            }
             try {
                 entry.getValue().set(newInstance, context.deserialize(object.get(entry.getKey()), this.types.get(entry.getKey())));
             } catch (IllegalAccessException ignored) {
