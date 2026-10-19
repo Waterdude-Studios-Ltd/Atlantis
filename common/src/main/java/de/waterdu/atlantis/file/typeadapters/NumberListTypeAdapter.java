@@ -15,6 +15,7 @@ import de.waterdu.atlantis.util.java.collection.CompactJsonArrayList;
 import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,7 +94,7 @@ public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<L
     @Override
     public JsonElement serialize(List<T> src, Type typeOfSrc, JsonSerializationContext context) {
         if (src instanceof CompactJsonArrayList) {
-            src.sort(null);
+            src.sort(Comparator.comparingLong(Number::longValue));
             var builder = new StringBuilder();
             var check = 0L;
             var range = false;
