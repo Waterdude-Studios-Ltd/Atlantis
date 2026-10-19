@@ -1,4 +1,7 @@
 *.kotlin/
 *build/
+*run/
 .idea/
 .gradle/
+*.log
+*.log.gz
