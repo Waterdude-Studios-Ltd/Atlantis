@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class UnaryMap<T> implements Map<T, T> {
@@ -65,12 +66,18 @@ public class UnaryMap<T> implements Map<T, T> {
 
     @Override
     public boolean containsValue(Object o) {
-        return this.map.containsValue(o);
+        for (var pair : this.map.values()) {
+            if (Objects.equals(pair.b, o)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
     public T get(Object o) {
-        return this.pair(o).b;
+        var pair = this.pair(o);
+        return pair == null ? null : pair.b;
     }
 
     public UnaryPair<T> pair(Object o) {
@@ -139,9 +146,14 @@ public class UnaryMap<T> implements Map<T, T> {
         if (this == o) {
             return true;
         }
-        if (o instanceof UnaryMap<?> other) {
-            return this.map.equals(other.map);
+        if (o instanceof Map<?, ?> other) {
+            return this.entrySet().equals(other.entrySet());
         }
-        return this.map.equals(o);
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.entrySet().hashCode();
     }
 }
