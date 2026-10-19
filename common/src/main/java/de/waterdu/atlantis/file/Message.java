@@ -65,7 +65,7 @@ public class Message {
             result = this.message.prepend("").prepend(this.article);
         }
         if (withPlural && !this.plural.isEmpty()) {
-            result = this.message.append(this.plural);
+            result = result.append(this.plural);
         }
         return TextUtils.format(result, args);
     }
