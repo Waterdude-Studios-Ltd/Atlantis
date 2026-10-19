@@ -252,7 +252,7 @@ public class Redis implements Storage {
     }
 
     private void publishJson(UUID uuid, String json) {
-        this.publish(Message.JSON + " " + this.timestamps.get(uuid) + " " + json);
+        this.publish(Message.JSON + " " + this.timestamps.getOrDefault(uuid, 0L) + " " + json);
     }
 
     public void publish(String message) {
