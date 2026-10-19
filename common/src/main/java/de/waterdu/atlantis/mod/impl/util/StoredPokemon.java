@@ -132,7 +132,7 @@ public class StoredPokemon {
 
         @Override
         public StoredPokemon deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            if (json.isJsonNull()) {
+            if (json.isJsonNull() || json.getAsString().isEmpty()) {
                 return new StoredPokemon();
             } else {
                 try {
@@ -146,7 +146,7 @@ public class StoredPokemon {
 
         @Override
         public JsonElement serialize(StoredPokemon src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.tag.toString());
+            return new JsonPrimitive(src.tag == null ? "" : src.tag.toString());
         }
     }
 
