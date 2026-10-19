@@ -235,7 +235,7 @@ public class Leaderboard<T extends Data, V extends Comparable<V>> {
                 this.rankings.clear();
                 this.rankings.putAll(newRanking);
                 this.rankingsList.clear();
-                this.rankingsList.addAll(this.rankings.keySet());
+                this.rankingsList.addAll(newRanking.keySet());
                 Mods.modLoader().event(UEvent.RECALCULATE_LEADERBOARD_POST).emit(new LeaderboardEventPayload.Recalculate.Post<>(this));
             }
             future.complete(null);
