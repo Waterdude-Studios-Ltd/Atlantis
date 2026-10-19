@@ -200,7 +200,7 @@ public class Task implements Runnable {
         }
 
         public Builder andThen(Consumer<Task> task) {
-            this.task = task.andThen(task);
+            this.task = this.task.andThen(task);
             return this;
         }
 
