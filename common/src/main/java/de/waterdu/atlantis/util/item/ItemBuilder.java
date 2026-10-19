@@ -72,7 +72,10 @@ public final class ItemBuilder {
     }
 
     public ItemBuilder item(ItemLike like) {
-        ItemStack old = this.getStackInternal();
+        var old = this.getStackInternal();
+        if (old.isEmpty()) {
+            return this.stack(new ItemStack(like), false);
+        }
         return this.stack(new ItemStack(like.asItem().builtInRegistryHolder(), old.getCount(), old.getComponentsPatch()), false);
     }
 
