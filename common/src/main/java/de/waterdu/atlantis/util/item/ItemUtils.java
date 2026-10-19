@@ -269,7 +269,7 @@ public final class ItemUtils {
     }
 
     public static void clearEnchantments(ItemStack stack) {
-        stack.remove(DataComponents.ENCHANTMENTS);
+        stack.set(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
     }
 
     public static void setEnchantments(ItemStack stack, ItemEnchantments... enchantments) {
