@@ -73,7 +73,7 @@ public class SimpleCodec<T> {
     }
 
     public SimpleCodec<T> withArray(String name, Class<?> type) {
-        this.types.put(name, TypeToken.getArray(type).getType());
+        this.types.put(name, type.arrayType());
         this.fetchField(name);
         return this;
     }
