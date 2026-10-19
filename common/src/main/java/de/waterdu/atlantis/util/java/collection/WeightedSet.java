@@ -109,7 +109,7 @@ public class WeightedSet<T> implements Set<T> {
 
     @Override
     public boolean contains(Object o) {
-        return false;
+        return this.weightMap.containsKey(o);
     }
 
     @Override
