@@ -2,6 +2,7 @@ package de.waterdu.atlantis.level.chunk;
 
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public final class AtlantisChunkLoader {
@@ -13,7 +14,7 @@ public final class AtlantisChunkLoader {
     public static void setup(Consumer<Runnable> enqueue) {
         enqueue.accept(() -> {
             var chunks = AtlantisChunkStorage.getInstance();
-            for (var chunk : chunks.transientChunks()) {
+            for (var chunk : List.copyOf(chunks.transientChunks())) {
                 chunk.unload();
             }
             chunks.transientChunks().clear();
