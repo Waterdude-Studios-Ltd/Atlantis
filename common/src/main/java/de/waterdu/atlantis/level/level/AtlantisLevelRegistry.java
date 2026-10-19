@@ -41,7 +41,7 @@ import java.util.OptionalLong;
 public final class AtlantisLevelRegistry {
 
     private static final ChunkGeneratorFunction NULL_CHUNK_GENERATOR_FUNCTION = (level, biomes, args) -> null;
-    private static final LevelElementFunction<DimensionType> NULL_DIMENSION_TYPE_FUNCTION = (level, args) -> Pair.of(null, null);
+    private static final LevelElementFunction<DimensionType> NULL_DIMENSION_TYPE_FUNCTION = (level, args) -> null;
 
     private static final DimensionType DEFAULT_DIMENSION_TYPE_IMPL = new DimensionType(OptionalLong.empty(), true, false, false, true, 1.0, false, false, 0, 256, 256, BlockTags.INFINIBURN_OVERWORLD, BuiltinDimensionTypes.OVERWORLD_EFFECTS, 16, new DimensionType.MonsterSettings(false, false, ConstantInt.ZERO, 0));
 
