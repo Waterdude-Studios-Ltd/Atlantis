@@ -65,7 +65,7 @@ public final class AonCommenter {
         }
         var builder = new StringBuilder();
         builder.append("{").append(AonCommenter.NEWLINE);
-        var lines = Lists.newArrayList(json.trim().split(AonCommenter.NEWLINE));
+        var lines = Lists.newArrayList(json.trim().split("\\R"));
         var index = 0;
         for (var line : lines) {
             if (!line.trim().isEmpty() && !line.startsWith("#")) {
