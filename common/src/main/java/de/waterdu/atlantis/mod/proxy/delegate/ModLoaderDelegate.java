@@ -25,8 +25,13 @@ import de.waterdu.atlantis.util.config.Key;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.network.NetworkUtils;
 import de.waterdu.atlantis.util.server.ServerUtils;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -107,6 +112,18 @@ public interface ModLoaderDelegate extends ModProxy {
     List<ModInfo> mods();
 
     boolean isFakePlayer(ServerPlayer player);
+
+    boolean onBlockPlace(ServerPlayer player, BlockPos pos);
+
+    boolean onBlockBreak(ServerPlayer player, BlockPos pos, BlockState state);
+
+    void afterBlockBreak(ServerPlayer player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity);
+
+    boolean canHarvest(ServerPlayer player, BlockPos pos, BlockState state);
+
+    boolean onEntityDestroyBlock(ServerPlayer player, BlockPos pos, BlockState state);
+
+    void onPlayerDestroyItem(ServerPlayer player, ItemStack stack, InteractionHand hand);
 
     UPermissionNode<?, Boolean> createBooleanNode(String namespace, String path, Predicate<@Nullable ServerPlayer> defaultResolver);
 }

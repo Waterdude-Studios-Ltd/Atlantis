@@ -12,11 +12,17 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.Person;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -106,6 +112,39 @@ public class FabricProxy implements ModLoaderDelegate {
 
     private static boolean isBuiltin(ModContainer mod) {
         return BUILTIN_MOD_TYPE.equals(mod.getMetadata().getType());
+    }
+
+    @Override
+    public boolean onBlockPlace(ServerPlayer player, BlockPos pos) {
+        // TODO: Implement event via mixin
+        return false;
+    }
+
+    @Override
+    public boolean onBlockBreak(ServerPlayer player, BlockPos pos, BlockState state) {
+        var level = player.serverLevel();
+        return PlayerBlockBreakEvents.BEFORE.invoker().beforeBlockBreak(level, player, pos, state, level.getBlockEntity(pos));
+    }
+
+    @Override
+    public void afterBlockBreak(ServerPlayer player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
+        PlayerBlockBreakEvents.AFTER.invoker().afterBlockBreak(player.serverLevel(), player, pos, state, blockEntity);
+    }
+
+    @Override
+    public boolean canHarvest(ServerPlayer player, BlockPos pos, BlockState state) {
+        return player.hasCorrectToolForDrops(state);
+    }
+
+    @Override
+    public boolean onEntityDestroyBlock(ServerPlayer player, BlockPos pos, BlockState state) {
+        // TODO: Implement event via mixin
+        return true;
+    }
+
+    @Override
+    public void onPlayerDestroyItem(ServerPlayer player, ItemStack stack, InteractionHand hand) {
+        // TODO: Implement event via mixin
     }
 
     @Override

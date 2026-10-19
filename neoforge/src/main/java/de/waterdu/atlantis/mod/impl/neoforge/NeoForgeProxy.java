@@ -11,9 +11,15 @@ import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionStatus;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -24,9 +30,12 @@ import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -184,6 +193,37 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public boolean isFakePlayer(ServerPlayer player) {
         return player instanceof FakePlayer;
+    }
+
+    @Override
+    public boolean onBlockPlace(ServerPlayer player, BlockPos pos) {
+        var level = player.serverLevel();
+        return EventHooks.onBlockPlace(player, BlockSnapshot.create(level.dimension(), level, pos), Direction.UP);
+    }
+
+    @Override
+    public boolean onBlockBreak(ServerPlayer player, BlockPos pos, BlockState state) {
+        return !NeoForge.EVENT_BUS.post(new BlockEvent.BreakEvent(player.serverLevel(), pos, state, player)).isCanceled();
+    }
+
+    @Override
+    public void afterBlockBreak(ServerPlayer player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity) {
+        // TODO: Implement event via mixin
+    }
+
+    @Override
+    public boolean canHarvest(ServerPlayer player, BlockPos pos, BlockState state) {
+        return EventHooks.doPlayerHarvestCheck(player, state, player.serverLevel(), pos);
+    }
+
+    @Override
+    public boolean onEntityDestroyBlock(ServerPlayer player, BlockPos pos, BlockState state) {
+        return EventHooks.onEntityDestroyBlock(player, pos, state);
+    }
+
+    @Override
+    public void onPlayerDestroyItem(ServerPlayer player, ItemStack stack, InteractionHand hand) {
+        EventHooks.onPlayerDestroyItem(player, stack, hand);
     }
 
     @Override
