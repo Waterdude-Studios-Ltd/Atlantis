@@ -6,6 +6,7 @@
   "mixins": [
     "dev.MixinResourceKey",
     "dev.MixinResourceLocation",
+    "entity.MixinLivingEntity",
     "entity.MixinMerchantResultSlot",
     "item.MixinBlock",
     "item.MixinItem",
