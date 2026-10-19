@@ -188,22 +188,20 @@ public class Database implements Storage {
         }
         this.schema = Schema.of(originalModID, path.toLowerCase(), clazz);
         this.queries.init(modID, this.schema);
-        Atlantis.THREAD_POOL.submit(() -> {
-            try (var connection = this.connection()) {
-                try (var stmt = this.createStatement(connection)) {
-                    stmt.execute(this.queries.prepare(this.queries.CREATE_DATABASE));
-                } catch (SQLException e) {
-                    AtlantisLogger.debug("Database probably present already, skipping {}: {}", config.name(), e.getMessage());
-                }
-                try (var stmt = this.createStatement(connection)) {
-                    stmt.execute(this.queries.prepare(this.queries.CREATE_TABLE));
-                } catch (SQLException e) {
-                    AtlantisLogger.debug("Table probably present already, skipping {}: {}", config.name(), e.getMessage());
-                }
+        try (var connection = this.connection()) {
+            try (var stmt = this.createStatement(connection)) {
+                stmt.execute(this.queries.prepare(this.queries.CREATE_DATABASE));
             } catch (SQLException e) {
-                AtlantisLogger.error("SQL error when establishing connection, skipping {}: {}", config.name(), e.getMessage());
+                AtlantisLogger.debug("Database probably present already, skipping {}: {}", config.name(), e.getMessage());
             }
-        });
+            try (var stmt = this.createStatement(connection)) {
+                stmt.execute(this.queries.prepare(this.queries.CREATE_TABLE));
+            } catch (SQLException e) {
+                AtlantisLogger.debug("Table probably present already, skipping {}: {}", config.name(), e.getMessage());
+            }
+        } catch (SQLException e) {
+            AtlantisLogger.error("SQL error when establishing connection, skipping {}: {}", config.name(), e.getMessage());
+        }
     }
 
     @Override
