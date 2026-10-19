@@ -19,6 +19,7 @@ dependencies {
 }
 
 neoForge {
+    accessTransformers.from(rootProject.file("common/src/main/resources/META-INF/accesstransformer.cfg"))
     interfaceInjectionData.from(rootProject.file("common/interfaces.json"))
 
     runs {

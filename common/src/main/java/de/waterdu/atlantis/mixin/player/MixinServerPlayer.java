@@ -9,7 +9,6 @@ import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.server.permission.PermissionAPI;
@@ -17,7 +16,6 @@ import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(value = ServerPlayer.class)
 public abstract class MixinServerPlayer extends Player {
@@ -29,10 +27,6 @@ public abstract class MixinServerPlayer extends Player {
     @Accessor("containerCounter")
     @Override
     public abstract void setContainerCounter(int counter);
-
-    @Invoker("initMenu")
-    @Override
-    public abstract void initMenu(AbstractContainerMenu menu);
 
     @Unique
     private final Lazy<PlayerReference> atlantis$reference = Lazy.of(() -> PlayerReference.get(this.uuid));

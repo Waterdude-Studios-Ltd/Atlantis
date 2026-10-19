@@ -64,6 +64,7 @@ loom {
     interfaceInjection {
         enableDependencyInterfaceInjection = true
     }
+    accessWidenerPath = rootProject.file("common/src/main/resources/atlantis.accesswidener")
 }
 
 dependencies {

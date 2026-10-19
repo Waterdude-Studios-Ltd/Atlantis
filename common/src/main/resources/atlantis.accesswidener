@@ -1,0 +1,14 @@
+accessWidener v2 named
+
+# Mirrors META-INF/accesstransformer.cfg for Fabric and common's Loom compile; keep the two in sync.
+accessible field net/minecraft/server/MinecraftServer progressListenerFactory Lnet/minecraft/server/level/progress/ChunkProgressListenerFactory;
+accessible field net/minecraft/server/MinecraftServer executor Ljava/util/concurrent/Executor;
+accessible field net/minecraft/server/MinecraftServer storageSource Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;
+accessible field net/minecraft/server/MinecraftServer levels Ljava/util/Map;
+accessible method net/minecraft/world/level/levelgen/flat/FlatLevelGeneratorSettings <init> (Ljava/util/Optional;Ljava/util/List;ZZLjava/util/Optional;Lnet/minecraft/core/Holder$Reference;Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)V
+accessible method net/minecraft/core/component/DataComponentMap$Builder setUnchecked (Lnet/minecraft/core/component/DataComponentType;Ljava/lang/Object;)V
+accessible method net/minecraft/world/item/enchantment/ItemEnchantments <init> (Lit/unimi/dsi/fastutil/objects/Object2IntOpenHashMap;Z)V
+accessible field net/minecraft/server/level/ServerPlayer containerCounter I
+accessible method net/minecraft/server/level/ServerPlayer initMenu (Lnet/minecraft/world/inventory/AbstractContainerMenu;)V
+accessible class net/minecraft/resources/RegistryDataLoader$Loader
+accessible class net/minecraft/resources/RegistryDataLoader$LoadingFunction

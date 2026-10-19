@@ -318,8 +318,8 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
                         }
                     }
                     if (this.forceAll) {
-                        ((PlayerExt) entity).initMenu(this);
                         this.forceAll = false;
+                        entity.initMenu(this);
                     }
                     this.enqueueUpdate = false;
                     AtlantisUI.LOCKED.remove(player.uuid());

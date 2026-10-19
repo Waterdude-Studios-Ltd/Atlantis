@@ -19,6 +19,7 @@
       "de.waterdu.atlantis.AtlantisFabric"
     ]
   },
+  "accessWidener": "${modId}.accesswidener",
   "mixins": [
     "${modId}.mixins.json",
     "${modId}.fabric.mixins.json"
