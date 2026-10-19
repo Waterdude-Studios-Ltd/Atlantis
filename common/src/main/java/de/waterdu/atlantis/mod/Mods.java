@@ -2,8 +2,6 @@ package de.waterdu.atlantis.mod;
 
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
-import de.waterdu.atlantis.mod.impl.cobblemon.fabric.CobblemonFabricProxy;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.CobblemonNeoForgeProxy;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
@@ -96,8 +94,7 @@ public final class Mods {
     public static final ModExtension COBBLEMON = ModExtension.builder()
             .modId("cobblemon")
             .mainClass("com.cobblemon.mod.common.CobblemonKt")
-            .proxy(ModExtension.Loader.NEOFORGE, CobblemonNeoForgeProxy::new)
-            .proxy(ModExtension.Loader.FABRIC, CobblemonFabricProxy::new)
+            .reflectiveConstructorProxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, "de.waterdu.atlantis.mod.impl.cobblemon.CobblemonProxy")
             .delegates(PokemonDelegate.class)
             .language(ModExtension.Language.KOTLIN)
             .priority(ModExtension.Priority.HIGH)

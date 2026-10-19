@@ -1,4 +1,4 @@
-package de.waterdu.atlantis.mod.impl.cobblemon.neoforge;
+package de.waterdu.atlantis.mod.impl.cobblemon;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
@@ -8,25 +8,24 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.cobblemon.mod.common.pokemon.Species;
 import com.google.gson.JsonElement;
 import de.waterdu.atlantis.AtlantisLogger;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.parsing.CobblemonPokemonSpec;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.pokemon.CobblemonPokemon;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.pokemon.properties.CobblemonSpecies;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.storage.CobblemonPC;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.storage.CobblemonParty;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.parsing.CobblemonPokemonSpec;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.CobblemonPokemon;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.CobblemonSpecies;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.storage.CobblemonPC;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.storage.CobblemonParty;
 import de.waterdu.atlantis.mod.proxy.delegate.PokemonDelegate;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import de.waterdu.atlantis.util.text.TextUtils;
 import net.minecraft.nbt.CompoundTag;
 
-public class CobblemonNeoForgeProxy implements PokemonDelegate {
+public class CobblemonProxy implements PokemonDelegate {
 
     private final Species bulbasaur = PokemonSpecies.getByName("Bulbasaur");
     private final PokemonStoreManager storage = Cobblemon.INSTANCE.getStorage();
 
     @Override
     public void setup() {
-
     }
 
     @Override
@@ -81,7 +80,7 @@ public class CobblemonNeoForgeProxy implements PokemonDelegate {
 
     @Override
     public CobblemonPokemon pokemonFromJson(JsonElement json) {
-        var nbt = json.getAsString();
+        var nbt = json.toString();
         Pokemon pokemon;
         try {
             pokemon = Pokemon.Companion.loadFromJSON(ServerUtils.registryAccess(), json.getAsJsonObject());

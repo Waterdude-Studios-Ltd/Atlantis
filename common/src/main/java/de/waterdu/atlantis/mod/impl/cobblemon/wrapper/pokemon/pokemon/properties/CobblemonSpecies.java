@@ -1,4 +1,4 @@
-package de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.pokemon.properties;
+package de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.pokemon.Species;

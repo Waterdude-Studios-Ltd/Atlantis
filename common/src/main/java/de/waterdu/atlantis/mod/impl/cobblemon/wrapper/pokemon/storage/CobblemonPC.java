@@ -1,9 +1,9 @@
-package de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.storage;
+package de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.storage;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.storage.pc.PCPosition;
 import com.cobblemon.mod.common.api.storage.pc.PCStore;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.pokemon.CobblemonPokemon;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.CobblemonPokemon;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.storage.UPC;
 

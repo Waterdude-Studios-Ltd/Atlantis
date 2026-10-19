@@ -1,9 +1,9 @@
-package de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.parsing;
+package de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.parsing;
 
 import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.item.PokemonItem;
-import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.wrapper.pokemon.pokemon.CobblemonPokemon;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.CobblemonPokemon;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.parsing.UPokemonSpec;
 import net.minecraft.world.item.ItemStack;
