@@ -52,9 +52,15 @@ public final class AtlantisChunk {
     }
 
     public void update(Runnable task) {
+        var chunks = AtlantisChunkStorage.getInstance();
+        var permanent = chunks.permanentChunks().contains(this);
+        var stored = permanent || chunks.transientChunks().contains(this);
         this.unload();
         task.run();
         this.load();
+        if (stored) {
+            chunks.addChunk(this, permanent);
+        }
     }
 
     public String modID() {
