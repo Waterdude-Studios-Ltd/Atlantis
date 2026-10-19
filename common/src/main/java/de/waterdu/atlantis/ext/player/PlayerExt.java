@@ -14,7 +14,7 @@ public interface PlayerExt {
     }
 
     default Optional<PlayerReference> safeReference() {
-        return null;
+        return Optional.ofNullable(this.reference());
     }
 
     default void openPage(Page page) {
