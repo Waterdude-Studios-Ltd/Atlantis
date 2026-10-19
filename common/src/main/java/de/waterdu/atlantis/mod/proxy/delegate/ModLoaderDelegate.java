@@ -9,6 +9,7 @@ import de.waterdu.atlantis.level.chunk.AtlantisChunkLoader;
 import de.waterdu.atlantis.level.schematic.Schematics;
 import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.PlayerEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.ListenerEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
@@ -23,6 +24,7 @@ import de.waterdu.atlantis.ui.api.Decorations;
 import de.waterdu.atlantis.ui.api.PageOptions;
 import de.waterdu.atlantis.util.config.Key;
 import de.waterdu.atlantis.util.entity.PlayerReference;
+import de.waterdu.atlantis.util.java.TimeUtils;
 import de.waterdu.atlantis.util.network.NetworkUtils;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import net.minecraft.core.BlockPos;
@@ -66,6 +68,15 @@ public interface ModLoaderDelegate extends ModProxy {
 
     default void onServerStarted() {
         Atlantis.listeners().startLoggingPackets();
+    }
+
+    default void onServerTickPre(MinecraftServer server) {
+        this.event(UEvent.SERVER_TICK_PRE).emit(new ServerTickEventPayload.Pre(server));
+    }
+
+    default void onServerTickPost(MinecraftServer server) {
+        TimeUtils.tick();
+        this.event(UEvent.SERVER_TICK_POST).emit(new ServerTickEventPayload.Post(server));
     }
 
     default void onServerStopping() {

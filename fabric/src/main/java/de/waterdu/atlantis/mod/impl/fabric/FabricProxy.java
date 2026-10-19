@@ -12,6 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
@@ -51,6 +52,9 @@ public class FabricProxy implements ModLoaderDelegate {
         ServerLifecycleEvents.SERVER_STARTED.register(__ -> this.onServerStarted());
         ServerLifecycleEvents.SERVER_STOPPING.register(__ -> this.onServerStopping());
         ServerLifecycleEvents.SERVER_STOPPED.register(__ -> this.server = null);
+
+        ServerTickEvents.START_SERVER_TICK.register(this::onServerTickPre);
+        ServerTickEvents.END_SERVER_TICK.register(this::onServerTickPost);
 
         ModLoaderDelegate.super.setup();
     }

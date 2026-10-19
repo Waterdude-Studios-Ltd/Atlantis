@@ -1,13 +1,8 @@
 package de.waterdu.atlantis.util.java;
 
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
-
 import java.time.ZoneOffset;
 import java.util.function.BiFunction;
 
-@EventBusSubscriber
 public final class TimeUtils {
 
     public static final Timezone UTC = Timezone.of("UTC");
@@ -28,8 +23,7 @@ public final class TimeUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
-    @SubscribeEvent
-    public static void onTick(ServerTickEvent.Post event) {
+    public static void tick() {
         GLOBAL_TICK++;
         GLOBAL_SECOND_TICK++;
         if (GLOBAL_SECOND_TICK >= 20) {

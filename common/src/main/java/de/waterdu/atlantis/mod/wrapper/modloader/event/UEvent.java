@@ -15,6 +15,7 @@ import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEvent
 import de.waterdu.atlantis.mod.impl.common.event.meta.SetPlaceholderProviderEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.registry.RegistryInjectEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
 import de.waterdu.atlantis.mod.object.ModObject;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.IllegalDereferenceException;
@@ -62,6 +63,9 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
     public static final Key<UEvent<PlayerEventPayload.LogOut>> LOG_OUT = Key.of(Atlantis.ID, "event/log_out");
 
     public static final Key<UEvent<PacketInterceptEventPayload>> INTERCEPT_PACKET = Key.of(Atlantis.ID, "event/intercept_packet");
+
+    public static final Key<UEvent<ServerTickEventPayload.Pre>> SERVER_TICK_PRE = Key.of(Atlantis.ID, "event/server_tick/pre");
+    public static final Key<UEvent<ServerTickEventPayload.Post>> SERVER_TICK_POST = Key.of(Atlantis.ID, "event/server_tick/post");
 
     private final Key<UEvent<Payload>> eventType;
 

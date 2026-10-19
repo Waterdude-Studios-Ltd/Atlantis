@@ -38,6 +38,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import net.neoforged.neoforge.server.permission.handler.IPermissionHandler;
@@ -91,6 +92,8 @@ public class NeoForgeProxy implements ModLoaderDelegate {
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, this.playerEventHandler(this::onPlayerLogout));
         NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, __ -> this.onServerStarted());
         NeoForge.EVENT_BUS.addListener(ServerStoppingEvent.class, __ -> this.onServerStopping());
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Pre.class, it -> this.onServerTickPre(it.getServer()));
+        NeoForge.EVENT_BUS.addListener(ServerTickEvent.Post.class, it -> this.onServerTickPost(it.getServer()));
         NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Nodes.class, it -> Permissions.buildNodes(node -> it.addNodes(((NeoForgePermissionNode<?>) node).dereference())));
         NeoForge.EVENT_BUS.addListener(PermissionGatherEvent.Handler.class, this::registerPermissionHandler);
 

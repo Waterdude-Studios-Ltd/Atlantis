@@ -1,14 +1,13 @@
 package de.waterdu.atlantis.ui.internal;
 
 import de.waterdu.atlantis.mod.Mods;
+import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.ui.api.AtlantisUI;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraft.world.InteractionResult;
 
 public class InventoryListener {
 
@@ -19,12 +18,11 @@ public class InventoryListener {
     }
 
     public static void register() {
-
+        Mods.modLoader().event(UEvent.SERVER_TICK_PRE).listen(InventoryListener::onServerTick);
     }
 
-    @SubscribeEvent
-    public void onServerTick(ServerTickEvent.Pre event) {
-        this.tick++;
+    private static InteractionResult onServerTick(ServerTickEventPayload.Pre event) {
+        InventoryListener.tick++;
         for (var entry : AtlantisUI.FUTURE_OPEN.entrySet()) {
             var uuid = entry.getKey();
             var page = entry.getValue();
@@ -46,17 +44,15 @@ public class InventoryListener {
                 AtlantisUI.FUTURE_OPEN.remove(uuid);
             }
         }
-    }
 
-    @SubscribeEvent
-    public void onPlayerTick(PlayerTickEvent.Pre event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+        for (var player : event.server().getPlayerList().getPlayers()) {
             if (player.containerMenu instanceof AtlantisContainerMenuInternal container) {
                 var refreshRate = container.getAquaUIInventory().options().refreshRate();
-                if (refreshRate < 2 || this.tick % refreshRate == 0) {
+                if (refreshRate < 2 || InventoryListener.tick % refreshRate == 0) {
                     container.getAquaUIInventory().onUpdate(player, container);
                 }
             }
         }
+        return InteractionResult.PASS;
     }
 }
