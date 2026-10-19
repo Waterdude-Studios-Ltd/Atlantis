@@ -191,7 +191,7 @@ public class PageOptions {
             return new FormFactor(slots, hasRows, menuTypeFunction);
         }
 
-        public static void createDefaults(HolderLookup.Provider registryAccess) {
+        static {
             FormFactor.CHEST = FormFactor.create(54, true, options -> switch (options.rows) {
                 case 1 -> MenuType.GENERIC_9x1;
                 case 2 -> MenuType.GENERIC_9x2;
@@ -218,6 +218,9 @@ public class PageOptions {
             FormFactor.SMOKER = FormFactor.create(3, false, options -> MenuType.SMOKER);
             FormFactor.CARTOGRAPHY_TABLE = FormFactor.create(3, false, options -> MenuType.CARTOGRAPHY_TABLE);
             FormFactor.STONECUTTER = FormFactor.create(2, false, options -> MenuType.STONECUTTER);
+        }
+
+        public static void createDefaults(HolderLookup.Provider registryAccess) {
             // TODO: Mod proxy this.
             if (Mods.isPresent("pixelmon")) {
                 FormFactor.COOKING_POT = FormFactor.create(11, false, options -> BuiltInRegistries.MENU.getOptional(COOKING_POT_ID).orElse(null));
