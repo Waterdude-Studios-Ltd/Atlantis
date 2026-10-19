@@ -53,7 +53,7 @@ public final class BlockUtils {
         if (player instanceof ServerPlayer serverPlayer) {
             var level = serverPlayer.level();
             if (ifAir) {
-                if (!state.isAir()) {
+                if (!level.getBlockState(pos).isAir()) {
                     return false;
                 }
             }
@@ -70,7 +70,7 @@ public final class BlockUtils {
 
     public static boolean canPlaceBlock(Player player, BlockPos pos) {
         if (player instanceof ServerPlayer serverPlayer) {
-            return player.blockActionRestricted(serverPlayer.level(), pos, serverPlayer.gameMode.getGameModeForPlayer());
+            return !player.blockActionRestricted(serverPlayer.level(), pos, serverPlayer.gameMode.getGameModeForPlayer());
         }
         return false;
     }
