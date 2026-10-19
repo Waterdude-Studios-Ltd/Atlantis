@@ -108,6 +108,10 @@ public class Flatfile implements Storage {
                 delay += Settings.get().getDataSaveDelay();
             }
         }
+
+        if (writes.get() == 0) {
+            result.complete(true);
+        }
     }
 
     private <T extends Configuration> void writeSingle(Config<T> config, CompletableFuture<Boolean> result) {
