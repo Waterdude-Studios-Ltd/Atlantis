@@ -301,20 +301,38 @@ public class Redis implements Storage {
     }
 
     private static Object[] toURIArray(String uri) throws InvalidRedisUrlException {
+        var original = uri;
         uri = uri.replace("redis://", "");
         if (uri.endsWith("/")) {
             uri = uri.substring(0, uri.length() - 1);
         }
         String[] account = uri.split("@");
         if (account.length > 2) {
-            throw new InvalidRedisUrlException(uri);
+            throw new InvalidRedisUrlException(original);
         }
         String[] addr = account[account.length - 1].split(":");
-        if (addr.length != 2) {
-            throw new InvalidRedisUrlException(uri);
+        if (addr.length != 2 || addr[0].isEmpty()) {
+            throw new InvalidRedisUrlException(original);
         }
-        String[] userpass = account[0].split(":");
-        return new Object[]{addr[0], Integer.parseInt(addr[1]), userpass[0], userpass[1].toCharArray()};
+        int port;
+        try {
+            port = Integer.parseInt(addr[1]);
+        } catch (NumberFormatException e) {
+            throw new InvalidRedisUrlException(original);
+        }
+        var username = "";
+        var password = "";
+        if (account.length == 2) {
+            var credentials = account[0];
+            var separator = credentials.indexOf(':');
+            if (separator >= 0) {
+                username = credentials.substring(0, separator);
+                password = credentials.substring(separator + 1);
+            } else {
+                password = credentials;
+            }
+        }
+        return new Object[]{addr[0], port, username, password.toCharArray()};
     }
 
     private enum Message {
