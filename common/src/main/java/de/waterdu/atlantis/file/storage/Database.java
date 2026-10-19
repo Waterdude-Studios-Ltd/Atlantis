@@ -244,7 +244,8 @@ public class Database implements Storage {
             var query = this.queries.prepare(this.queries.INSERT_ELEMENT, "", config, data, this.schema);
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
-                    result.complete(stmt.execute(query));
+                    stmt.execute(query);
+                    result.complete(true);
                 }
             } catch (SQLException e) {
                 AtlantisLogger.error("SQL error in writeSpecific on {}: {}", config.name(), e.getMessage());
@@ -263,8 +264,7 @@ public class Database implements Storage {
         }
         if (config.container().isData()) {
             config.clearAll();
-            this.readAll(config, null, null);
-            result.complete(true);
+            return this.readAll(config, null, null);
         } else {
             result.complete(false);
         }
@@ -414,16 +414,15 @@ public class Database implements Storage {
             var query = this.queries.prepare(this.queries.DELETE_ELEMENT_UUID, uuid.toString());
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
-                    if (stmt.execute(query)) {
-                        T removed = config.uuidDataMap().remove(uuid);
-                        if (removed != null) {
-                            config.filenameDataMap().remove(removed.identifier());
-                            if (removed instanceof NamedData namedData) {
-                                config.nameDataMap().remove(namedData.name());
-                            }
+                    stmt.execute(query);
+                    T removed = config.uuidDataMap().remove(uuid);
+                    if (removed != null) {
+                        config.filenameDataMap().remove(removed.identifier());
+                        if (removed instanceof NamedData namedData) {
+                            config.nameDataMap().remove(namedData.name());
                         }
-                        result.complete(removed);
                     }
+                    result.complete(removed);
                 }
             } catch (SQLException e) {
                 AtlantisLogger.error("SQL error in deleteFromUUID on {}: {}", config.name(), e.getMessage());
