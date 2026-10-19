@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -176,12 +178,7 @@ public class Flatfile implements Storage {
                         bw.write(json);
                     }
                     if (temp.exists()) {
-                        if (output.exists()) {
-                            if (output.delete()) {
-                                AtlantisLogger.log(Settings.get().getLogLoadMessages(), "Deleting output file of {} for file {} in order to swap temp file back in", config.name(), data.identifier());
-                            }
-                        }
-                        if (!temp.renameTo(output)) {
+                        if (!Flatfile.replace(temp, output)) {
                             AtlantisLogger.warn("Write probably failed for new instance of {} for file {}", config.name(), data.identifier());
                         }
                         result.complete(true);
@@ -208,6 +205,19 @@ public class Flatfile implements Storage {
         });
 
         return result;
+    }
+
+    static boolean replace(File source, File target) {
+        try {
+            try {
+                Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private <T extends Configuration> boolean checkTempFile(Config<T> config, T data, File temp) throws IOException {
