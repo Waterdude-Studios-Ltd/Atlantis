@@ -13,6 +13,12 @@ logoFile = "${modId}.png"
 logoBlur = false
 displayURL = "${modHomepage}"
 
+[[mixins]]
+config = "${modId}.mixins.json"
+
+[[mixins]]
+config = "${modId}.neoforge.mixins.json"
+
 [[dependencies.${modId}]]
 modId = "neoforge"
 type = "required"

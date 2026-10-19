@@ -92,6 +92,7 @@ dependencies {
     })
 
     compileOnly("org.spongepowered:mixin:0.8.5")
+    compileOnly("io.github.llamalad7:mixinextras-common:0.4.1")
 
     implementation("org.jspecify:jspecify:1.0.0")
     annotationProcessor("org.jspecify:jspecify:1.0.0")

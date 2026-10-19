@@ -44,6 +44,9 @@ dependencies {
 }
 
 loom {
+    mixin {
+        useLegacyMixinAp = false
+    }
     accessWidenerPath = rootProject.file("common/src/main/resources/atlantis.accesswidener")
 
     interfaceInjection {

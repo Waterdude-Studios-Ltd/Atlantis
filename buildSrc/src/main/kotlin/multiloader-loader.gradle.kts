@@ -34,7 +34,6 @@ dependencies {
     commonJava(project(path = commonPath, configuration = "commonJava"))
     commonResources(project(path = commonPath, configuration = "commonResources"))
 
-    "compileOnly"("org.spongepowered:mixin:0.8.5")
     "compileOnly"("org.jspecify:jspecify:1.0.0")
     "annotationProcessor"("org.jspecify:jspecify:1.0.0")
 
@@ -44,6 +43,7 @@ dependencies {
     "compileOnly"("net.neoforged.fancymodloader:loader:4.0.35")
     "compileOnly"("net.neoforged.fancymodloader:earlydisplay:4.0.35")
     "compileOnly"("net.neoforged:bus:8.0.2")
+    "compileOnly"("io.github.llamalad7:mixinextras-common:0.4.1")
 
     if (is_atlantis) {
         "compileOnly"("io.netty:netty-all:4.1.86.Final")
