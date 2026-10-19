@@ -218,7 +218,7 @@ public final class EntityUtils {
         entity.setXRot(NumberUtils.boundFloat((float) pitch));
 
         if (entity instanceof ServerPlayer serverPlayer) {
-            var packet = new ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor.EYES, entity.getX(), entity.getY(), entity.getZ());
+            var packet = new ClientboundPlayerLookAtPacket(EntityAnchorArgument.Anchor.EYES, target.x(), target.y(), target.z());
             serverPlayer.connection.send(packet);
         }
 
