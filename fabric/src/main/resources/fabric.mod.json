@@ -29,9 +29,6 @@
     "minecraft": "${minecraftVersion}",
     "java": ">=${javaVersion}"
   },
-  "suggests": {
-    "another-mod": "*"
-  },
   "custom": {
     "loom:injected_interfaces": {
       "net/minecraft/world/entity/player/Player": [
