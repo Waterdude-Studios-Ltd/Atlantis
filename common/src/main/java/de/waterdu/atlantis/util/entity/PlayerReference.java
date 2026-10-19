@@ -60,12 +60,17 @@ public final class PlayerReference {
     private final ResettableLazy<Optional<String>> name;
     private final ResettableLazy<Optional<ServerPlayer>> entity;
     private final Map<Class<?>, PlayerData> data;
+    private volatile @Nullable ServerPlayer known;
 
     private PlayerReference(UUID uuid) {
         this.optional = Optional.of(this);
         this.uuid = Lazy.of(() -> Optional.of(uuid));
         this.name = ResettableLazy.of(() -> Optional.of(UUIDNameCache.get(uuid)));
         this.entity = ResettableLazy.of(() -> {
+            var known = this.known;
+            if (known != null && !known.isRemoved()) {
+                return Optional.of(known);
+            }
             var future = new CompletableFuture<Optional<ServerPlayer>>();
             Concurrency.sync(() -> future.complete(ServerUtils.player(uuid)));
             return future.join();
@@ -248,8 +253,14 @@ public final class PlayerReference {
     }
 
     public void reset() {
+        this.known = null;
         this.name.reset();
         this.entity.reset();
+    }
+
+    public void reset(ServerPlayer player) {
+        this.reset();
+        this.known = player;
     }
 
     @Override

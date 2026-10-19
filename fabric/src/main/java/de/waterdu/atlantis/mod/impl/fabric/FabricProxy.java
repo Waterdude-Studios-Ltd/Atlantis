@@ -12,6 +12,8 @@ import io.github.classgraph.ClassGraph;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.FakePlayer;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -66,6 +68,8 @@ public class FabricProxy implements ModLoaderDelegate {
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> this.onPlayerLogin(handler.player));
         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> this.onPlayerLogout(handler.player));
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> this.onPlayerRespawn(newPlayer));
+        ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> this.onPlayerChangeDimension(player));
 
         ModLoaderDelegate.super.setup();
 

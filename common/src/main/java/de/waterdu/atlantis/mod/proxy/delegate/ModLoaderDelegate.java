@@ -96,15 +96,19 @@ public interface ModLoaderDelegate extends ModProxy {
 
     default void onPlayerLogin(ServerPlayer player) {
         UUIDNameCache.add(player);
-        PlayerReference.getSafely(player).ifPresent(PlayerReference::reset);
+        PlayerReference.getSafely(player).ifPresent(reference -> reference.reset(player));
         AtlantisConfig.onPlayerJoin(player);
         NetworkUtils.addAddress(player);
         AtlantisCommand.login(player);
         this.event(UEvent.LOG_IN).emit(new PlayerEventPayload.LogIn(player));
     }
 
+    default void onPlayerRespawn(ServerPlayer player) {
+        PlayerReference.getSafely(player).ifPresent(reference -> reference.reset(player));
+    }
+
     default void onPlayerChangeDimension(ServerPlayer player) {
-        PlayerReference.getSafely(player).ifPresent(PlayerReference::reset);
+        PlayerReference.getSafely(player).ifPresent(reference -> reference.reset(player));
     }
 
     default void onPlayerLogout(ServerPlayer player) {

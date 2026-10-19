@@ -93,7 +93,8 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     public void init(Object event, Consumer<Runnable> enqueue) {
         NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, it -> CommandRegistry.registerAll(it.getDispatcher()));
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, this.playerEventHandler(this::onPlayerLogin));
-        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerRespawnEvent.class, this.playerEventHandler(this::onPlayerChangeDimension));
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerRespawnEvent.class, this.playerEventHandler(this::onPlayerRespawn));
+        NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerChangedDimensionEvent.class, this.playerEventHandler(this::onPlayerChangeDimension));
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, this.playerEventHandler(this::onPlayerLogout));
         NeoForge.EVENT_BUS.addListener(ServerStartedEvent.class, __ -> this.onServerStarted());
         NeoForge.EVENT_BUS.addListener(ServerStoppingEvent.class, __ -> this.onServerStopping());
