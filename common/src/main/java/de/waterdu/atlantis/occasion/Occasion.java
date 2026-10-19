@@ -126,6 +126,7 @@ public class Occasion extends EventHandler<Occasion> {
                 if (!this.memberSet.contains(reference)) {
                     this.members.add(reference);
                     this.memberSet.add(reference);
+                    OccasionManager.addPlayer(reference, this);
                     this.onPlayerAdded.get().accept(reference, this);
                     this.onPlayerChanged.get().accept(reference, this);
                     var moment = this.currentMoment();

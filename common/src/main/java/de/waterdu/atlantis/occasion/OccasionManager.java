@@ -111,7 +111,11 @@ public final class OccasionManager {
         return OccasionManager.getFor(reference).map(Occasion::active).orElse(false);
     }
 
-    protected static void removePlayer(PlayerReference reference) {
+    static void addPlayer(PlayerReference reference, Occasion occasion) {
+        PLAYER_MAP.put(reference, Optional.of(occasion));
+    }
+
+    static void removePlayer(PlayerReference reference) {
         PLAYER_MAP.remove(reference);
     }
 
