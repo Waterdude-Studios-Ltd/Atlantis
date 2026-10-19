@@ -1,15 +1,10 @@
 package de.waterdu.atlantis.mod;
 
-import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 
-import java.io.InvalidClassException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -169,27 +164,11 @@ public final class ModExtension {
         }
 
         public Builder reflectiveConstructorProxy(Loader loader, String classpath) {
-            Class<?> clazz;
-            try {
-                clazz = Class.forName(classpath);
-            } catch (ClassNotFoundException e) {
-                AtlantisLogger.error("Failed to find class " + classpath, e);
-                return this;
-            }
-
-            Constructor<?> constructor;
-            try {
-                constructor = clazz.getConstructor();
-            } catch (NoSuchMethodException e) {
-                AtlantisLogger.error("Failed to find constructor for " + classpath, e);
-                return this;
-            }
-
             Supplier<? extends ModProxy> proxy = () -> {
                 try {
-                    return (ModProxy) constructor.newInstance();
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException("Failed to create proxy via reflective constructor", e);
+                    return (ModProxy) Class.forName(classpath).getConstructor().newInstance();
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException("Failed to create proxy via reflective constructor " + classpath, e);
                 }
             };
 

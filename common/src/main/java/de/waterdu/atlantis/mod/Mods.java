@@ -5,7 +5,6 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.impl.cobblemon.fabric.CobblemonFabricProxy;
 import de.waterdu.atlantis.mod.impl.cobblemon.neoforge.CobblemonNeoForgeProxy;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
-import de.waterdu.atlantis.mod.impl.impactor.ImpactorProxy;
 import de.waterdu.atlantis.mod.impl.pixelmon.PixelmonProxy;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
@@ -108,7 +107,7 @@ public final class Mods {
     public static final ModExtension IMPACTOR = ModExtension.builder()
             .modId("impactor")
             .mainClass("net.impactdev.impactor.api.Impactor")
-            .proxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, ImpactorProxy::new)
+            .reflectiveConstructorProxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, "de.waterdu.atlantis.mod.impl.impactor.ImpactorProxy")
             .delegates(EconomyDelegate.class)
             .language(ModExtension.Language.JAVA)
             .priority(ModExtension.Priority.NORMAL)
