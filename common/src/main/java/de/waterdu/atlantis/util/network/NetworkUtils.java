@@ -5,6 +5,7 @@ import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,8 +57,9 @@ public final class NetworkUtils {
     }
 
     public static String addressToIP(SocketAddress address) {
-        var s = address.toString();
-        s = s.substring(s.indexOf("/") + 1);
-        return s.substring(0, s.indexOf(":"));
+        if (address instanceof InetSocketAddress inet) {
+            return inet.getAddress() != null ? inet.getAddress().getHostAddress() : inet.getHostString();
+        }
+        return address.toString();
     }
 }
