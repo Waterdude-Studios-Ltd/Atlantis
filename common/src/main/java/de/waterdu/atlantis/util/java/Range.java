@@ -92,7 +92,7 @@ public class Range<N extends Number> {
     }
 
     public boolean contains(double value) {
-        return this.greaterThanOrEqualToFunction.apply(value, this.min) && this.lessThanOrEqualToFunction.apply(value, this.max);
+        return this.lessThanOrEqualToFunction.apply(value, this.min) && this.greaterThanOrEqualToFunction.apply(value, this.max);
     }
 
     public void forEach(Consumer<N> forEach) {
