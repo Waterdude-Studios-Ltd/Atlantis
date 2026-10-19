@@ -38,7 +38,7 @@ public final class ResourceOrTagKey<T> {
     }
 
     private ResourceOrTagKey(TagKey<T> key) {
-        this(key.location().toString());
+        this("#" + key.location());
         this.registry = key.registry();
         this.tagKey = key;
         this.createEither();
