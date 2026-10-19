@@ -286,8 +286,11 @@ public class Occasion extends EventHandler<Occasion> {
         this.memberSet.remove(player);
         OccasionManager.removePlayer(player);
         var recovery = this.recoveryPosition(player);
-        OccasionRecovery.add(player, -1, recovery);
-        recovery.teleport(player);
+        if (player.entity().isPresent()) {
+            recovery.teleport(player);
+        } else {
+            OccasionRecovery.add(player, -1, recovery);
+        }
         this.onPlayerRemoved.get().accept(player, this);
         this.onPlayerChanged.get().accept(player, this);
         if (moment != null) {
