@@ -1,11 +1,10 @@
 package de.waterdu.atlantis.mod.impl.neoforge;
 
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEventBus;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
-import net.minecraft.commands.CommandSourceStack;
+import de.waterdu.atlantis.util.server.CommandRegistry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
@@ -21,16 +20,12 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jspecify.annotations.Nullable;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 public class NeoForgeProxy implements ModLoaderDelegate {
 
     private final NeoForgeEventBus modEventBus;
     private final NeoForgeEventBus neoForgeEventBus;
-
-    private final List<LiteralArgumentBuilder<CommandSourceStack>> commands = new CopyOnWriteArrayList<>();
 
     public NeoForgeProxy(IEventBus modEventBus, ModContainer modContainer) {
         this.modEventBus = new NeoForgeEventBus(modEventBus);
@@ -50,7 +45,7 @@ public class NeoForgeProxy implements ModLoaderDelegate {
 
     @Override
     public void init(Object event, Consumer<Runnable> enqueue) {
-        NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, it -> this.registerCommands(it.getDispatcher()));
+        NeoForge.EVENT_BUS.addListener(RegisterCommandsEvent.class, it -> CommandRegistry.registerAll(it.getDispatcher()));
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedInEvent.class, this.playerEventHandler(this::onPlayerLogin));
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerRespawnEvent.class, this.playerEventHandler(this::onPlayerChangeDimension));
         NeoForge.EVENT_BUS.addListener(PlayerEvent.PlayerLoggedOutEvent.class, this.playerEventHandler(this::onPlayerLogout));
@@ -68,16 +63,6 @@ public class NeoForgeProxy implements ModLoaderDelegate {
                 scope.accept(player);
             }
         };
-    }
-
-    @Override
-    public void registerCommand(LiteralArgumentBuilder<CommandSourceStack> command) {
-        this.commands.add(command);
-    }
-
-    @Override
-    public List<LiteralArgumentBuilder<CommandSourceStack>> commandsToRegister() {
-        return this.commands;
     }
 
     @Override

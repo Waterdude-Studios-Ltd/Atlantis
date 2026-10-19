@@ -1,7 +1,5 @@
 package de.waterdu.atlantis.mod.proxy.delegate;
 
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.file.AtlantisConfig;
@@ -25,7 +23,6 @@ import de.waterdu.atlantis.util.config.Key;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.network.NetworkUtils;
 import de.waterdu.atlantis.util.server.ServerUtils;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
@@ -65,16 +62,6 @@ public interface ModLoaderDelegate extends ModProxy {
     default void onServerStopping() {
         for (var config : AtlantisConfig.allInstances()) {
             config.asyncSaveInner();
-        }
-    }
-
-    void registerCommand(LiteralArgumentBuilder<CommandSourceStack> command);
-
-    List<LiteralArgumentBuilder<CommandSourceStack>> commandsToRegister();
-
-    default void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
-        for (var command : this.commandsToRegister()) {
-            dispatcher.register(command);
         }
     }
 

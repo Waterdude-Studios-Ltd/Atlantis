@@ -16,6 +16,7 @@ import de.waterdu.atlantis.ui.test.TestPage;
 import de.waterdu.atlantis.util.concurrency.Concurrency;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.server.BrigadierUtils;
+import de.waterdu.atlantis.util.server.CommandRegistry;
 import de.waterdu.atlantis.util.server.CommandUtils;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import de.waterdu.atlantis.util.text.MessageUtils;
@@ -273,6 +274,7 @@ public class AtlantisCommand {
     }
 
     public static void setup(Consumer<Runnable> enqueue) {
+        CommandRegistry.register(AtlantisCommand::makeCommand);
         enqueue.accept(() -> Atlantis.THREAD_POOL.schedule(() -> {
             var messageA = new StringBuilder();
             var messageB = new StringBuilder();
