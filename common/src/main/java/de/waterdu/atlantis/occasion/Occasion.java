@@ -141,6 +141,11 @@ public class Occasion extends EventHandler<Occasion> {
         return added.get();
     }
 
+    @Override
+    public boolean playerValid(Player player) {
+        return this.isMember(player);
+    }
+
     public boolean isMember(Object reference) {
         return PlayerReference.getSafely(reference).map(this.memberSet::contains).orElse(false);
     }
