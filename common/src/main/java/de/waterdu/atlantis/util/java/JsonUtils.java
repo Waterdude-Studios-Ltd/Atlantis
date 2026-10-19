@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -59,16 +60,15 @@ public final class JsonUtils {
         return result;
     }
 
+    @Deprecated
     @SuppressWarnings("unchecked")
     public static <T> T[] deserializeArray(JsonArray array, Function<JsonElement, T> deserializer) {
-        var result = (T[]) new Object[array.size()];
-        var i = 0;
-        for (var property : array) {
-            var apply = deserializer.apply(property);
-            if (apply != null) {
-                result[i++] = apply;
-            }
-        }
-        return result;
+        return (T[]) JsonUtils.deserializeList(array, deserializer).toArray();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T[] deserializeArray(JsonArray array, Class<T> type, Function<JsonElement, T> deserializer) {
+        var result = JsonUtils.deserializeList(array, deserializer);
+        return result.toArray((T[]) Array.newInstance(type, result.size()));
     }
 }

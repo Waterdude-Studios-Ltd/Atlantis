@@ -388,7 +388,7 @@ public class Layout<P extends Page> {
                 Text name = JsonUtils.getOrDefault(object, "name", Text.class, Text.empty(), context);
                 Text[] lore;
                 if (object.has("lore")) {
-                    lore = JsonUtils.deserializeArray(object.getAsJsonArray("lore"), e -> context.deserialize(e, Text.class));
+                    lore = JsonUtils.deserializeArray(object.getAsJsonArray("lore"), Text.class, e -> context.deserialize(e, Text.class));
                 } else {
                     lore = new Text[0];
                 }
