@@ -85,7 +85,7 @@ public final class AtlantisData {
     }
 
     public static CompletableFuture<AtlantisPlayer> get(PlayerReference player) {
-        return player.entity().map(AtlantisData::get).orElse(AtlantisData.get(player.uuid()));
+        return player.entity().map(AtlantisData::get).orElseGet(() -> AtlantisData.get(player.uuid()));
     }
 
     public static CompletableFuture<AtlantisPlayer> get(Player player) {
