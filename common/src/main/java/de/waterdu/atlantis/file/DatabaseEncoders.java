@@ -5,9 +5,9 @@ import de.waterdu.atlantis.util.java.interfaces.SQLBiFunction;
 import de.waterdu.atlantis.util.java.interfaces.TriFunction;
 
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -124,7 +124,7 @@ public final class DatabaseEncoders {
 
         DatabaseEncoders.register(
                 new Encoder<String>(),
-                new Decoder<>(ResultSet::getBytes, (config, field, data) -> Base64.getEncoder().encodeToString(data))
+                new Decoder<>(ResultSet::getBytes, (config, field, data) -> data == null ? null : new String(data, StandardCharsets.UTF_8))
         , Defaults.TINYBLOB, Defaults.BLOB, Defaults.MEDIUMBLOB, Defaults.LONGBLOB);
 
         DatabaseEncoders.register(
