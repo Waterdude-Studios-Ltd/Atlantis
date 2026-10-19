@@ -58,7 +58,6 @@ public interface ModLoaderDelegate extends ModProxy {
         AtlantisUI.register();
         AtlantisData.register();
 
-        AtlantisChunkLoader.setup(enqueue);
         Schematics.loadAll();
 
         OccasionManager.register();
@@ -76,6 +75,7 @@ public interface ModLoaderDelegate extends ModProxy {
     }
 
     default void onServerStarted() {
+        AtlantisChunkLoader.setup(Runnable::run);
         Atlantis.listeners().startLoggingPackets();
     }
 
