@@ -90,7 +90,11 @@ public abstract class MixinItemStack implements ItemStackExt, DataComponentHolde
 
     @Override
     public <T> void componentScope(DataComponentType<T> component, UnaryOperator<T> scope) {
-        this.componentScope(component, () -> null, scope);
+        var self = this.self();
+        var data = self.get(component);
+        if (data != null) {
+            self.set(component, scope.apply(data));
+        }
     }
 
     @Override

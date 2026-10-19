@@ -256,10 +256,7 @@ public final class ItemUtils {
     }
 
     public static void setPixelmonTooltip(ItemStack stack, String tooltip) {
-        stack.componentScope(DataComponents.CUSTOM_DATA, () -> CustomData.of(new CompoundTag()), data -> {
-            data.update(tag -> tag.putString(TAG_TOOLTIP, tooltip));
-            return data;
-        });
+        stack.componentScope(DataComponents.CUSTOM_DATA, () -> CustomData.of(new CompoundTag()), data -> data.update(tag -> tag.putString(TAG_TOOLTIP, tooltip)));
     }
 
     public static void hideTooltips(ItemStack stack) {
@@ -350,10 +347,7 @@ public final class ItemUtils {
     }
 
     public static void tag(ItemStack stack, Consumer<CompoundTag> tag) {
-        stack.componentScope(DataComponents.CUSTOM_DATA, () -> CustomData.of(new CompoundTag()), data -> {
-            data.update(tag);
-            return data;
-        });
+        stack.componentScope(DataComponents.CUSTOM_DATA, () -> CustomData.of(new CompoundTag()), data -> data.update(tag));
     }
 
     public static DataComponentMap components(ItemStack stack) {
