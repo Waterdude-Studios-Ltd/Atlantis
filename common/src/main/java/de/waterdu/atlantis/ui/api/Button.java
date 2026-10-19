@@ -240,7 +240,7 @@ public class Button {
      * @see ItemStack
      */
     public ItemStack display(PlayerReference player) {
-        if (this.item == null) {
+        if (this.item == null || this.item.isEmpty()) {
             return ItemStack.EMPTY;
         }
 
