@@ -397,7 +397,7 @@ public class Redis implements Storage {
             if (args.length < 2) {
                 return Optional.empty();
             }
-            var message = Message.MESSAGES.getOrDefault(args[0], null);
+            var message = Message.MESSAGES.getOrDefault(args[0].toLowerCase(Locale.ROOT), null);
             if (message == null) {
                 return Optional.empty();
             }
