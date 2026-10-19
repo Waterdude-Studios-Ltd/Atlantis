@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -125,6 +126,10 @@ public class ConfigurableItemStack {
                     var result = preprocessor.execute(full, args);
                     this.stack = result.getA();
                     this.parse(0, result.getB());
+                } else if (Preprocessor.isDirective(args[0])) {
+                    AtlantisLogger.warn("No loaded mod provides the {} item directive, using air for {}", args[0], this.string);
+                    this.stack = new ItemStack(Items.AIR);
+                    this.parse(Preprocessor.directiveEnd(args), args);
                 } else {
                     this.stack = new ItemStack(ItemUtils.item(args[0]).orElse(Items.AIR));
                     this.parse(1, args);
@@ -272,6 +277,8 @@ public class ConfigurableItemStack {
         public static final String POKEBALL_LID_DIRECTIVE = "#pokeball_lid";
         public static final String END_DIRECTIVE = "#end";
 
+        private static final Set<String> DIRECTIVES = Set.of(SPRITE_DIRECTIVE, POKEBALL_DIRECTIVE, POKEBALL_LID_DIRECTIVE);
+
         public static final Preprocessor SPRITE;
         public static final Preprocessor POKEBALL;
         public static final Preprocessor POKEBALL_LID;
@@ -304,6 +311,19 @@ public class ConfigurableItemStack {
 
         private static Preprocessor get(String[] args) {
             return PREPROCESSORS.get(args[0].toLowerCase(Locale.ROOT));
+        }
+
+        private static boolean isDirective(String arg) {
+            return DIRECTIVES.contains(arg.toLowerCase(Locale.ROOT));
+        }
+
+        private static int directiveEnd(String[] args) {
+            for (var i = 1; i < args.length; i++) {
+                if (args[i].equalsIgnoreCase(END_DIRECTIVE)) {
+                    return i + 1;
+                }
+            }
+            return Math.min(2, args.length);
         }
     }
 
