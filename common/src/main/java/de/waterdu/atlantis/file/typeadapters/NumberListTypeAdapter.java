@@ -112,6 +112,7 @@ public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<L
                             range = false;
                         }
                         builder.append(",").append(this.encoder.apply(i));
+                        check = i.longValue();
                     }
                 }
             }
