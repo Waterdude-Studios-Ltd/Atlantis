@@ -17,6 +17,10 @@ public abstract class UEventBus<Bus, Event> extends ModWrapper<Bus> {
 
     public abstract Event post(Object event);
 
+    public abstract void register(Object listener);
+
+    public abstract void unregister(Object listener);
+
     public static class SinkEventBus extends UEventBus<Object, Object> {
 
         public static final SinkEventBus INSTANCE = new SinkEventBus();
@@ -34,6 +38,16 @@ public abstract class UEventBus<Bus, Event> extends ModWrapper<Bus> {
         @Override
         public Object post(Object event) {
             return event;
+        }
+
+        @Override
+        public void register(Object listener) {
+            // noop
+        }
+
+        @Override
+        public void unregister(Object listener) {
+            // noop
         }
     }
 }

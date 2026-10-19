@@ -1,7 +1,6 @@
 package de.waterdu.atlantis.util.event;
 
-import net.neoforged.bus.api.Event;
-import net.neoforged.bus.api.IEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,7 +8,7 @@ import java.util.Set;
 public final class DeferredModEventBus {
 
     private final Set<Object> toRegister = new HashSet<>();
-    private IEventBus bus = null;
+    private UEventBus<?, ?> bus = null;
 
     public void register(Object listener) {
         if (this.bus == null) {
@@ -27,14 +26,15 @@ public final class DeferredModEventBus {
         }
     }
 
-    public <T extends Event> T post(T event) {
+    @SuppressWarnings("unchecked")
+    public <T> T post(T event) {
         if (this.bus != null) {
-            return this.bus.post(event);
+            return (T) this.bus.post(event);
         }
         return event;
     }
 
-    public void setBus(IEventBus bus) {
+    public void setBus(UEventBus<?, ?> bus) {
         this.bus = bus;
         for (var listener : this.toRegister) {
             this.bus.register(listener);
@@ -42,7 +42,7 @@ public final class DeferredModEventBus {
         this.toRegister.clear();
     }
 
-    public IEventBus getBus() {
+    public UEventBus<?, ?> getBus() {
         return this.bus;
     }
 }

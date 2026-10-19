@@ -25,4 +25,14 @@ public class NeoForgeEventBus extends UEventBus<IEventBus, Event> {
     public Event post(Object event) {
         return this.dereference().post((Event) event);
     }
+
+    @Override
+    public void register(Object listener) {
+        this.dereference().register(listener);
+    }
+
+    @Override
+    public void unregister(Object listener) {
+        this.dereference().unregister(listener);
+    }
 }

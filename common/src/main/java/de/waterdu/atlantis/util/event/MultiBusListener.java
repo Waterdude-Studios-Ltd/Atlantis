@@ -1,15 +1,14 @@
 package de.waterdu.atlantis.util.event;
 
-import de.waterdu.atlantis.Atlantis;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.NeoForge;
+import de.waterdu.atlantis.mod.Mods;
+import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public final class MultiBusListener {
 
-    private final Map<IEventBus, SingleBusListener> listeners;
+    private final Map<UEventBus<?, ?>, SingleBusListener> listeners;
 
     public MultiBusListener() {
         this.listeners = new HashMap<>();
@@ -32,13 +31,13 @@ public final class MultiBusListener {
 
     public abstract static class SingleBusListener {
 
-        private final IEventBus bus;
+        private final UEventBus<?, ?> bus;
 
-        public SingleBusListener(IEventBus bus) {
+        public SingleBusListener(UEventBus<?, ?> bus) {
             this.bus = bus;
         }
 
-        public final IEventBus bus() {
+        public final UEventBus<?, ?> bus() {
             return this.bus;
         }
 
@@ -51,17 +50,17 @@ public final class MultiBusListener {
         }
     }
 
-    public abstract static class NeoForgeListener extends SingleBusListener {
+    public abstract static class GameBusListener extends SingleBusListener {
 
-        public NeoForgeListener() {
-            super(NeoForge.EVENT_BUS);
+        public GameBusListener() {
+            super(Mods.modLoader().eventBus());
         }
     }
 
-    public abstract static class AtlantisListener extends SingleBusListener {
+    public abstract static class ModBusListener extends SingleBusListener {
 
-        public AtlantisListener() {
-            super(Atlantis.EVENT_BUS);
+        public ModBusListener() {
+            super(Mods.modLoader().modEventBus());
         }
     }
 }
