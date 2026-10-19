@@ -45,7 +45,7 @@ public class ConfigurablePokemon {
 
     public int requirementCount() {
         if (this.requirementCount == -1) {
-            this.requirementCount = this.spec.countRequirements();
+            this.requirementCount = this.spec().countRequirements();
         }
         return this.requirementCount;
     }
@@ -58,12 +58,12 @@ public class ConfigurablePokemon {
     }
 
     public UPokemon<?> newInstance() {
-        return this.spec.create();
+        return this.spec().create();
     }
 
     public ItemStack sprite() {
         if (this.sprite == null) {
-            this.sprite = this.spec.item();
+            this.sprite = this.spec().item();
         }
         return this.sprite.copy();
     }
