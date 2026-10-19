@@ -8,6 +8,9 @@ import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.Settings;
 import de.waterdu.atlantis.level.schematic.Schematics;
+import de.waterdu.atlantis.mod.Mods;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionStatus;
 import de.waterdu.atlantis.permission.AtlantisPermissionGroup;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.self.decoration.DecorationEditor;
@@ -36,9 +39,6 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.neoforged.fml.VersionChecker;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.fml.loading.FMLLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +55,6 @@ public class AtlantisCommand {
     public static final String ID = "atlantis";
 
     private static final String PIXELMON_ID = "pixelmon";
-    private static final String AUTHORS = "authors";
-    private static final String ISSUE_TRACKER = "issueTrackerURL";
 
     public static final String COMMAND_NAME = "atlantis";
     public static final List<String> COMMAND_ALIAS = Lists.newArrayList();
@@ -275,63 +273,65 @@ public class AtlantisCommand {
 
     public static void setup(Consumer<Runnable> enqueue) {
         CommandRegistry.register(AtlantisCommand::makeCommand);
+        AtlantisCommand.buildMessages();
         enqueue.accept(() -> Atlantis.THREAD_POOL.schedule(() -> {
-            var messageA = new StringBuilder();
-            var messageB = new StringBuilder();
-            var atlantisMod = "";
             var first = true;
-            for (var mod : FMLLoader.getLoadingModList().getMods()) {
-                var isPixelmon = mod.getModId().equalsIgnoreCase(AtlantisCommand.PIXELMON_ID);
+            for (var mod : Mods.modLoader().mods()) {
+                var component = Text.of(mod.displayName()).compile();
 
-                var component = Text.of(mod.getDisplayName()).compile();
+                var version = mod.versionCheck().get();
 
-                var version = VersionChecker.getResult(mod);
-
-                var status = version == null ? VersionChecker.Status.FAILED : version.status();
-                var latest = version == null || version.target() == null ? "?" : version.target().toString();
-                var tracker = mod.getOwningFile().getIssueURL();
+                var status = version.status();
+                var latest = version.target() == null ? "?" : version.target();
+                var tracker = mod.issueTracker();
 
                 var style = Style.EMPTY;
                 var hover = "";
                 if (tracker != null) {
-                    style = style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, tracker.toString()));
+                    style = style.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, tracker));
                     hover = "\n\n" + ChatFormatting.AQUA + "Click to open issue tracker";
                 }
 
                 var outdated = false;
 
-                if (status == VersionChecker.Status.UP_TO_DATE || status == VersionChecker.Status.BETA) {
-                    latest = mod.getVersion().toString();
+                if (status == VersionStatus.UP_TO_DATE || status == VersionStatus.BETA) {
+                    latest = mod.version();
 
-                    var beta = status == VersionChecker.Status.BETA ?
+                    var beta = status == VersionStatus.BETA ?
                             ChatFormatting.LIGHT_PURPLE + "" + ChatFormatting.BOLD + "β" + ChatFormatting.RESET + ChatFormatting.LIGHT_PURPLE + " Up to date (beta)" :
                             ChatFormatting.GREEN + "" + ChatFormatting.BOLD + "✓" + ChatFormatting.RESET + ChatFormatting.GREEN + " Up to date";
                     style = style.withColor(ChatFormatting.GREEN);
-                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.getDisplayName() + "\n" +
-                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.getModId() + "\n\n" +
+                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.displayName() + "\n" +
+                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.id() + "\n\n" +
                             ChatFormatting.GRAY + "Version: " + ChatFormatting.GREEN + latest + "\n" +
                             ChatFormatting.GRAY + "Latest: " + ChatFormatting.WHITE + latest + "\n\n" +
                             beta + hover;
-                } else if (status == VersionChecker.Status.OUTDATED || status == VersionChecker.Status.BETA_OUTDATED) {
+                } else if (status == VersionStatus.OUTDATED || status == VersionStatus.BETA_OUTDATED) {
                     style = style.withColor(ChatFormatting.RED);
-                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.getDisplayName() + "\n" +
-                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.getModId() + "\n\n" +
-                            ChatFormatting.GRAY + "Version: " + ChatFormatting.RED + mod.getVersion().toString() + "\n" +
+                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.displayName() + "\n" +
+                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.id() + "\n\n" +
+                            ChatFormatting.GRAY + "Version: " + ChatFormatting.RED + mod.version() + "\n" +
                             ChatFormatting.GRAY + "Latest: " + ChatFormatting.WHITE + latest + "\n\n" +
-                            ChatFormatting.RED + ChatFormatting.BOLD + "✗" + ChatFormatting.RESET + ChatFormatting.RED + " Outdated" + (status == VersionChecker.Status.BETA_OUTDATED ? " (beta)" : "") + hover;
+                            ChatFormatting.RED + ChatFormatting.BOLD + "✗" + ChatFormatting.RESET + ChatFormatting.RED + " Outdated" + (status == VersionStatus.BETA_OUTDATED ? " (beta)" : "") + hover;
                     outdated = true;
-                } else if (status == VersionChecker.Status.AHEAD) {
+                } else if (status == VersionStatus.AHEAD) {
                     style = style.withColor(ChatFormatting.GOLD);
-                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.getDisplayName() + "\n" +
-                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.getModId() + "\n\n" +
-                            ChatFormatting.GRAY + "Version: " + ChatFormatting.GOLD + mod.getVersion().toString() + "\n" +
+                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.displayName() + "\n" +
+                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.id() + "\n\n" +
+                            ChatFormatting.GRAY + "Version: " + ChatFormatting.GOLD + mod.version() + "\n" +
                             ChatFormatting.GRAY + "Latest: " + ChatFormatting.WHITE + latest + "\n\n" +
                             ChatFormatting.GOLD + "★" + ChatFormatting.RESET + ChatFormatting.GOLD + " Ahead of latest" + hover;
+                } else if (status == VersionStatus.UNSUPPORTED) {
+                    style = style.withColor(ChatFormatting.YELLOW);
+                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.displayName() + "\n" +
+                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.id() + "\n\n" +
+                            ChatFormatting.GRAY + "Version: " + ChatFormatting.WHITE + mod.version() + "\n\n" +
+                            ChatFormatting.GRAY + "Version checking is unavailable on Fabric" + hover;
                 } else {
                     style = style.withColor(ChatFormatting.YELLOW);
-                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.getDisplayName() + "\n" +
-                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.getModId() + "\n\n" +
-                            ChatFormatting.GRAY + "Version: " + ChatFormatting.YELLOW + mod.getVersion().toString() + "\n" +
+                    hover = ChatFormatting.GRAY + "Name: " + ChatFormatting.WHITE + mod.displayName() + "\n" +
+                            ChatFormatting.GRAY + "ID: " + ChatFormatting.WHITE + mod.id() + "\n\n" +
+                            ChatFormatting.GRAY + "Version: " + ChatFormatting.YELLOW + mod.version() + "\n" +
                             ChatFormatting.GRAY + "Latest: " + ChatFormatting.WHITE + latest + "\n\n" +
                             ChatFormatting.RED + ChatFormatting.BOLD + "▲" + ChatFormatting.RESET + ChatFormatting.RED + " Failed to fetch info" + hover;
                 }
@@ -353,52 +353,52 @@ public class AtlantisCommand {
                 }
                 AtlantisCommand.MODLIST.append(component);
                 first = false;
-
-                var authors = mod.getConfigElement(AtlantisCommand.AUTHORS).orElse("");
-                if (isPixelmon || (authors instanceof String && ((String) authors).contains(Atlantis.WATER_NAME))) {
-                    if (!atlantisMod.isEmpty()) {
-                        if (messageA.isEmpty()) {
-                            messageA.append(AtlantisCommand.PREFIX.get()).append(AtlantisCommand.BLUE).append("Water, the developer of ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                            messageB.append(AtlantisCommand.PREFIX.get()).append(AtlantisCommand.BLUE).append("By Water, powered by Atlantis: ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                        } else {
-                            messageA.append(AtlantisCommand.BLUE).append(", ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                            messageB.append(AtlantisCommand.BLUE).append(", ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                        }
-                    }
-                    atlantisMod = ChatFormatting.stripFormatting(mod.getDisplayName());
-                    AtlantisCommand.ATLANTIS_MODS.add(mod.getModId());
-                }
             }
 
-            if (!atlantisMod.isEmpty()) {
-                if (messageA.isEmpty()) {
-                    messageA.append(AtlantisCommand.PREFIX.get()).append(AtlantisCommand.BLUE).append("Water, the developer of ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                    messageB.append(AtlantisCommand.PREFIX.get()).append(AtlantisCommand.BLUE).append("By Water, powered by Atlantis: ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                } else {
-                    messageA.append(AtlantisCommand.BLUE).append(" and ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                    messageB.append(AtlantisCommand.BLUE).append(" and ").append(AtlantisCommand.GRADIENT).append(atlantisMod);
-                }
-            }
-            messageA.append(AtlantisCommand.BLUE).append(", has joined!");
-            AtlantisCommand.MESSAGE_A = Text.of(messageA.toString()).compile();
-            messageB.append(AtlantisCommand.BLUE).append(".").append(AtlantisCommand.BLUE).append("[L]").append(" Click for more information!");
-            AtlantisCommand.MESSAGE_B = Text.of(messageB.toString()).compile();
-            AtlantisCommand.MESSAGE_B.setStyle(AtlantisCommand.MESSAGE_B.getStyle()
-                    .withHoverEvent(
-                            new HoverEvent(
-                                    HoverEvent.Action.SHOW_TEXT,
-                                    Text.of(AtlantisCommand.BLUE + "Click to visit Atlantis Development!").compile()
-                            )
-                    ).withClickEvent(
-                            new ClickEvent(
-                                    ClickEvent.Action.OPEN_URL,
-                                    "https://www.discord.gg/Ff3bEwb"
-                            )
-                    )
-            );
             AtlantisLogger.info("Atlantis is ready.");
             AtlantisCommand.READY.set(true);
         }, 30, TimeUnit.SECONDS));
+    }
+
+    private static void buildMessages() {
+        var atlantisMods = new ArrayList<String>();
+        for (var mod : Mods.modLoader().mods()) {
+            if (mod.id().equalsIgnoreCase(AtlantisCommand.PIXELMON_ID) || AtlantisCommand.isByWater(mod)) {
+                atlantisMods.add(ChatFormatting.stripFormatting(mod.displayName()));
+                AtlantisCommand.ATLANTIS_MODS.add(mod.id());
+            }
+        }
+
+        var mods = AtlantisCommand.joinModNames(atlantisMods);
+        var messageA = AtlantisCommand.PREFIX.get() + AtlantisCommand.BLUE + (mods.isEmpty() ? "Water" : "Water, the developer of " + mods + AtlantisCommand.BLUE + ",") + " has joined!";
+        var messageB = AtlantisCommand.PREFIX.get() + AtlantisCommand.BLUE + (mods.isEmpty() ? "Powered by Atlantis" : "By Water, powered by Atlantis: " + mods) +
+                AtlantisCommand.BLUE + ". " + AtlantisCommand.BLUE + "[L]Click for more information!";
+        AtlantisCommand.MESSAGE_A = Text.of(messageA).compile();
+        AtlantisCommand.MESSAGE_B = Text.of(messageB).compile();
+        AtlantisCommand.MESSAGE_B.setStyle(AtlantisCommand.MESSAGE_B.getStyle()
+                .withHoverEvent(
+                        new HoverEvent(
+                                HoverEvent.Action.SHOW_TEXT,
+                                Text.of(AtlantisCommand.BLUE + "Click to visit Atlantis Development!").compile()
+                        )
+                ).withClickEvent(
+                        new ClickEvent(
+                                ClickEvent.Action.OPEN_URL,
+                                "https://www.discord.gg/Ff3bEwb"
+                        )
+                )
+        );
+    }
+
+    private static String joinModNames(List<String> names) {
+        var joined = new StringBuilder();
+        for (var i = 0; i < names.size(); i++) {
+            if (i > 0) {
+                joined.append(AtlantisCommand.BLUE).append(i == names.size() - 1 ? " and " : ", ");
+            }
+            joined.append(AtlantisCommand.GRADIENT).append(names.get(i));
+        }
+        return joined.toString();
     }
 
     public static void login(ServerPlayer player) {
@@ -418,12 +418,20 @@ public class AtlantisCommand {
 
     public static int countAtlantisMods() {
         var count = 0;
-        for (var mod : FMLLoader.getLoadingModList().getMods()) {
-            var authors = mod.getConfigElement(AtlantisCommand.AUTHORS).orElse("");
-            if (authors instanceof String authorString && authorString.contains(Atlantis.WATER_NAME)) {
+        for (var mod : Mods.modLoader().mods()) {
+            if (AtlantisCommand.isByWater(mod)) {
                 count++;
             }
         }
         return count;
+    }
+
+    private static boolean isByWater(ModInfo mod) {
+        for (var author : mod.authors()) {
+            if (author.contains(Atlantis.WATER_NAME)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

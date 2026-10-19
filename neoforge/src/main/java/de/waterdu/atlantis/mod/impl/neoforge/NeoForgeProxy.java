@@ -5,6 +5,9 @@ import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEventBus;
 import de.waterdu.atlantis.mod.impl.neoforge.modloader.permission.NeoForgePermissionNode;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionStatus;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
@@ -14,6 +17,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.VersionChecker;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
@@ -31,17 +35,23 @@ import net.neoforged.neoforge.server.permission.handler.IPermissionHandler;
 import net.neoforged.neoforge.server.permission.nodes.PermissionDynamicContext;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
+import net.neoforged.neoforgespi.language.IModInfo;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class NeoForgeProxy implements ModLoaderDelegate {
+
+    private static final String AUTHORS = "authors";
+    private static final String ISSUE_TRACKER = "issueTrackerURL";
 
     private final NeoForgeEventBus modEventBus;
     private final NeoForgeEventBus neoForgeEventBus;
@@ -143,6 +153,32 @@ public class NeoForgeProxy implements ModLoaderDelegate {
     @Override
     public boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
+    }
+
+    @Override
+    public List<ModInfo> mods() {
+        var mods = new ArrayList<ModInfo>();
+        for (var mod : ModList.get().getMods()) {
+            var authors = mod.getConfig().getConfigElement(AUTHORS).map(String::valueOf).map(List::of).orElse(List.of());
+            var tracker = mod.getOwningFile().getConfig().getConfigElement(ISSUE_TRACKER).map(String::valueOf).orElse(null);
+            mods.add(new ModInfo(
+                    mod.getModId(),
+                    mod.getDisplayName(),
+                    mod.getVersion().toString(),
+                    authors,
+                    tracker,
+                    () -> NeoForgeProxy.versionCheck(mod)
+            ));
+        }
+        return mods;
+    }
+
+    private static VersionCheck versionCheck(IModInfo mod) {
+        var result = VersionChecker.getResult(mod);
+        if (result == null) {
+            return new VersionCheck(VersionStatus.FAILED, null);
+        }
+        return new VersionCheck(VersionStatus.valueOf(result.status().name()), result.target() == null ? null : result.target().toString());
     }
 
     @Override

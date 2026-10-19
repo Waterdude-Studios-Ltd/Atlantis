@@ -13,6 +13,7 @@ import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.ListenerEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.occasion.OccasionManager;
 import de.waterdu.atlantis.playerdata.UUIDNameCache;
@@ -102,6 +103,8 @@ public interface ModLoaderDelegate extends ModProxy {
     boolean isDedicatedServer();
 
     boolean isModLoaded(String modId);
+
+    List<ModInfo> mods();
 
     boolean isFakePlayer(ServerPlayer player);
 
