@@ -127,6 +127,7 @@ public final class ItemUtils {
 
     public static <T> void setDisplayName(ItemStack stack, T name) {
         stack.set(DataComponents.ITEM_NAME, TextUtils.asComponent(name));
+        stack.remove(DataComponents.CUSTOM_NAME);
     }
 
     public static <T> void setDisplayNameWithPlaceholders(ItemStack stack, T name, Object... contexts) {
