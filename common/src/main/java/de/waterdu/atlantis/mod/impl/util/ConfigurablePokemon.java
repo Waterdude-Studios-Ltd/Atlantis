@@ -13,6 +13,7 @@ import de.waterdu.atlantis.util.text.TextUtils;
 import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Type;
+import java.util.Locale;
 
 public class ConfigurablePokemon {
 
@@ -82,7 +83,7 @@ public class ConfigurablePokemon {
 
     @Override
     public int hashCode() {
-        return this.originalSpec.hashCode();
+        return this.originalSpec.toLowerCase(Locale.ROOT).hashCode();
     }
 
     @Override
