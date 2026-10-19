@@ -132,9 +132,11 @@ public class Schematic {
 
     public void place(ServerLevel world, BlockPos origin, int passes, boolean ignoreAir) {
         this.tryPrepare();
+        var history = new SchematicHistory(world);
         for (var i = 0; i < passes; i++) {
-            this.placeInner(world, origin, ignoreAir);
+            this.placeInner(world, origin, ignoreAir, history);
         }
+        Schematics.offerHistory(history);
     }
 
     public CompletableFuture<SchematicHistory> placeAsync(ServerLevel level, BlockPos origin, boolean ignoreAir, int blocksPerStep, int ticksPerStep) {
@@ -168,12 +170,10 @@ public class Schematic {
         return future;
     }
 
-    private void placeInner(ServerLevel world, BlockPos origin, boolean ignoreAir) {
-        var history = new SchematicHistory(world);
+    private void placeInner(ServerLevel world, BlockPos origin, boolean ignoreAir, SchematicHistory history) {
         for (var entry : this.preparedSchematic.entrySet()) {
             this.placeMapEntry(world, origin, entry, ignoreAir, history);
         }
-        Schematics.offerHistory(history);
     }
 
     private void placeMapEntry(ServerLevel world, BlockPos origin,
