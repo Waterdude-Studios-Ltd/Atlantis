@@ -279,6 +279,7 @@ public class Occasion extends EventHandler<Occasion> {
         for (var player : this.members) {
             this.removePlayer(moment, player);
         }
+        this.members.clear();
     }
 
     private void removePlayer(@Nullable Moment moment, PlayerReference player) {
