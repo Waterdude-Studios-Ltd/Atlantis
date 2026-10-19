@@ -390,6 +390,7 @@ public final class TextUtils {
     }
 
     public static MutableComponent applyClickEvent(MutableComponent text, ClickEvent event) {
+        text.setStyle(text.getStyle().withClickEvent(event));
         for (var component : text.getSiblings()) {
             if (component instanceof MutableComponent sibling) {
                 sibling.setStyle(sibling.getStyle().withClickEvent(event));
@@ -399,6 +400,7 @@ public final class TextUtils {
     }
 
     public static MutableComponent applyHoverEvent(MutableComponent text, HoverEvent event) {
+        text.setStyle(text.getStyle().withHoverEvent(event));
         for (var component : text.getSiblings()) {
             if (component instanceof MutableComponent sibling) {
                 sibling.setStyle(sibling.getStyle().withHoverEvent(event));
