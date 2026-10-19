@@ -82,6 +82,8 @@ tasks {
 
     processResources {
         dependsOn(commonResources)
-        from(commonResources)
+        from(commonResources) {
+            exclude("fabric.mod.json")
+        }
     }
 }

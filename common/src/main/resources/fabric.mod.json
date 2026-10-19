@@ -1,0 +1,32 @@
+{
+  "_comment": "Only used for common's Loom interface injection; excluded from the loader jars. Keep in sync with common/interfaces.json and fabric/src/main/resources/fabric.mod.json.",
+  "schemaVersion": 1,
+  "id": "atlantis_common_injection",
+  "version": "0",
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/world/entity/player/Player": [
+        "de/waterdu/atlantis/ext/player/PlayerExt",
+        "de/waterdu/atlantis/ext/player/PermissionsExt"
+      ],
+      "net/minecraft/resources/ResourceLocation": [
+        "de/waterdu/atlantis/ext/dev/ResourceLocationExt"
+      ],
+      "net/minecraft/world/item/Item": [
+        "de/waterdu/atlantis/ext/item/ItemExt"
+      ],
+      "net/minecraft/world/item/ItemStack": [
+        "de/waterdu/atlantis/ext/item/ItemStackExt"
+      ],
+      "net/minecraft/world/level/block/Block": [
+        "de/waterdu/atlantis/ext/item/BlockExt"
+      ],
+      "net/minecraft/resources/ResourceKey": [
+        "de/waterdu/atlantis/ext/dev/ResourceKeyExt<TT;>"
+      ],
+      "net/minecraft/commands/CommandSourceStack": [
+        "de/waterdu/atlantis/ext/player/PermissionsExt"
+      ]
+    }
+  }
+}

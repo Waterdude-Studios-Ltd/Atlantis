@@ -66,10 +66,6 @@ loom {
     }
 }
 
-sourceSets.main {
-    resources.srcDir(rootProject.file("fabric/src/main/resources"))
-}
-
 dependencies {
     val is_atlantis = commonMod.id == "atlantis"
 

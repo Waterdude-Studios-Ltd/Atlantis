@@ -19,7 +19,7 @@ dependencies {
 }
 
 neoForge {
-    interfaceInjectionData.from(rootProject.file("common/src/main/resources/META-INF/interfaces.json"))
+    interfaceInjectionData.from(rootProject.file("common/interfaces.json"))
 
     runs {
         register("client") {
