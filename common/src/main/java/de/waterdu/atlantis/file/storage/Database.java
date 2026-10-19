@@ -361,7 +361,7 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.SELECT_ELEMENT_NAME, name);
+            var query = this.queries.prepare(this.queries.SELECT_ELEMENT_NAME, Queries.escape(name));
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
                     try (var rs = stmt.executeQuery(query)) {
@@ -610,6 +610,10 @@ public class Database implements Storage {
             return query.complete(args);
         }
 
+        static String escape(String value) {
+            return value.replace("\\", "\\\\").replace("'", "''");
+        }
+
         public <T extends Configuration> String prepare(IncompleteString query, String key, Config<T> config, Object data, Schema schema) {
             var args = new String[schema.elements.size() + (key.isEmpty() ? schema.elements.size() - 1 : 1) - schema.autoIncrementElements];
             var i = 0;
@@ -618,7 +622,7 @@ public class Database implements Storage {
                     try {
                         args[i] = element.encoder.encode(config, element.field, element.field.field().get(data));
                         if (element.surround.equalsIgnoreCase(DatabaseEncoders.QuoteMarks.SINGLE)) {
-                            args[i] = args[i].replace("'", "''");
+                            args[i] = Queries.escape(args[i]);
                         }
                     } catch (IllegalAccessException e) {
                         AtlantisLogger.error("Failed to get field when preparing query on {}", config.name());
@@ -634,7 +638,7 @@ public class Database implements Storage {
                         try {
                             args[i] = element.encoder.encode(config, element.field, element.field.field().get(data));
                             if (element.surround.equalsIgnoreCase(DatabaseEncoders.QuoteMarks.SINGLE)) {
-                                args[i] = args[i].replace("'", "''");
+                                args[i] = Queries.escape(args[i]);
                             }
                         } catch (IllegalAccessException e) {
                             AtlantisLogger.error("Failed to get field when preparing query on {}", config.name());
