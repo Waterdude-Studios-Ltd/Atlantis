@@ -6,9 +6,11 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.NullUnmarked;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 @NullMarked
@@ -17,6 +19,7 @@ public final class ModExtension {
     private final String modId;
     private final Lazy.Throwing<Class<?>> mainClass;
     private final Map<Loader, Lazy<? extends ModProxy>> proxies;
+    private final Set<Loader> supportedLoaders;
     private final List<Class<? extends ModProxy>> delegateProxies;
     private final boolean modLoader;
     private final Language language;
@@ -26,14 +29,16 @@ public final class ModExtension {
             String modId,
             String mainClass,
             Map<Loader, Lazy<? extends ModProxy>> proxies,
+            Set<Loader> supportedLoaders,
             List<Class<? extends ModProxy>> delegateProxies,
             boolean modLoader,
             Language language,
             Priority priority
     ) {
         this.modId = modId;
-        this.mainClass = Lazy.throwingOf(() -> Class.forName(mainClass));
+        this.mainClass = Lazy.throwingOf(() -> Class.forName(mainClass, false, ModExtension.class.getClassLoader()));
         this.proxies = proxies;
+        this.supportedLoaders = supportedLoaders;
         this.delegateProxies = delegateProxies;
         this.modLoader = modLoader;
         this.language = language;
@@ -60,6 +65,10 @@ public final class ModExtension {
     @SuppressWarnings("unchecked")
     public <P extends ModProxy> P proxy(Loader loader) {
         return (P) this.proxies.get(loader).get();
+    }
+
+    public boolean supports(Loader loader) {
+        return this.supportedLoaders.contains(loader);
     }
 
     public List<Class<? extends ModProxy>> delegateProxies() {
@@ -124,6 +133,7 @@ public final class ModExtension {
             }
         }};
         private boolean addedProxy = false;
+        private final Set<Loader> supportedLoaders = EnumSet.noneOf(Loader.class);
         private final List<Class<? extends ModProxy>> delegateProxies = new ArrayList<>();
         private boolean modLoader = false;
         private Language language;
@@ -158,7 +168,10 @@ public final class ModExtension {
                     this.proxy(Loader.NEOFORGE, proxy);
                     this.proxy(Loader.FABRIC, proxy);
                 }
-                default -> this.proxies.put(loader, Lazy.of(proxy));
+                default -> {
+                    this.proxies.put(loader, Lazy.of(proxy));
+                    this.supportedLoaders.add(loader);
+                }
             }
             return this;
         }
@@ -229,6 +242,7 @@ public final class ModExtension {
                     this.modId,
                     this.mainClass,
                     this.proxies,
+                    this.supportedLoaders,
                     this.delegateProxies,
                     this.modLoader,
                     this.language,

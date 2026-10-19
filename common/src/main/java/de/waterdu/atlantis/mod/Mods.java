@@ -30,7 +30,7 @@ public final class Mods {
     static {
         ModExtension.Loader loader;
         try {
-            Class.forName("net.neoforged.neoforge.common.NeoForge");
+            Class.forName("net.neoforged.neoforge.common.NeoForge", false, Mods.class.getClassLoader());
             loader = ModExtension.Loader.NEOFORGE;
         } catch (ClassNotFoundException e) {
             loader = ModExtension.Loader.FABRIC;
@@ -119,7 +119,7 @@ public final class Mods {
 
         for (var priority : ModExtension.Priority.values()) {
             for (var extension : EXTENSIONS.get(priority).values()) {
-                if (extension.mainClassPresent()) {
+                if (Mods.isActive(extension)) {
                     ACTIVE.put(extension.modId(), extension);
                     for (var delegate : extension.delegateProxies()) {
                         if (ACTIVE_BY_DELEGATE.containsKey(delegate)) {
@@ -137,6 +137,13 @@ public final class Mods {
                 Mods.modLoader().event(UEvent.REGISTER_MOD_EXTENSIONS).emit(new RegisterModExtensionsEventPayload()).applyExtensions(EXTENSIONS);
             }
         }
+    }
+
+    private static boolean isActive(ModExtension extension) {
+        if (!extension.supports(ACTIVE_LOADER) || !extension.mainClassPresent()) {
+            return false;
+        }
+        return extension.modLoader() || Mods.modLoader().isModLoaded(extension.modId());
     }
 
     public static void registerExtensions(ModExtension... extensions) {
