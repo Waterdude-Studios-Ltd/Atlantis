@@ -24,14 +24,27 @@ public class AtlantisPermission {
             throw new IllegalArgumentException("Permission node cannot contain whitespace");
         }
         this.node = node;
-        this.pattern = Pattern.compile(node
-                .replace(".+", "?")
-                .replace(".", "\\.")
-                .replace("*", "([A-Za-z]+)")
-                .replace("+", "([A-Za-z0-9\\.]+)")
-                .replace("?", "([A-Za-z0-9\\.]*)")
-                .replace("^", "([0-9]+)")
-        );
+        this.pattern = Pattern.compile(toRegex(node));
+    }
+
+    private static String toRegex(String node) {
+        var regex = new StringBuilder();
+        for (var i = 0; i < node.length(); i++) {
+            var c = node.charAt(i);
+            if (c == '.' && i + 1 < node.length() && node.charAt(i + 1) == '+') {
+                regex.append("(\\.[A-Za-z0-9_.-]+)?");
+                i++;
+                continue;
+            }
+            switch (c) {
+                case '*' -> regex.append("([A-Za-z][A-Za-z0-9_-]*)");
+                case '+' -> regex.append("([A-Za-z0-9_.-]+)");
+                case '?' -> regex.append("([A-Za-z0-9_.-]*)");
+                case '^' -> regex.append("([0-9]+)");
+                default -> regex.append(Pattern.quote(String.valueOf(c)));
+            }
+        }
+        return regex.toString();
     }
 
     public boolean matches(String permission) {
