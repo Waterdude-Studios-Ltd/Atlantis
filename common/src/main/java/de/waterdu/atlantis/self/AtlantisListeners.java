@@ -2,6 +2,7 @@ package de.waterdu.atlantis.self;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Maps;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.Settings;
@@ -22,11 +23,10 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class AtlantisListeners {
@@ -44,9 +44,9 @@ public final class AtlantisListeners {
     private static final String VANILLA = "vanilla";
     private static final String CUSTOM = "custom";
 
-    private final Set<UUID> pageClasspathTracking = new HashSet<>();
-    private final BiMap<String, Class<? extends Page>> pages = HashBiMap.create();
-    private final Map<Class<? extends Page>, Pair<Integer, PageOptions.FormFactor>> formFactors = new HashMap<>();
+    private final Set<UUID> pageClasspathTracking = ConcurrentHashMap.newKeySet();
+    private final BiMap<String, Class<? extends Page>> pages = Maps.synchronizedBiMap(HashBiMap.create());
+    private final Map<Class<? extends Page>, Pair<Integer, PageOptions.FormFactor>> formFactors = new ConcurrentHashMap<>();
     private String[] pageNames = new String[0];
 
     @SuppressWarnings({"unused", "FieldCanBeLocal"})
