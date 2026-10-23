@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.file.storage;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import de.waterdu.atlantis.Atlantis;
@@ -300,7 +301,8 @@ public class Redis implements Storage {
         }
     }
 
-    private static Object[] toURIArray(String uri) throws InvalidRedisUrlException {
+    @VisibleForTesting
+    static Object[] toURIArray(String uri) throws InvalidRedisUrlException {
         var original = uri;
         uri = uri.replace("redis://", "");
         if (uri.endsWith("/")) {

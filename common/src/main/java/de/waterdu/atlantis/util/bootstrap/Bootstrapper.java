@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.util.bootstrap;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.file.auto.BasicConfiguration;
 import de.waterdu.atlantis.file.auto.BasicData;
@@ -35,6 +36,12 @@ public final class Bootstrapper {
 
     private Bootstrapper() {
         ExceptionUtils.throwCannotInstantiateClassException();
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        ANNOTATED_CLASSES.clear();
+        BOOTSTRAPPED.set(false);
     }
 
     public static void forEachAnnotatedClass(Class<? extends Annotation> annotation, Consumer<AnnotatedClass> forEach) {

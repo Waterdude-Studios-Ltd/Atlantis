@@ -4,7 +4,7 @@ plugins {
     `multiloader-loader`
     id("fabric-loom")
     kotlin("jvm")
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
+    id("com.google.devtools.ksp") version "2.3.12"
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.14"
 }
 
@@ -22,6 +22,8 @@ dependencies {
     })
 
     modImplementation("net.fabricmc:fabric-loader:${commonMod.dep("fabric_loader")}")
+    testImplementation("net.fabricmc:fabric-loader-junit:${commonMod.dep("fabric_loader")}")
+    testCompileOnly("org.jspecify:jspecify:1.0.0")
     modApi("net.fabricmc.fabric-api:fabric-api:${commonMod.dep("fabric_api")}+${commonMod.mc}")
 
     // Required dependencies
@@ -41,6 +43,22 @@ dependencies {
         include(implementation(library) {
             isTransitive = false
         }!!)
+    }
+}
+
+sourceSets.test {
+    val commonTests = rootProject.file("common/src/test/java")
+    java.srcDir(commonTests)
+    java.exclude { !it.isDirectory && it.file.startsWith(commonTests) && !it.file.startsWith(commonTests.resolve("de/waterdu/atlantis/test")) }
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "atlantis_test"
+        enableGameTests = true
+        enableClientGameTests = false
+        eula = true
     }
 }
 
@@ -71,5 +89,25 @@ loom {
             configName = "Fabric Server"
             ideConfigGenerated(true)
         }
+    }
+}
+
+afterEvaluate {
+    tasks.test {
+        setDependsOn(dependsOn.filterNot { dependency ->
+            when (dependency) {
+                is Task -> dependency.name == "runGameTest"
+                is TaskProvider<*> -> dependency.name == "runGameTest"
+                is String -> dependency.endsWith("runGameTest")
+                else -> false
+            }
+        })
+    }
+}
+
+tasks.matching { it.name == "runGameTest" }.configureEach {
+    val runDir = layout.buildDirectory.dir("run/gameTest")
+    doFirst {
+        runDir.get().asFile.let { dir -> listOf("config", "world", "ops.json").forEach { dir.resolve(it).deleteRecursively() } }
     }
 }

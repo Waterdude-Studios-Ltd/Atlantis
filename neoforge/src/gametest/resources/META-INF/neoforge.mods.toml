@@ -1,0 +1,16 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "atlantis_test"
+version = "1.0.0"
+displayName = "Atlantis GameTests"
+description = "GameTests for Atlantis. Only present in the gametest run."
+
+[[dependencies.atlantis_test]]
+modId = "atlantis"
+type = "required"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

@@ -4,7 +4,7 @@ plugins {
     `multiloader-loader`
     id("net.neoforged.moddev")
     kotlin("jvm")
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
+    id("com.google.devtools.ksp") version "2.3.12"
     id("dev.kikugie.fletching-table.neoforge") version "0.1.0-alpha.13"
 }
 
@@ -39,6 +39,12 @@ dependencies {
     }
 }
 
+val gametest: SourceSet = sourceSets.create("gametest") {
+    val main = sourceSets.main.get()
+    compileClasspath += main.compileClasspath + main.output
+    runtimeClasspath += main.runtimeClasspath + main.output
+}
+
 neoForge {
     accessTransformers.from(rootProject.file("common/src/main/resources/META-INF/accesstransformer.cfg"))
     interfaceInjectionData.from(rootProject.file("common/interfaces.json"))
@@ -51,6 +57,13 @@ neoForge {
         register("server") {
             server()
             ideName = "NeoForge Server (${project.path})"
+        }
+        register("gameTestServer") {
+            type = "gameTestServer"
+            sourceSet = gametest
+            gameDirectory = project.file("build/run/gameTest")
+            systemProperty("neoforge.enabledGameTestNamespaces", "atlantis_test")
+            ideName = "NeoForge GameTest Server (${project.path})"
         }
     }
 
@@ -65,9 +78,19 @@ neoForge {
         register(commonMod.id) {
             sourceSet(sourceSets.main.get())
         }
+        register("atlantis_test") {
+            sourceSet(gametest)
+        }
     }
 }
 
 sourceSets.main {
     resources.srcDir("src/generated/resources")
+}
+
+tasks.matching { it.name == "runGameTestServer" }.configureEach {
+    val runDir = layout.buildDirectory.dir("run/gameTest")
+    doFirst {
+        runDir.get().asFile.let { dir -> listOf("config", "world", "ops.json").forEach { dir.resolve(it).deleteRecursively() } }
+    }
 }

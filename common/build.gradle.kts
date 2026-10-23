@@ -39,7 +39,7 @@ plugins {
     id("multiloader-common")
     id("fabric-loom")
     kotlin("jvm")
-    id("com.google.devtools.ksp") version "2.2.0-2.0.2"
+    id("com.google.devtools.ksp") version "2.3.12"
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.14"
     id("java-library")
     id("maven-publish")
@@ -110,6 +110,21 @@ dependencies {
         compileOnly("io.github.classgraph:classgraph:4.8.197")
 
         compileOnly("org.spigotmc:spigot-api:${commonMod.mc}-R0.1-SNAPSHOT")
+
+        listOf(
+            "io.netty:netty-all:4.1.86.Final",
+            "com.zaxxer:HikariCP:4.0.3",
+            "mysql:mysql-connector-java:8.0.29",
+            "io.lettuce:lettuce-core:6.2.3.RELEASE",
+            "com.github.ben-manes.caffeine:caffeine:3.2.4",
+            "io.github.classgraph:classgraph:4.8.197",
+        ).forEach { testImplementation(it) }
+        testImplementation("org.spongepowered:mixin:0.8.5")
+        testImplementation("io.github.llamalad7:mixinextras-common:0.4.1")
+        testImplementation("com.google.testing.compile:compile-testing:0.21.0")
+        testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.4"))
+        testImplementation("org.testcontainers:junit-jupiter")
+        testImplementation("org.testcontainers:mysql")
     } else {
         implementation("de.waterdu.atlantis:Atlantis121:0.0.1")
     }
@@ -131,12 +146,28 @@ dependencies {
     )
 }
 
+val gametest: SourceSet = sourceSets.create("gametest") {
+    val main = sourceSets.main.get()
+    compileClasspath += main.compileClasspath + main.output
+    runtimeClasspath += main.runtimeClasspath + main.output
+}
+
 val commonJava: Configuration by configurations.creating {
     isCanBeResolved = false
     isCanBeConsumed = true
 }
 
 val commonResources: Configuration by configurations.creating {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+}
+
+val commonGametestJava: Configuration = configurations.create("commonGametestJava") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+}
+
+val commonGametestResources: Configuration = configurations.create("commonGametestResources") {
     isCanBeResolved = false
     isCanBeConsumed = true
 }
@@ -149,6 +180,12 @@ artifacts {
         }
         mainSourceSet.resources.sourceDirectories.files.forEach {
             add(commonResources.name, it)
+        }
+        gametest.java.sourceDirectories.files.forEach {
+            add(commonGametestJava.name, it)
+        }
+        gametest.resources.sourceDirectories.files.forEach {
+            add(commonGametestResources.name, it)
         }
     }
 }

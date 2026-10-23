@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.file;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.file.auto.BasicConfiguration;
@@ -62,6 +63,13 @@ public final class AtlantisConfigFinder {
             BACKUP_INSTANCES.clear();
             BACKUP_INSTANCES.putAll(INSTANCES);
         }
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        INSTANCES.clear();
+        BACKUP_INSTANCES.clear();
+        FOUND.set(false);
     }
 
     public static void restoreFromBackup() {

@@ -111,3 +111,39 @@ tasks {
 tasks.named("processResources") {
     dependsOn(":common:${commonMod.propOrNull("minecraft_version")}:stonecutterGenerate")
 }
+
+val mockitoAgent: Configuration by configurations.creating
+
+dependencies {
+    "testImplementation"(platform("org.junit:junit-bom:5.11.4"))
+    "testImplementation"("org.junit.jupiter:junit-jupiter")
+    "testImplementation"("org.assertj:assertj-core:3.27.3")
+    "testImplementation"("org.mockito:mockito-core:5.15.2")
+    mockitoAgent("org.mockito:mockito-core:5.15.2") {
+        isTransitive = false
+    }
+    "testRuntimeOnly"("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.withType<Test>().configureEach {
+    jvmArgumentProviders.add(CommandLineArgumentProvider {
+        listOf("-javaagent:${mockitoAgent.singleFile.absolutePath}", "-Xshare:off")
+    })
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform {
+        excludeTags("integration")
+    }
+}
+
+tasks.register<Test>("integrationTest") {
+    description = "Runs tests tagged 'integration'."
+    group = "verification"
+    val test = tasks.named<Test>("test").get()
+    testClassesDirs = test.testClassesDirs
+    classpath = test.classpath
+    useJUnitPlatform {
+        includeTags("integration")
+    }
+}

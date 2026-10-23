@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.file;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.file.datatypes.Configuration;
 import de.waterdu.atlantis.util.java.interfaces.ResettableLazy;
 
@@ -16,6 +17,11 @@ public class ConfigurationHolder<C extends Configuration> {
 
     private ConfigurationHolder(String modid, Class<C> type) {
         this.instance = ResettableLazy.concurrentOf(() -> AtlantisConfigProxy.of(modid).get(type));
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        HOLDERS.clear();
     }
 
     public static <C extends Configuration> ConfigurationHolder<C> of(Class<C> type) {

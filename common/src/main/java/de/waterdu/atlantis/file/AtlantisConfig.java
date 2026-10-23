@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.file;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -205,6 +206,19 @@ public final class AtlantisConfig {
         var dir = new File(all, mod);
         dir.mkdir();
         return dir;
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        for (var instance : INSTANCES.values()) {
+            instance.configs.clear();
+            instance.scheduledTasks.clear();
+            instance.ready.set(false);
+            instance.dir = null;
+        }
+        INIT.set(false);
+        CLASS_TO_MOD.clear();
+        PLAYER_CONFIGS.clear();
     }
 
     @SuppressWarnings("unchecked")

@@ -11,6 +11,13 @@ val commonResources: Configuration by configurations.creating {
     isCanBeResolved = true
 }
 
+val commonGametestJava: Configuration = configurations.create("commonGametestJava") {
+    isCanBeResolved = true
+}
+val commonGametestResources: Configuration = configurations.create("commonGametestResources") {
+    isCanBeResolved = true
+}
+
 val is_atlantis = commonMod.id == "atlantis"
 
 fun localOptionalJar(name: String): File? = listOfNotNull(
@@ -33,6 +40,8 @@ dependencies {
     compileOnly(project(path = commonPath))
     commonJava(project(path = commonPath, configuration = "commonJava"))
     commonResources(project(path = commonPath, configuration = "commonResources"))
+    commonGametestJava(project(path = commonPath, configuration = "commonGametestJava"))
+    commonGametestResources(project(path = commonPath, configuration = "commonGametestResources"))
 
     "compileOnly"("org.jspecify:jspecify:1.0.0")
     "annotationProcessor"("org.jspecify:jspecify:1.0.0")
@@ -77,4 +86,18 @@ tasks {
             exclude("fabric.mod.json")
         }
     }
+}
+
+sourceSets.matching { it.name == "gametest" }.configureEach {
+    java.srcDir(commonGametestJava)
+    resources.srcDir(commonGametestResources)
+}
+
+tasks.withType<ProcessResources>().matching { it.name != "processResources" }.configureEach {
+    val sourceSetName = name.removePrefix("process").removeSuffix("Resources").replaceFirstChar { it.lowercase() }
+    val mainResources = layout.buildDirectory.dir("resources/main").get().asFile
+    val generatedKsp = layout.buildDirectory.dir("generated/ksp").get().asFile
+    val ownKsp = generatedKsp.resolve(sourceSetName)
+    exclude { it.file.startsWith(mainResources) || (it.file.startsWith(generatedKsp) && !it.file.startsWith(ownKsp)) }
+    mustRunAfter(tasks.matching { it.name.startsWith("ksp") })
 }

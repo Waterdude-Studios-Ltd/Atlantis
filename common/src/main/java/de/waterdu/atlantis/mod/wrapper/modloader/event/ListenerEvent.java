@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.mod.wrapper.modloader.event;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.mod.impl.common.event.Cancellable;
 import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
@@ -29,6 +30,11 @@ public final class ListenerEvent<Payload extends EventPayload> extends UEvent<Pa
     @SuppressWarnings("unchecked")
     public static <Payload extends EventPayload> ListenerEvent<Payload> of(Key<UEvent<Payload>> eventType) {
         return (ListenerEvent<Payload>) EVENTS.computeIfAbsent(eventType, __ -> new ListenerEvent<>(eventType));
+    }
+
+    @VisibleForTesting
+    public static void clearForTesting() {
+        EVENTS.clear();
     }
 
     @Override

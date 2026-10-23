@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.mod;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
@@ -14,6 +15,7 @@ import de.waterdu.atlantis.util.java.ExceptionUtils;
 
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -109,8 +111,28 @@ public final class Mods {
             .priority(ModExtension.Priority.NORMAL)
             .build();
 
+    private static final List<ModExtension> BUILT_IN = List.of(NONE, NEOFORGE, FABRIC, PIXELMON, COBBLEMON, IMPACTOR);
+
     private Mods() {
         ExceptionUtils.throwCannotInstantiateClassException();
+    }
+
+    @VisibleForTesting
+    public static void activateForTesting(ModExtension... extensions) {
+        for (var extension : extensions) {
+            ACTIVE.put(extension.modId(), extension);
+            for (var delegate : extension.delegateProxies()) {
+                ACTIVE_BY_DELEGATE.putIfAbsent(delegate, extension);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        ACTIVE.clear();
+        ACTIVE_BY_DELEGATE.clear();
+        EXTENSIONS.values().forEach(Map::clear);
+        BUILT_IN.forEach(Mods::registerExtension);
     }
 
     @Entrypoint

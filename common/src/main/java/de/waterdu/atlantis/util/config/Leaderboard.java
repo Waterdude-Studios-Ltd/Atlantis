@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.util.config;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonDeserializationContext;
@@ -74,6 +75,11 @@ public class Leaderboard<T extends Data, V extends Comparable<V>> {
         this.queued = new ConcurrentHashMap<>();
         this.mapTypeToken = Leaderboard.makeMapTypeToken(this.valueClass);
         this.stringKey = "Leaderboard{" + this.owner + "," + this.dataClass.getSimpleName() + "," + Arrays.toString(this.getterName) + "," + this.valueClass.getSimpleName() + "}";
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        ALL_LEADERBOARDS.clear();
     }
 
     @SuppressWarnings("unchecked")

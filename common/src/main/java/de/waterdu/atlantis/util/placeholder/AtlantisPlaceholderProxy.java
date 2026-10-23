@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.util.placeholder;
 
+import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
 import de.waterdu.atlantis.util.bootstrap.Entrypoint;
@@ -38,6 +39,12 @@ public final class AtlantisPlaceholderProxy {
             AtlantisPlaceholderProxy.setProvider(provider);
             break;
         }
+    }
+
+    @VisibleForTesting
+    public static void resetForTesting() {
+        AtlantisPlaceholderProxy.PROVIDER.set(NoProvider.INSTANCE);
+        AtlantisPlaceholderProxy.PROVIDERS.clear();
     }
 
     public static void addPlaceholderProvider(PlaceholderProvider provider) {
