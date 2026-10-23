@@ -10,9 +10,6 @@ concurrency:
 
 env:
   CI: "true"
-  # Cobblemon, Impactor and FPAPI resolve from local jars unless their versions are set in gradle.properties.
-  # Set the LIBRARIES_ARCHIVE_URL secret to a .tar.gz of those jars to provide them here.
-  LIBRARIES_DIR: ${{ github.workspace }}/.ci-libraries
 
 jobs:
   unit:
@@ -25,16 +22,6 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-      - name: Fetch local-only libraries
-        env:
-          LIBRARIES_ARCHIVE_URL: ${{ secrets.LIBRARIES_ARCHIVE_URL }}
-        run: |
-          mkdir -p "$LIBRARIES_DIR"
-          if [ -n "$LIBRARIES_ARCHIVE_URL" ]; then
-            curl -fsSL "$LIBRARIES_ARCHIVE_URL" | tar -xz -C "$LIBRARIES_DIR"
-          else
-            echo "::warning::LIBRARIES_ARCHIVE_URL is not set; integrations without a Maven version will be missing."
-          fi
       - name: Run JUnit tests
         run: ./gradlew :common:1.21.1:test :fabric:1.21.1:test
       - name: Upload test reports
@@ -54,16 +41,6 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-      - name: Fetch local-only libraries
-        env:
-          LIBRARIES_ARCHIVE_URL: ${{ secrets.LIBRARIES_ARCHIVE_URL }}
-        run: |
-          mkdir -p "$LIBRARIES_DIR"
-          if [ -n "$LIBRARIES_ARCHIVE_URL" ]; then
-            curl -fsSL "$LIBRARIES_ARCHIVE_URL" | tar -xz -C "$LIBRARIES_DIR"
-          else
-            echo "::warning::LIBRARIES_ARCHIVE_URL is not set; integrations without a Maven version will be missing."
-          fi
       - name: Run integration tests
         run: ./gradlew :common:1.21.1:integrationTest
       - name: Upload test reports
@@ -91,16 +68,6 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-      - name: Fetch local-only libraries
-        env:
-          LIBRARIES_ARCHIVE_URL: ${{ secrets.LIBRARIES_ARCHIVE_URL }}
-        run: |
-          mkdir -p "$LIBRARIES_DIR"
-          if [ -n "$LIBRARIES_ARCHIVE_URL" ]; then
-            curl -fsSL "$LIBRARIES_ARCHIVE_URL" | tar -xz -C "$LIBRARIES_DIR"
-          else
-            echo "::warning::LIBRARIES_ARCHIVE_URL is not set; integrations without a Maven version will be missing."
-          fi
       - name: Run GameTests
         run: ./gradlew ${{ matrix.task }}
       - name: Upload server logs

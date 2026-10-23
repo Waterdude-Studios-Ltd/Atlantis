@@ -49,6 +49,17 @@ repositories {
     maven("https://waterdu.de/maven")
     maven("https://hub.spigotmc.org/nexus/repository/public/")
     maven("https://maven.impactdev.net/repository/development/")
+    exclusiveContent {
+        forRepositories(maven("https://maven.impactdev.net/repository/development/") { name = "ImpactDev" })
+        filter {
+            includeGroup("com.cobblemon")
+            includeGroup("net.impactdev.impactor.api")
+        }
+    }
+    exclusiveContent {
+        forRepositories(maven("https://maven.envyware.co.uk/releases") { name = "EnvyWare" })
+        filter { includeGroup("com.envyful.papi") }
+    }
 
     ivy {
         setUrl("https://download.nodecdn.net/containers/reforged/universal/release")

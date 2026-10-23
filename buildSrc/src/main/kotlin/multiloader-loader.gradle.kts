@@ -28,10 +28,11 @@ fun localOptionalJar(name: String): File? = listOfNotNull(
 
 fun DependencyHandlerScope.optionalIntegration(
     version: String,
-    dependency: (String) -> String,
-    localJar: String
+    dependencies: (String) -> List<String>,
+    localJar: String,
+    transitive: Boolean = true
 ) {
-    version.takeIf { it.isNotBlank() }?.let { "compileOnly"(dependency(it)) }
+    version.takeIf { it.isNotBlank() }?.let { dependencies(it).forEach { dependency -> "compileOnly"(dependency) { isTransitive = transitive } } }
         ?: localOptionalJar(localJar)?.let { "compileOnly"(files(it)) }
 }
 
@@ -59,17 +60,19 @@ dependencies {
 
     optionalIntegration(
         commonMod.cobblemon,
-        { version -> "com.cobblemon.mod:Cobblemon:$version" },
-        "Cobblemon.jar"
+        { version -> listOf("com.cobblemon:neoforge:$version") },
+        "Cobblemon.jar",
+        transitive = false
     )
     optionalIntegration(
         commonMod.impactor,
-        { version -> "net.impactdev.impactor:Impactor:$version" },
-        "Impactor.jar"
+        { version -> listOf("economy", "core").map { "net.impactdev.impactor.api:$it:$version" } },
+        "Impactor.jar",
+        transitive = false
     )
     optionalIntegration(
         commonMod.fpapi,
-        { version -> "com.envyful.papi:FPAPI121:$version" },
+        { version -> listOf("com.envyful.papi:api:$version") },
         "FPAPI121.jar"
     )
 }
