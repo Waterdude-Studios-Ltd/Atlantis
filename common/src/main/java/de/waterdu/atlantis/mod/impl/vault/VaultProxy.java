@@ -4,6 +4,7 @@ import de.waterdu.atlantis.mod.plugin.PluginBridge;
 import de.waterdu.atlantis.mod.plugin.PluginBridgeFactory;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
 import de.waterdu.atlantis.util.entity.PlayerReference;
+import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -17,7 +18,8 @@ import java.util.function.Function;
 public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
 
     public static final String VAULT = "Vault";
-    private static final PluginBridge BRIDGE = PluginBridgeFactory.make(VAULT);
+    private static final Lazy<PluginBridge> BRIDGE = Lazy.concurrentOf(() -> PluginBridgeFactory.make(VAULT));
+    private static final Lazy<Economy> ECONOMY = Lazy.concurrentOf(Economy::find);
 
     private static final String VAULT_ECONOMY_CLASSPATH = "net.milkbowl.vault.economy.Economy";
     private static final String VAULT_ECONOMY_RESPONSE_CLASSPATH = "net.milkbowl.vault.economy.EconomyResponse";
@@ -67,7 +69,7 @@ public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
             return CompletableFuture.failedFuture(new IllegalStateException("Vault economy used without a running server"));
         }
         Executor executor = server.isSameThread() ? Runnable::run : server;
-        return CompletableFuture.supplyAsync(() -> action.apply(Economy.find()), executor);
+        return CompletableFuture.supplyAsync(() -> action.apply(ECONOMY.get()), executor);
     }
 
     private record Economy(PluginBridge bridge, Class<?> type, Object provider) {
@@ -76,23 +78,24 @@ public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
             if (!Bukkit.getPluginManager().isPluginEnabled(VAULT)) {
                 throw new IllegalStateException("Vault is not enabled");
             }
-            if (BRIDGE == null) {
+            var bridge = BRIDGE.get();
+            if (bridge == null) {
                 throw new IllegalStateException("Bridge is not initialized");
             }
-            var type = BRIDGE.findClass(VAULT_ECONOMY_CLASSPATH).orElseThrow(() -> new IllegalStateException("Vault's economy API was not found"));
+            var type = bridge.findClass(VAULT_ECONOMY_CLASSPATH).orElseThrow(() -> new IllegalStateException("Vault's economy API was not found"));
             var registration = Bukkit.getServicesManager().getRegistration(type);
             if (registration == null) {
                 throw new IllegalStateException("No economy plugin is registered with Vault");
             }
-            return new Economy(BRIDGE, type, registration.getProvider());
+            return new Economy(bridge, type, registration.getProvider());
         }
 
         private <T> T call(String method, OfflinePlayer player) {
-            return this.invoke(this.type, this.provider, method, new Class<?>[] {OfflinePlayer.class}, player);
+            return this.invoke(this.type, this.provider, method, new Class<?>[]{OfflinePlayer.class}, player);
         }
 
         private <T> T call(String method, OfflinePlayer player, double amount) {
-            return this.invoke(this.type, this.provider, method, new Class<?>[] {OfflinePlayer.class, double.class}, player, amount);
+            return this.invoke(this.type, this.provider, method, new Class<?>[]{OfflinePlayer.class, double.class}, player, amount);
         }
 
         private boolean successful(Object response) {

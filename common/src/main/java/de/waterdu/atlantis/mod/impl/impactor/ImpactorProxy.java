@@ -2,6 +2,7 @@ package de.waterdu.atlantis.mod.impl.impactor;
 
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
 import de.waterdu.atlantis.util.entity.PlayerReference;
+import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import net.impactdev.impactor.api.economy.EconomyService;
 import net.impactdev.impactor.api.economy.accounts.Account;
 
@@ -10,11 +11,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class ImpactorProxy implements EconomyDelegate<Account> {
     
-    private final EconomyService service = EconomyService.instance();
+    private final Lazy<EconomyService> service = Lazy.concurrentOf(EconomyService::instance);
 
     @Override
     public CompletableFuture<Account> account(PlayerReference player) {
-        return this.service.account(player.uuid());
+        return this.service.get().account(player.uuid());
     }
 
     @Override

@@ -98,6 +98,7 @@ tasks {
             "minecraftVersion" to commonMod.propOrNull("minecraft_version"),
             "minMinecraftVersion" to commonMod.propOrNull("min_minecraft_version"),
             "fabricLoaderVersion" to (commonMod.depOrNull("fabric_loader") ?: commonMod.depOrNull("fabric-loader")),
+            "fabricLoaderMinVersion" to (commonMod.depOrNull("fabric_loader_min") ?: commonMod.depOrNull("fabric_loader") ?: commonMod.depOrNull("fabric-loader")),
             "fabricApiVersion" to (commonMod.depOrNull("fabric_api") ?: commonMod.depOrNull("fabric-api")),
             "neoForgeVersion" to commonMod.depOrNull("neoforge"),
             "forgeVersion" to commonMod.depOrNull("forge"),

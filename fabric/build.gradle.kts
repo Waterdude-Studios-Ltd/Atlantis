@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm")
     id("com.google.devtools.ksp") version "2.3.12"
     id("dev.kikugie.fletching-table.fabric") version "0.1.0-alpha.14"
+    `multiloader-arclight`
 }
 
 stonecutter {

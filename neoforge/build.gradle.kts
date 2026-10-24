@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm")
     id("com.google.devtools.ksp") version "2.3.12"
     id("dev.kikugie.fletching-table.neoforge") version "0.1.0-alpha.13"
+    `multiloader-arclight`
 }
 
 neoForge {
@@ -21,7 +22,7 @@ dependencies {
         "com.github.ben-manes.caffeine:caffeine:3.2.4",
         "io.github.classgraph:classgraph:4.8.197",
         "com.zaxxer:HikariCP:4.0.3",
-        "mysql:mysql-connector-java:8.0.29",
+        "com.mysql:mysql-connector-j:8.1.0",
         "com.google.protobuf:protobuf-java:3.19.4",
         "io.lettuce:lettuce-core:6.2.3.RELEASE",
         "io.projectreactor:reactor-core:3.4.27",
