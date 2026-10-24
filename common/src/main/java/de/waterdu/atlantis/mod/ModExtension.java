@@ -178,7 +178,8 @@ public final class ModExtension {
                 }
                 case SPIGOT -> {
                     this.proxy(Loader.NEOFORGE_AND_FABRIC, proxy);
-                    this.proxy(Loader.SPIGOT, proxy);
+                    this.proxies.put(loader, Lazy.of(proxy));
+                    this.supportedLoaders.add(loader);
                 }
                 default -> {
                     this.proxies.put(loader, Lazy.of(proxy));
