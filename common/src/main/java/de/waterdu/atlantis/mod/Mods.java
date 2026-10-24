@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Bootstrapped(order = -100)
 public final class Mods {
@@ -194,8 +196,16 @@ public final class Mods {
         return ACTIVE.containsKey(modId);
     }
 
-    public static boolean isPresent(Class<? extends ModProxy> delegate) {
+    public static boolean isDelegatePresent(Class<? extends ModProxy> delegate) {
         return ACTIVE_BY_DELEGATE.containsKey(delegate);
+    }
+
+    public static <T, D extends ModProxy> T mapDelegate(Class<D> delegate, Supplier<T> ifNotPresent, Function<D, T> mapper) {
+        var extension = ACTIVE_BY_DELEGATE.get(delegate);
+        if (extension == null) {
+            return ifNotPresent.get();
+        }
+        return mapper.apply(extension.proxy(ACTIVE_LOADER));
     }
 
     public static ModExtension active(String modId) {

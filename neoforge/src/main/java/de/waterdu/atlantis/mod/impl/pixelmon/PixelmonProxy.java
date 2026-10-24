@@ -22,7 +22,6 @@ import com.pixelmonmod.pixelmon.api.pokemon.type.Type;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
 import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
-import com.pixelmonmod.pixelmon.api.util.helpers.SpriteItemHelper;
 import com.pixelmonmod.pixelmon.battles.BattleRegistry;
 import com.pixelmonmod.pixelmon.battles.api.BattleBuilder;
 import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
@@ -64,7 +63,6 @@ import de.waterdu.atlantis.util.item.ConfigurableItemStack;
 import de.waterdu.atlantis.util.item.ItemUtils;
 import de.waterdu.atlantis.util.item.ProcessorUtils;
 import de.waterdu.atlantis.util.java.collection.ArrayUtils;
-import de.waterdu.atlantis.util.java.collection.Pair;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import de.waterdu.atlantis.util.text.TextUtils;
 import net.minecraft.nbt.CompoundTag;
@@ -126,36 +124,12 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
 
     @Override
     public ConfigurableItemStack.Preprocessor[] makeItemPreprocessors() {
-        return new ConfigurableItemStack.Preprocessor[]{
-                new ConfigurableItemStack.Preprocessor((full, args) -> {
-                    var specBuilder = new StringBuilder();
-                    var argsBuilder = new StringBuilder();
-                    var currentBuilder = specBuilder;
-                    for (var i = 1; i < args.length; i++) {
-                        if (!currentBuilder.isEmpty()) {
-                            currentBuilder.append(" ");
-                        }
-                        var arg = args[i];
-                        if (arg.equalsIgnoreCase(ConfigurableItemStack.Preprocessor.END_DIRECTIVE)) {
-                            currentBuilder = argsBuilder;
-                        } else {
-                            currentBuilder.append(arg);
-                        }
-                    }
-                    return Pair.of(
-                            SpriteItemHelper.getPhoto(PokemonSpecificationProxy.create(specBuilder.toString().trim()).get().create()),
-                            argsBuilder.toString().split(" ")
-                    );
-                }),
-                new ConfigurableItemStack.Preprocessor((full, args) -> Pair.of(
-                        PokeBallRegistry.getPokeBall(args[1]).orElse(PokeBallRegistry.POKE_BALL).getBallItem(),
-                        ArrayUtils.coerceTail(args, new String[args.length - (args.length >= 3 && args[2].equalsIgnoreCase(ConfigurableItemStack.Preprocessor.END_DIRECTIVE) ? 3 : 2)])
-                )),
-                new ConfigurableItemStack.Preprocessor((full, args) -> Pair.of(
-                        PokeBallRegistry.getPokeBall(args[1]).orElse(PokeBallRegistry.POKE_BALL).getLidItem(),
-                        ArrayUtils.coerceTail(args, new String[args.length - (args.length >= 3 && args[2].equalsIgnoreCase(ConfigurableItemStack.Preprocessor.END_DIRECTIVE) ? 3 : 2)])
-                ))
-        };
+        return ArrayUtils.expand(
+                PokemonDelegate.super.makeItemPreprocessors(),
+                ConfigurableItemStack.Preprocessor.single(name ->
+                        PokeBallRegistry.getPokeBall(name).orElse(PokeBallRegistry.POKE_BALL).getLidItem()
+                )
+        );
     }
 
     @Override

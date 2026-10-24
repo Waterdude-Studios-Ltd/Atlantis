@@ -24,9 +24,11 @@ import de.waterdu.atlantis.mod.wrapper.pokemon.storage.UPC;
 import de.waterdu.atlantis.mod.wrapper.pokemon.storage.UParty;
 import de.waterdu.atlantis.mod.wrapper.pokemon.storage.UPokedex;
 import de.waterdu.atlantis.util.entity.PlayerReference;
+import de.waterdu.atlantis.util.item.ConfigurableItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -40,6 +42,25 @@ public interface PokemonDelegate extends ModProxy {
         gsonBuilder.registerTypeAdapter(StoredPokemon.class, new StoredPokemon.TypeAdapter())
                 .registerTypeAdapter(ConfigurablePokemon.class, new ConfigurablePokemon.TypeAdapter())
                 .registerTypeHierarchyAdapter(UPokemon.class, new PokemonTypeAdapter());
+    }
+
+    @Override
+    default ConfigurableItemStack.Preprocessor[] makeItemPreprocessors() {
+        return new ConfigurableItemStack.Preprocessor[]{
+                ConfigurableItemStack.Preprocessor.untilEnd(spec -> this.spec(spec).item()),
+                ConfigurableItemStack.Preprocessor.single(this::pokeBallItem)
+        };
+    }
+
+    /**
+     * Gets the item for the named Poké Ball, falling back to a plain Poké Ball if there is no ball with that name.
+     */
+    default ItemStack pokeBallItem(String name) {
+        UPokeBall<?> ball = this.pokeBall(name);
+        if (ball == null) {
+            ball = this.pokeBall("poke_ball");
+        }
+        return ball == null ? ItemStack.EMPTY : ball.item();
     }
 
     UParty<?, ?> party(PlayerReference player);

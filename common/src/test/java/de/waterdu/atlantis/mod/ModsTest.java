@@ -110,7 +110,7 @@ class ModsTest {
         bootstrap(loader);
 
         assertThat(Mods.isPresent("vault")).isFalse();
-        assertThat(Mods.isPresent(EconomyDelegate.class)).isFalse();
+        assertThat(Mods.isDelegatePresent(EconomyDelegate.class)).isFalse();
     }
 
     @Test
@@ -145,7 +145,7 @@ class ModsTest {
 
         assertThat(Mods.<PokemonDelegate>pokemon()).isSameAs(preferred);
         assertThat(Mods.isPresent("other")).isTrue();
-        assertThat(Mods.isPresent(PokemonDelegate.class)).isTrue();
+        assertThat(Mods.isDelegatePresent(PokemonDelegate.class)).isTrue();
     }
 
     @Test
@@ -199,7 +199,7 @@ class ModsTest {
     void missingDelegateThrowsAndMissingModFallsBackToNone(TestModLoader loader) {
         bootstrap(loader);
 
-        assertThat(Mods.isPresent(PokemonDelegate.class)).isFalse();
+        assertThat(Mods.isDelegatePresent(PokemonDelegate.class)).isFalse();
         assertThatIllegalStateException().isThrownBy(Mods::pokemon);
         assertThat(Mods.active("missing")).isSameAs(Mods.NONE);
     }

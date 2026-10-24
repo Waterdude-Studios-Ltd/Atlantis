@@ -12,6 +12,7 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.Settings;
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.mod.proxy.delegate.PokemonDelegate;
+import de.waterdu.atlantis.util.java.collection.ArrayUtils;
 import de.waterdu.atlantis.util.java.collection.Pair;
 import de.waterdu.atlantis.util.level.LevelPosition;
 import de.waterdu.atlantis.util.text.TextUtils;
@@ -38,6 +39,7 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Valid examples:
@@ -284,16 +286,10 @@ public class ConfigurableItemStack {
         public static final Preprocessor POKEBALL_LID;
 
         static {
-            var preprocessors = Mods.isPresent(PokemonDelegate.class) ? Mods.pokemon().makeItemPreprocessors() : new Preprocessor[0];
-            if (preprocessors.length > 0) {
-                SPRITE = register(SPRITE_DIRECTIVE, preprocessors[0]);
-                POKEBALL = register(POKEBALL_DIRECTIVE, preprocessors[1]);
-                POKEBALL_LID = register(POKEBALL_LID_DIRECTIVE, preprocessors[2]);
-            } else {
-                SPRITE = null;
-                POKEBALL = null;
-                POKEBALL_LID = null;
-            }
+            var preprocessors = Mods.mapDelegate(PokemonDelegate.class, () -> new Preprocessor[0], PokemonDelegate::makeItemPreprocessors);
+            SPRITE = preprocessors.length > 0 ? register(SPRITE_DIRECTIVE, preprocessors[0]) : null;
+            POKEBALL = preprocessors.length > 1 ? register(POKEBALL_DIRECTIVE, preprocessors[1]) : null;
+            POKEBALL_LID = preprocessors.length > 2 ? register(POKEBALL_LID_DIRECTIVE, preprocessors[2]) : null;
         }
 
         private static Preprocessor register(String directive, Preprocessor preprocessor) {
@@ -303,6 +299,33 @@ public class ConfigurableItemStack {
 
         public static Preprocessor register(String directive, BiFunction<String, String[], Pair<ItemStack, String[]>> process) {
             return register(directive, new Preprocessor(process));
+        }
+
+        public static Preprocessor single(Function<String, ItemStack> factory) {
+            return new Preprocessor((full, args) -> Pair.of(
+                    factory.apply(args[1]),
+                    ArrayUtils.coerceTail(args, new String[args.length - (args.length >= 3 && args[2].equalsIgnoreCase(END_DIRECTIVE) ? 3 : 2)])
+            ));
+        }
+
+        public static Preprocessor untilEnd(Function<String, ItemStack> factory) {
+            return new Preprocessor((full, args) -> {
+                var valueBuilder = new StringBuilder();
+                var argsBuilder = new StringBuilder();
+                var currentBuilder = valueBuilder;
+                for (var i = 1; i < args.length; i++) {
+                    if (!currentBuilder.isEmpty()) {
+                        currentBuilder.append(" ");
+                    }
+                    var arg = args[i];
+                    if (arg.equalsIgnoreCase(END_DIRECTIVE)) {
+                        currentBuilder = argsBuilder;
+                    } else {
+                        currentBuilder.append(arg);
+                    }
+                }
+                return Pair.of(factory.apply(valueBuilder.toString().trim()), argsBuilder.toString().split(" "));
+            });
         }
 
         private Pair<ItemStack, String[]> execute(String full, String[] args) {
@@ -441,7 +464,7 @@ public class ConfigurableItemStack {
             MODEL = register(MODEL_IDENTIFIER, (kv, s) -> ItemUtils.setCustomModelData(s, Integer.parseInt(kv[1])));
             LORE = register(LORE_IDENTIFIER, (kv, s) -> ItemUtils.addDisplayLore(s, kv[1]));
 
-            var processors = Mods.isPresent(PokemonDelegate.class) ? Mods.pokemon().makeItemProcessors() : new Processor[0];
+            var processors = Mods.isDelegatePresent(PokemonDelegate.class) ? Mods.pokemon().makeItemProcessors() : new Processor[0];
             if (processors.length > 0) {
                 UI_IMAGE = register(UI_IMAGE_IDENTIFIER, processors[0]);
                 UI_HOVER_IMAGE = register(UI_HOVER_IMAGE_IDENTIFIER, processors[1]);
