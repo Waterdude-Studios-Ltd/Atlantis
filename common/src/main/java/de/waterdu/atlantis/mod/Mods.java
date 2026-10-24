@@ -4,6 +4,8 @@ import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
+import de.waterdu.atlantis.mod.impl.impactor.ImpactorProxy;
+import de.waterdu.atlantis.mod.impl.vault.VaultProxy;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
@@ -105,13 +107,23 @@ public final class Mods {
     public static final ModExtension IMPACTOR = ModExtension.builder()
             .modId("impactor")
             .mainClass("net.impactdev.impactor.api.Impactor")
-            .reflectiveConstructorProxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, "de.waterdu.atlantis.mod.impl.impactor.ImpactorProxy")
+            .proxy(ModExtension.Loader.SPIGOT, ImpactorProxy::new)
             .delegates(EconomyDelegate.class)
             .language(ModExtension.Language.JAVA)
-            .priority(ModExtension.Priority.NORMAL)
+            .priority(ModExtension.Priority.LOW)
             .build();
 
-    private static final List<ModExtension> BUILT_IN = List.of(NONE, NEOFORGE, FABRIC, PIXELMON, COBBLEMON, IMPACTOR);
+    public static final ModExtension VAULT = ModExtension.builder()
+            .modId("vault")
+            .mainClass("net.milkbowl.vault.Vault")
+            .proxy(ModExtension.Loader.SPIGOT, VaultProxy::new)
+            .delegates(EconomyDelegate.class)
+            .plugin()
+            .language(ModExtension.Language.JAVA)
+            .priority(ModExtension.Priority.LOW)
+            .build();
+
+    private static final List<ModExtension> BUILT_IN = List.of(NONE, NEOFORGE, FABRIC, PIXELMON, COBBLEMON, IMPACTOR, VAULT);
 
     private Mods() {
         ExceptionUtils.throwCannotInstantiateClassException();
@@ -162,10 +174,10 @@ public final class Mods {
     }
 
     private static boolean isActive(ModExtension extension) {
-        if (!extension.supports(ACTIVE_LOADER) || !extension.mainClassPresent()) {
+        if (!extension.supports(ACTIVE_LOADER) || !(extension.plugin() || extension.mainClassPresent())) {
             return false;
         }
-        return extension.modLoader() || Mods.modLoader().isModLoaded(extension.modId());
+        return extension.modLoader() || extension.plugin() || Mods.modLoader().isModLoaded(extension.modId());
     }
 
     public static void registerExtensions(ModExtension... extensions) {

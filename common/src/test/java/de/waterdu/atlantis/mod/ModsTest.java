@@ -96,6 +96,24 @@ class ModsTest {
     }
 
     @Test
+    void activatesPluginExtensionThatIsNotALoadedMod(TestModLoader loader) {
+        extension("fake_plugin", ModExtension.Priority.NORMAL, recording("fake_plugin")).plugin().build();
+
+        bootstrap(loader);
+
+        assertThat(Mods.isPresent("fake_plugin")).isTrue();
+        assertThat(SETUPS).containsExactly("fake_plugin");
+    }
+
+    @Test
+    void skipsVaultWithoutBukkit(TestModLoader loader) {
+        bootstrap(loader);
+
+        assertThat(Mods.isPresent("vault")).isFalse();
+        assertThat(Mods.isPresent(EconomyDelegate.class)).isFalse();
+    }
+
+    @Test
     void activatesAtlantisItself(TestModLoader loader) {
         bootstrap(loader);
 

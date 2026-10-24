@@ -22,6 +22,7 @@ public final class ModExtension {
     private final Set<Loader> supportedLoaders;
     private final List<Class<? extends ModProxy>> delegateProxies;
     private final boolean modLoader;
+    private final boolean plugin;
     private final Language language;
     private final Priority priority;
 
@@ -32,6 +33,7 @@ public final class ModExtension {
             Set<Loader> supportedLoaders,
             List<Class<? extends ModProxy>> delegateProxies,
             boolean modLoader,
+            boolean plugin,
             Language language,
             Priority priority
     ) {
@@ -41,6 +43,7 @@ public final class ModExtension {
         this.supportedLoaders = supportedLoaders;
         this.delegateProxies = delegateProxies;
         this.modLoader = modLoader;
+        this.plugin = plugin;
         this.language = language;
         this.priority = priority;
     }
@@ -77,6 +80,10 @@ public final class ModExtension {
 
     public boolean modLoader() {
         return this.modLoader;
+    }
+
+    public boolean plugin() {
+        return this.plugin;
     }
 
     public Language language() {
@@ -136,6 +143,7 @@ public final class ModExtension {
         private final Set<Loader> supportedLoaders = EnumSet.noneOf(Loader.class);
         private final List<Class<? extends ModProxy>> delegateProxies = new ArrayList<>();
         private boolean modLoader = false;
+        private boolean plugin = false;
         private Language language;
         private Priority priority = Priority.NORMAL;
 
@@ -167,6 +175,10 @@ public final class ModExtension {
                 case NEOFORGE_AND_FABRIC -> {
                     this.proxy(Loader.NEOFORGE, proxy);
                     this.proxy(Loader.FABRIC, proxy);
+                }
+                case SPIGOT -> {
+                    this.proxy(Loader.NEOFORGE_AND_FABRIC, proxy);
+                    this.proxy(Loader.SPIGOT, proxy);
                 }
                 default -> {
                     this.proxies.put(loader, Lazy.of(proxy));
@@ -218,6 +230,11 @@ public final class ModExtension {
             return this;
         }
 
+        public Builder plugin() {
+            this.plugin = true;
+            return this;
+        }
+
         public Builder language(Language language) {
             this.language = language;
             return this;
@@ -245,6 +262,7 @@ public final class ModExtension {
                     this.supportedLoaders,
                     this.delegateProxies,
                     this.modLoader,
+                    this.plugin,
                     this.language,
                     this.priority
             );
