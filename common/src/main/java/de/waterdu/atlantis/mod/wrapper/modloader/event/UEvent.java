@@ -14,6 +14,24 @@ import de.waterdu.atlantis.mod.impl.common.event.meta.PageEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.SetPlaceholderProviderEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.BattleEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.CaptureEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.EggHatchEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.EvolveEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.ExperienceGainEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.FaintEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.FriendshipEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.HeldItemEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.LevelUpEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.MegaEvolveEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.NicknameEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.ReceivedEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.RecallEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.ReleaseEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.SendOutEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.SpawnEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.StarterChosenEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.pokemon.TradeEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.registry.RegistryInjectEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
 import de.waterdu.atlantis.mod.object.ModObject;
@@ -66,6 +84,33 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
 
     public static final Key<UEvent<ServerTickEventPayload.Pre>> SERVER_TICK_PRE = Key.of(Atlantis.ID, "event/server_tick/pre");
     public static final Key<UEvent<ServerTickEventPayload.Post>> SERVER_TICK_POST = Key.of(Atlantis.ID, "event/server_tick/post");
+
+    public static final Key<UEvent<CaptureEventPayload.Start>> POKEMON_CAPTURE_START = Key.of(Atlantis.ID, "event/pokemon/capture/start");
+    public static final Key<UEvent<CaptureEventPayload.Success>> POKEMON_CAPTURE_SUCCESS = Key.of(Atlantis.ID, "event/pokemon/capture/success");
+    public static final Key<UEvent<CaptureEventPayload.Fail>> POKEMON_CAPTURE_FAIL = Key.of(Atlantis.ID, "event/pokemon/capture/fail");
+    public static final Key<UEvent<BattleEventPayload.StartPre>> POKEMON_BATTLE_START_PRE = Key.of(Atlantis.ID, "event/pokemon/battle_start/pre");
+    public static final Key<UEvent<BattleEventPayload.StartPost>> POKEMON_BATTLE_START_POST = Key.of(Atlantis.ID, "event/pokemon/battle_start/post");
+    public static final Key<UEvent<BattleEventPayload.End>> POKEMON_BATTLE_END = Key.of(Atlantis.ID, "event/pokemon/battle_end");
+    public static final Key<UEvent<EvolveEventPayload.Pre>> POKEMON_EVOLVE_PRE = Key.of(Atlantis.ID, "event/pokemon/evolve/pre");
+    public static final Key<UEvent<EvolveEventPayload.Post>> POKEMON_EVOLVE_POST = Key.of(Atlantis.ID, "event/pokemon/evolve/post");
+    public static final Key<UEvent<MegaEvolveEventPayload>> POKEMON_MEGA_EVOLVE = Key.of(Atlantis.ID, "event/pokemon/mega_evolve");
+    public static final Key<UEvent<LevelUpEventPayload>> POKEMON_LEVEL_UP = Key.of(Atlantis.ID, "event/pokemon/level_up");
+    public static final Key<UEvent<ExperienceGainEventPayload>> POKEMON_EXPERIENCE_GAIN = Key.of(Atlantis.ID, "event/pokemon/experience_gain");
+    public static final Key<UEvent<FriendshipEventPayload>> POKEMON_FRIENDSHIP_CHANGE = Key.of(Atlantis.ID, "event/pokemon/friendship_change");
+    public static final Key<UEvent<FaintEventPayload>> POKEMON_FAINT = Key.of(Atlantis.ID, "event/pokemon/faint");
+    public static final Key<UEvent<EggHatchEventPayload>> POKEMON_EGG_HATCH = Key.of(Atlantis.ID, "event/pokemon/egg_hatch");
+    public static final Key<UEvent<SendOutEventPayload.Pre>> POKEMON_SEND_OUT_PRE = Key.of(Atlantis.ID, "event/pokemon/send_out/pre");
+    public static final Key<UEvent<SendOutEventPayload.Post>> POKEMON_SEND_OUT_POST = Key.of(Atlantis.ID, "event/pokemon/send_out/post");
+    public static final Key<UEvent<RecallEventPayload>> POKEMON_RECALL = Key.of(Atlantis.ID, "event/pokemon/recall");
+    public static final Key<UEvent<SpawnEventPayload>> POKEMON_SPAWN = Key.of(Atlantis.ID, "event/pokemon/spawn");
+    public static final Key<UEvent<TradeEventPayload.Pre>> POKEMON_TRADE_PRE = Key.of(Atlantis.ID, "event/pokemon/trade/pre");
+    public static final Key<UEvent<TradeEventPayload.Post>> POKEMON_TRADE_POST = Key.of(Atlantis.ID, "event/pokemon/trade/post");
+    public static final Key<UEvent<StarterChosenEventPayload>> POKEMON_STARTER_CHOSEN = Key.of(Atlantis.ID, "event/pokemon/starter_chosen");
+    public static final Key<UEvent<ReceivedEventPayload>> POKEMON_RECEIVED = Key.of(Atlantis.ID, "event/pokemon/received");
+    public static final Key<UEvent<ReleaseEventPayload>> POKEMON_RELEASE = Key.of(Atlantis.ID, "event/pokemon/release");
+    public static final Key<UEvent<NicknameEventPayload>> POKEMON_NICKNAME = Key.of(Atlantis.ID, "event/pokemon/nickname");
+    public static final Key<UEvent<HeldItemEventPayload.Pre>> POKEMON_HELD_ITEM_PRE = Key.of(Atlantis.ID, "event/pokemon/held_item/pre");
+    public static final Key<UEvent<HeldItemEventPayload.Post>> POKEMON_HELD_ITEM_POST = Key.of(Atlantis.ID, "event/pokemon/held_item/post");
 
     private final Key<UEvent<Payload>> eventType;
 

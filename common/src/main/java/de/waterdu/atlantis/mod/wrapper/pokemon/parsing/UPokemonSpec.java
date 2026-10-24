@@ -16,7 +16,7 @@ public abstract class UPokemonSpec<T, P extends UPokemon<?>> extends ModWrapper<
 
     public abstract ItemStack item();
 
-    public abstract boolean matches(P pokemon);
+    public abstract boolean matches(UPokemon<?> pokemon);
 
     public abstract int countRequirements();
 

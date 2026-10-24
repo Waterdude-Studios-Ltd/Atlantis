@@ -17,17 +17,10 @@ import java.util.function.Function;
 public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
 
     public static final String VAULT = "Vault";
+    private static final PluginBridge BRIDGE = PluginBridgeFactory.make(VAULT);
 
-    private static final String ECONOMY = "net.milkbowl.vault.economy.Economy";
-    private static final String ECONOMY_RESPONSE = "net.milkbowl.vault.economy.EconomyResponse";
-
-    private static VaultProxy INSTANCE;
-
-    private final PluginBridge bridge = PluginBridgeFactory.make(VAULT);
-
-    public VaultProxy() {
-        INSTANCE = this;
-    }
+    private static final String VAULT_ECONOMY_CLASSPATH = "net.milkbowl.vault.economy.Economy";
+    private static final String VAULT_ECONOMY_RESPONSE_CLASSPATH = "net.milkbowl.vault.economy.EconomyResponse";
 
     @Override
     public CompletableFuture<OfflinePlayer> account(PlayerReference player) {
@@ -83,15 +76,15 @@ public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
             if (!Bukkit.getPluginManager().isPluginEnabled(VAULT)) {
                 throw new IllegalStateException("Vault is not enabled");
             }
-            if (INSTANCE.bridge == null) {
+            if (BRIDGE == null) {
                 throw new IllegalStateException("Bridge is not initialized");
             }
-            var type = INSTANCE.bridge.findClass(ECONOMY).orElseThrow(() -> new IllegalStateException("Vault's economy API was not found"));
+            var type = BRIDGE.findClass(VAULT_ECONOMY_CLASSPATH).orElseThrow(() -> new IllegalStateException("Vault's economy API was not found"));
             var registration = Bukkit.getServicesManager().getRegistration(type);
             if (registration == null) {
                 throw new IllegalStateException("No economy plugin is registered with Vault");
             }
-            return new Economy(INSTANCE.bridge, type, registration.getProvider());
+            return new Economy(BRIDGE, type, registration.getProvider());
         }
 
         private <T> T call(String method, OfflinePlayer player) {
@@ -114,7 +107,7 @@ public class VaultProxy implements EconomyDelegate<OfflinePlayer> {
         }
 
         private Class<?> responseType() {
-            return this.bridge.findClass(ECONOMY_RESPONSE).orElseThrow(() -> new IllegalStateException("Vault's economy response was not found"));
+            return this.bridge.findClass(VAULT_ECONOMY_RESPONSE_CLASSPATH).orElseThrow(() -> new IllegalStateException("Vault's economy response was not found"));
         }
 
         private <T> T invoke(Class<?> type, Object instance, String method, Class<?>[] parameters, Object... arguments) {

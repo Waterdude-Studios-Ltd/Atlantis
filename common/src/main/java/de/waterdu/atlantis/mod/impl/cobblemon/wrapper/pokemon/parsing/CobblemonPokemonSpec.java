@@ -6,6 +6,7 @@ import com.cobblemon.mod.common.item.PokemonItem;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.CobblemonPokemon;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.parsing.UPokemonSpec;
+import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.UPokemon;
 import net.minecraft.world.item.ItemStack;
 
 public class CobblemonPokemonSpec extends UPokemonSpec<PokemonProperties, CobblemonPokemon> {
@@ -27,8 +28,8 @@ public class CobblemonPokemonSpec extends UPokemonSpec<PokemonProperties, Cobble
     }
 
     @Override
-    public boolean matches(CobblemonPokemon pokemon) {
-        return this.dereference().matches(pokemon.dereference());
+    public boolean matches(UPokemon<?> pokemon) {
+        return this.dereference().matches(CobblemonPokemon.unwrap(pokemon));
     }
 
     @Override

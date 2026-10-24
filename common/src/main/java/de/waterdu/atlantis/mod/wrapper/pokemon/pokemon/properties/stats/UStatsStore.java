@@ -2,7 +2,7 @@ package de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.stats;
 
 public interface UStatsStore<S extends UStat<?>> {
 
-    int get(S stat);
+    int get(UStat<?> stat);
 
-    void set(S stat, int value);
+    void set(UStat<?> stat, int value);
 }

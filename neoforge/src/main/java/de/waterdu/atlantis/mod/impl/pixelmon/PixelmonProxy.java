@@ -6,7 +6,10 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.pixelmonmod.api.pokemon.PokemonSpecificationProxy;
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.battles.AttackCategory;
 import com.pixelmonmod.pixelmon.api.battles.attack.AttackRegistry;
+import com.pixelmonmod.pixelmon.api.pokedex.PokeDexStorageProxy;
+import com.pixelmonmod.pixelmon.api.pokemon.Nature;
 import com.pixelmonmod.pixelmon.api.pokemon.Pokemon;
 import com.pixelmonmod.pixelmon.api.pokemon.PokemonFactory;
 import com.pixelmonmod.pixelmon.api.pokemon.ability.Ability;
@@ -14,26 +17,47 @@ import com.pixelmonmod.pixelmon.api.pokemon.ability.AbilityRegistry;
 import com.pixelmonmod.pixelmon.api.pokemon.item.pokeball.PokeBall;
 import com.pixelmonmod.pixelmon.api.pokemon.item.pokeball.PokeBallRegistry;
 import com.pixelmonmod.pixelmon.api.pokemon.species.Species;
+import com.pixelmonmod.pixelmon.api.pokemon.species.gender.Gender;
+import com.pixelmonmod.pixelmon.api.pokemon.type.Type;
 import com.pixelmonmod.pixelmon.api.registries.PixelmonSpecies;
 import com.pixelmonmod.pixelmon.api.storage.PlayerPartyStorage;
 import com.pixelmonmod.pixelmon.api.storage.StorageProxy;
 import com.pixelmonmod.pixelmon.api.util.helpers.SpriteItemHelper;
+import com.pixelmonmod.pixelmon.battles.BattleRegistry;
+import com.pixelmonmod.pixelmon.battles.api.BattleBuilder;
 import com.pixelmonmod.pixelmon.battles.attacks.ImmutableAttack;
+import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.PlayerParticipant;
+import com.pixelmonmod.pixelmon.battles.controller.participants.WildPixelmonParticipant;
+import com.pixelmonmod.pixelmon.entities.pixelmon.PixelmonEntity;
 import com.pixelmonmod.pixelmon.enums.TextJustification;
+import com.pixelmonmod.pixelmon.init.registry.PixelmonRegistry;
 import com.pixelmonmod.pixelmon.items.UIElementItem;
 import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.file.FileExtensions;
 import de.waterdu.atlantis.mod.impl.neoforge.modloader.event.NeoForgeEventBus;
+import de.waterdu.atlantis.mod.impl.pixelmon.event.PixelmonEventBridge;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.battle.PixelmonBattle;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.entity.PixelmonPokemonEntity;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.parsing.PixelmonPokemonSpec;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.PixelmonPokemon;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonAbility;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonElementalType;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonGender;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonNature;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonPokeBall;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonStatus;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.moves.PixelmonMoveCategory;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.moves.PixelmonMoveTemplate;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.stats.PixelmonStat;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.storage.PixelmonPC;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.storage.PixelmonParty;
-import de.waterdu.atlantis.mod.impl.util.ConfigurablePokemon;
-import de.waterdu.atlantis.mod.impl.util.PokemonTypeAdapter;
-import de.waterdu.atlantis.mod.impl.util.StoredPokemon;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.storage.PixelmonPokedex;
 import de.waterdu.atlantis.mod.proxy.delegate.EconomyDelegate;
 import de.waterdu.atlantis.mod.proxy.delegate.PokemonDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
+import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattle;
+import de.waterdu.atlantis.mod.wrapper.pokemon.entity.UPokemonEntity;
 import de.waterdu.atlantis.util.config.Configurable;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.item.ConfigurableItemStack;
@@ -45,9 +69,13 @@ import de.waterdu.atlantis.util.server.ServerUtils;
 import de.waterdu.atlantis.util.text.TextUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.neoforged.bus.api.IEventBus;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -56,14 +84,7 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
 
     @Override
     public void setup() {
-
-    }
-
-    @Override
-    public void registerTypeAdapters(GsonBuilder gsonBuilder) {
-        gsonBuilder.registerTypeAdapter(StoredPokemon.class, new StoredPokemon.TypeAdapter())
-                .registerTypeAdapter(ConfigurablePokemon.class, new ConfigurablePokemon.TypeAdapter())
-                .registerTypeAdapter(Pokemon.class, new PokemonTypeAdapter());
+        PixelmonEventBridge.register(Pixelmon.EVENT_BUS);
     }
 
     @Override
@@ -200,12 +221,29 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
 
     @Override
     public PixelmonParty party(PlayerReference player) {
-        return new PixelmonParty(StorageProxy.getParty(player.uuid()));
+        return new PixelmonParty(player.uuid(), StorageProxy.getParty(player.uuid()));
     }
 
     @Override
     public PixelmonPC pc(PlayerReference player) {
-        return new PixelmonPC(StorageProxy.getPCForPlayer(player.uuid()));
+        return new PixelmonPC(player.uuid(), StorageProxy.getPCForPlayer(player.uuid()));
+    }
+
+    @Override
+    public PixelmonPokedex pokedex(PlayerReference player) {
+        return new PixelmonPokedex(PokeDexStorageProxy.getStorage(player.uuid()));
+    }
+
+    @Override
+    public boolean hasChosenStarter(PlayerReference player) {
+        return StorageProxy.getPartyNow(player.uuid()).starterPicked;
+    }
+
+    @Override
+    public void setChosenStarter(PlayerReference player, boolean chosen) {
+        var party = StorageProxy.getPartyNow(player.uuid());
+        party.starterPicked = chosen;
+        party.setNeedsSaving();
     }
 
     @Override
@@ -252,6 +290,171 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         } catch (CommandSyntaxException e) {
             AtlantisLogger.error("Failed to parse Pixelmon Pokémon data from json: {}, {}", e.getMessage(), nbt);
             return new PixelmonPokemon(PokemonFactory.create(PixelmonSpecies.MISSINGNO.getValueUnsafe()));
+        }
+    }
+
+    @Override
+    public boolean hasSpecies(String name) {
+        return PixelmonSpecies.has(name);
+    }
+
+    @Override
+    public List<de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies> allSpecies() {
+        return PixelmonSpecies.getAll().stream().map(de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies::new).toList();
+    }
+
+    @Override
+    public de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies randomSpecies() {
+        return new de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies(PixelmonSpecies.getRandomSpecies());
+    }
+
+    @Override
+    public @Nullable PixelmonAbility ability(String name) {
+        return AbilityRegistry.getAbility(name).map(PixelmonAbility::new).orElse(null);
+    }
+
+    @Override
+    public List<PixelmonAbility> abilities() {
+        return AbilityRegistry.getAllAbilities().stream().map(PixelmonAbility::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonMoveTemplate move(String name) {
+        return AttackRegistry.getAttackBase(name).map(PixelmonMoveTemplate::new).orElse(null);
+    }
+
+    @Override
+    public List<PixelmonMoveTemplate> moves() {
+        return AttackRegistry.getAllAttacks().stream().map(PixelmonMoveTemplate::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonPokeBall pokeBall(String name) {
+        return PokeBallRegistry.getPokeBall(name).getValue().map(PixelmonPokeBall::new).orElse(null);
+    }
+
+    @Override
+    public List<PixelmonPokeBall> pokeBalls() {
+        return PokeBallRegistry.getAll().stream().map(PixelmonPokeBall::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonElementalType elementalType(String name) {
+        var key = Type.parseOrNull(name.trim().toLowerCase(Locale.ROOT));
+        if (key == null) {
+            return null;
+        }
+        return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).getHolder(key).map(PixelmonElementalType::new).orElse(null);
+    }
+
+    @Override
+    public List<PixelmonElementalType> elementalTypes() {
+        return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).holders().map(PixelmonElementalType::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonStat stat(String name) {
+        return PixelmonStat.of(name);
+    }
+
+    @Override
+    public List<PixelmonStat> stats() {
+        return PixelmonStat.all();
+    }
+
+    @Override
+    public List<PixelmonStat> permanentStats() {
+        return PixelmonStat.all().stream().filter(PixelmonStat::isPermanent).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonNature nature(String name) {
+        return Nature.hasNature(name) ? new PixelmonNature(Nature.natureFromString(name)) : null;
+    }
+
+    @Override
+    public List<PixelmonNature> natures() {
+        return Arrays.stream(Nature.values()).map(PixelmonNature::new).toList();
+    }
+
+    @Override
+    public PixelmonNature randomNature() {
+        return new PixelmonNature(Nature.getRandomNature());
+    }
+
+    @Override
+    public @Nullable PixelmonGender gender(String name) {
+        for (var gender : this.genders()) {
+            if (gender.name().equalsIgnoreCase(name)) {
+                return gender;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<PixelmonGender> genders() {
+        return Arrays.stream(Gender.values()).map(PixelmonGender::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonStatus status(String name) {
+        for (var status : PixelmonStatus.all()) {
+            if (status.name().equalsIgnoreCase(name)) {
+                return status;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public List<PixelmonStatus> statuses() {
+        return PixelmonStatus.all();
+    }
+
+    @Override
+    public @Nullable PixelmonMoveCategory moveCategory(String name) {
+        var category = AttackCategory.parseOrNull(name);
+        return category == null ? null : new PixelmonMoveCategory(category);
+    }
+
+    @Override
+    public List<PixelmonMoveCategory> moveCategories() {
+        return Arrays.stream(AttackCategory.values()).map(PixelmonMoveCategory::new).toList();
+    }
+
+    @Override
+    public @Nullable PixelmonPokemonEntity pokemonEntity(Entity entity) {
+        return entity instanceof PixelmonEntity pixelmon ? new PixelmonPokemonEntity(pixelmon) : null;
+    }
+
+    @Override
+    public @Nullable PixelmonBattle battle(ServerPlayer player) {
+        var battle = BattleRegistry.getBattle(player);
+        return battle == null ? null : new PixelmonBattle(battle);
+    }
+
+    @Override
+    public CompletableFuture<@Nullable UBattle<?>> startWildBattle(ServerPlayer player, UPokemonEntity<?> wild) {
+        return this.startBattle(new PlayerParticipant(player), new WildPixelmonParticipant((PixelmonEntity) wild.dereference()));
+    }
+
+    @Override
+    public CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, ServerPlayer player2) {
+        return this.startBattle(new PlayerParticipant(player1), new PlayerParticipant(player2));
+    }
+
+    private CompletableFuture<@Nullable UBattle<?>> startBattle(BattleParticipant teamOne, BattleParticipant teamTwo) {
+        try {
+            return BattleBuilder.builder()
+                    .teamOne(teamOne)
+                    .teamTwo(teamTwo)
+                    .start()
+                    .<@Nullable UBattle<?>>thenApply(battle -> battle == null ? null : new PixelmonBattle(battle))
+                    .exceptionally(e -> null);
+        } catch (Exception e) {
+            AtlantisLogger.error("Failed to start Pixelmon battle: {}", e.getMessage());
+            return CompletableFuture.completedFuture(null);
         }
     }
 

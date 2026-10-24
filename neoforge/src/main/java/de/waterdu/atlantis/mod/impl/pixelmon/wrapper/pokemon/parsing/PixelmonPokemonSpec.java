@@ -7,6 +7,7 @@ import com.pixelmonmod.pixelmon.api.util.helpers.SpriteItemHelper;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.PixelmonPokemon;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.parsing.UPokemonSpec;
+import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.UPokemon;
 import net.minecraft.world.item.ItemStack;
 
 import java.lang.reflect.Field;
@@ -41,8 +42,8 @@ public class PixelmonPokemonSpec extends UPokemonSpec<PokemonSpecification, Pixe
     }
 
     @Override
-    public boolean matches(PixelmonPokemon pokemon) {
-        return this.dereference().matches(pokemon.dereference());
+    public boolean matches(UPokemon<?> pokemon) {
+        return this.dereference().matches(PixelmonPokemon.unwrap(pokemon));
     }
 
     @Override
