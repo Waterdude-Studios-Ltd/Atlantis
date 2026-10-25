@@ -1,7 +1,9 @@
 package de.waterdu.atlantis.mod.impl.cobblemon.event;
 
 import com.cobblemon.mod.common.api.Priority;
+import com.cobblemon.mod.common.api.battles.model.BattleEndResult;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
+import com.cobblemon.mod.common.api.battles.model.actor.ActorType;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.cobblemon.mod.common.api.events.CobblemonEvents;
 import com.cobblemon.mod.common.api.pokemon.experience.BattleExperienceSource;
@@ -83,15 +85,18 @@ public final class CobblemonEventBridge {
             }
         });
         on(CobblemonEvents.BATTLE_STARTED_POST, event -> emit(UEvent.POKEMON_BATTLE_START_POST, new BattleEventPayload.StartPost(event, new CobblemonBattle(event.getBattle()))));
-        on(CobblemonEvents.BATTLE_VICTORY, event -> emit(UEvent.POKEMON_BATTLE_END, new BattleEventPayload.End(event, new CobblemonBattle(event.getBattle()), results(event.getBattle(), actor -> {
-            if (event.getWinners().contains(actor)) {
-                return CobblemonBattleResult.VICTORY_RESULT;
-            }
-            return event.getLosers().contains(actor) ? CobblemonBattleResult.DEFEAT_RESULT : CobblemonBattleResult.DRAW_RESULT;
-        }))));
-        on(CobblemonEvents.BATTLE_FLED, event -> emit(UEvent.POKEMON_BATTLE_END, new BattleEventPayload.End(event, new CobblemonBattle(event.getBattle()), results(event.getBattle(),
-                actor -> actor == event.getPlayer() ? CobblemonBattleResult.FLEE_RESULT : CobblemonBattleResult.DRAW_RESULT
-        ))));
+        on(CobblemonEvents.BATTLE_ENDED, event -> {
+            var battle = event.getBattle();
+            emit(UEvent.POKEMON_BATTLE_END, new BattleEventPayload.End(event, new CobblemonBattle(battle), results(battle, actor -> {
+                if (battle.getWinners().contains(actor)) {
+                    return CobblemonBattleResult.VICTORY_RESULT;
+                }
+                if (battle.getLosers().contains(actor)) {
+                    return CobblemonBattleResult.DEFEAT_RESULT;
+                }
+                return event.getResult() == BattleEndResult.FLED && actor.getType() == ActorType.PLAYER ? CobblemonBattleResult.FLEE_RESULT : CobblemonBattleResult.DRAW_RESULT;
+            })));
+        });
 
         on(CobblemonEvents.EVOLUTION_ACCEPTED, event -> {
             if (emit(UEvent.POKEMON_EVOLVE_PRE, new EvolveEventPayload.Pre(event, event.getPokemon().getOwnerPlayer(), pokemon(event.getPokemon()))).cancelled()) {
