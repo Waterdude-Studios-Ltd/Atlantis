@@ -15,6 +15,12 @@ neoForge {
     }
 }
 
+java {
+    withSourcesJar()
+}
+
+publishAtlantis("atlantis-neoforge", jar = "jar", sources = "sourcesJar")
+
 dependencies {
     compileOnly("pixelmon:Pixelmon-${commonMod.mc}-${commonMod.pixelmon}-universal:${commonMod.pixelmon}")
 

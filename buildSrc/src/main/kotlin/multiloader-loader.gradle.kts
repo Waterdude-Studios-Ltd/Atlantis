@@ -83,6 +83,12 @@ tasks {
         source(commonJava)
     }
 
+    matching { it.name == "sourcesJar" }.withType<Jar>().configureEach {
+        dependsOn(commonJava)
+        from(commonJava)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
     processResources {
         dependsOn(commonResources)
         from(commonResources) {

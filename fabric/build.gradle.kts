@@ -13,6 +13,12 @@ stonecutter {
 
 }
 
+java {
+    withSourcesJar()
+}
+
+publishAtlantis("atlantis-fabric", sources = "remapSourcesJar", bundled = "include")
+
 dependencies {
     minecraft("com.mojang:minecraft:${commonMod.mc}")
     mappings(loom.layered {

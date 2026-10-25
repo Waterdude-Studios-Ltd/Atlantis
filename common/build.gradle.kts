@@ -144,6 +144,12 @@ dependencies {
     )
 }
 
+java {
+    withSourcesJar()
+}
+
+publishAtlantis("atlantis-common", sources = "remapSourcesJar")
+
 val gametest: SourceSet = sourceSets.create("gametest") {
     val main = sourceSets.main.get()
     compileClasspath += main.compileClasspath + main.output

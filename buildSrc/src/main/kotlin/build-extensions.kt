@@ -2,6 +2,8 @@ import dev.kikugie.stonecutter.build.StonecutterBuildExtension
 import dev.kikugie.stonecutter.controller.StonecutterControllerExtension
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.*
 
 val Project.mod: ModData get() = ModData(this)
@@ -23,6 +25,63 @@ val Project.commonProject get() = rootProject.project(stonecutterBuild.current.p
 val Project.commonMod get() = commonProject.mod
 
 val Project.loader: String? get() = prop("loader")
+
+/**
+ * Publishes [jar] as `<group>.atlantis:<artifact>:<version>+<mc>` to the staging repository in the root build
+ * directory, from which the root `publishToMavenRemote` task uploads to the Waterdude maven.
+ * Loom strips jar-in-jar from mods it remaps for development, so the dependencies of [bundled] are declared in the POM
+ * as runtime dependencies.
+ */
+fun Project.publishAtlantis(artifact: String, jar: String = "remapJar", sources: String? = null, bundled: String? = null) {
+    pluginManager.apply("maven-publish")
+    extensions.configure<PublishingExtension> {
+        publications.create<MavenPublication>("atlantis") {
+            groupId = "${commonMod.group}.atlantis"
+            artifactId = artifact
+            version = "${commonMod.version}+${commonMod.mc}"
+            artifact(tasks.named(jar))
+            sources?.let { artifact(tasks.named(it)) { classifier = "sources" } }
+            pom {
+                name = "${commonMod.name} ($artifact)"
+                description = commonMod.description
+                url = commonMod.homepage
+                licenses {
+                    commonMod.license.split(",").map { it.trim() }.forEach { license ->
+                        license { name = license }
+                    }
+                }
+                developers {
+                    developer { name = commonMod.author }
+                }
+                scm {
+                    url = commonMod.github
+                }
+            }
+            bundled?.let { configuration ->
+                pom.withXml {
+                    val dependencies = asNode().appendNode("dependencies")
+                    configurations.getByName(configuration).allDependencies.forEach { dependency ->
+                        dependencies.appendNode("dependency").apply {
+                            appendNode("groupId", dependency.group)
+                            appendNode("artifactId", dependency.name)
+                            appendNode("version", dependency.version)
+                            appendNode("scope", "runtime")
+                            appendNode("exclusions").appendNode("exclusion").apply {
+                                appendNode("groupId", "*")
+                                appendNode("artifactId", "*")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        repositories {
+            maven(rootProject.layout.buildDirectory.dir(MAVEN_STAGING)) { name = "Staging" }
+        }
+    }
+}
+
+const val MAVEN_STAGING = "maven-staging"
 
 @JvmInline
 value class ModData(private val project: Project) {
