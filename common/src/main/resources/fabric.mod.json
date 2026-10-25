@@ -1,7 +1,7 @@
 {
-  "_comment": "Only used for common's Loom interface injection; excluded from the loader jars. Keep in sync with common/interfaces.json and fabric/src/main/resources/fabric.mod.json.",
+  "_comment": "Only used for common's Loom interface injection; excluded from the loader jars. Its ID matches Atlantis' so Tine projects compiling against atlantis-common get the injections too. Keep in sync with common/interfaces.json and fabric/src/main/resources/fabric.mod.json.",
   "schemaVersion": 1,
-  "id": "atlantis_common_injection",
+  "id": "atlantis",
   "version": "0",
   "custom": {
     "loom:injected_interfaces": {
