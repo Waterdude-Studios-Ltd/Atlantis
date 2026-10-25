@@ -3,6 +3,8 @@ package de.waterdu.atlantis.mod.wrapper.modloader.event;
 import de.waterdu.atlantis.Atlantis;
 import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.ActuallyHurtEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.entity.EntityJoinLevelEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.entity.InteractEntityEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.PlayerEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.VillagerTradeEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.item.ItemNameEventPayload;
@@ -14,6 +16,8 @@ import de.waterdu.atlantis.mod.impl.common.event.meta.PageEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.RegisterModExtensionsEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.SetPlaceholderProviderEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.network.PacketInterceptEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.player.ChatEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.player.CommandEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.pokemon.BattleEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.pokemon.CaptureEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.pokemon.EggHatchEventPayload;
@@ -33,6 +37,7 @@ import de.waterdu.atlantis.mod.impl.common.event.pokemon.SpawnEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.pokemon.StarterChosenEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.pokemon.TradeEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.registry.RegistryInjectEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.server.ServerLifecycleEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
 import de.waterdu.atlantis.mod.object.ModObject;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
@@ -47,6 +52,8 @@ import java.util.function.Function;
 public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Payload> {
 
     public static final Key<UEvent<ActuallyHurtEventPayload>> ACTUALLY_HURT = Key.of(Atlantis.ID, "event/actually_hurt");
+    public static final Key<UEvent<EntityJoinLevelEventPayload>> ENTITY_JOIN_LEVEL = Key.of(Atlantis.ID, "event/entity_join_level");
+    public static final Key<UEvent<InteractEntityEventPayload>> PLAYER_INTERACT_ENTITY = Key.of(Atlantis.ID, "event/player_interact_entity");
     public static final Key<UEvent<VillagerTradeEventPayload.Pre>> VILLAGER_TRADE_PRE = Key.of(Atlantis.ID, "event/villager_trade/pre");
     public static final Key<UEvent<VillagerTradeEventPayload.Post>> VILLAGER_TRADE_POST = Key.of(Atlantis.ID, "event/villager_trade/post");
     public static final Key<UEvent<VillagerTradeEventPayload.XP>> VILLAGER_TRADE_XP = Key.of(Atlantis.ID, "event/villager_trade_xp");
@@ -79,9 +86,15 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
 
     public static final Key<UEvent<PlayerEventPayload.LogIn>> LOG_IN = Key.of(Atlantis.ID, "event/log_in");
     public static final Key<UEvent<PlayerEventPayload.LogOut>> LOG_OUT = Key.of(Atlantis.ID, "event/log_out");
+    public static final Key<UEvent<ChatEventPayload>> CHAT = Key.of(Atlantis.ID, "event/chat");
+    public static final Key<UEvent<CommandEventPayload>> COMMAND = Key.of(Atlantis.ID, "event/command");
 
     public static final Key<UEvent<PacketInterceptEventPayload>> INTERCEPT_PACKET = Key.of(Atlantis.ID, "event/intercept_packet");
 
+    public static final Key<UEvent<ServerLifecycleEventPayload.Starting>> SERVER_STARTING = Key.of(Atlantis.ID, "event/server/starting");
+    public static final Key<UEvent<ServerLifecycleEventPayload.Started>> SERVER_STARTED = Key.of(Atlantis.ID, "event/server/started");
+    public static final Key<UEvent<ServerLifecycleEventPayload.Stopping>> SERVER_STOPPING = Key.of(Atlantis.ID, "event/server/stopping");
+    public static final Key<UEvent<ServerLifecycleEventPayload.Stopped>> SERVER_STOPPED = Key.of(Atlantis.ID, "event/server/stopped");
     public static final Key<UEvent<ServerTickEventPayload.Pre>> SERVER_TICK_PRE = Key.of(Atlantis.ID, "event/server_tick/pre");
     public static final Key<UEvent<ServerTickEventPayload.Post>> SERVER_TICK_POST = Key.of(Atlantis.ID, "event/server_tick/post");
 

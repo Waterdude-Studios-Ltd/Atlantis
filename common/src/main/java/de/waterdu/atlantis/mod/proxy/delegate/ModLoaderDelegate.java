@@ -9,6 +9,7 @@ import de.waterdu.atlantis.level.chunk.AtlantisChunkLoader;
 import de.waterdu.atlantis.level.schematic.Schematics;
 import de.waterdu.atlantis.mod.impl.common.event.EventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.entity.PlayerEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.server.ServerLifecycleEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.server.ServerTickEventPayload;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.ListenerEvent;
@@ -73,11 +74,13 @@ public interface ModLoaderDelegate extends ModProxy, TridentHost {
 
     default void onServerStarting() {
         AtlantisConfigFinder.init(true);
+        this.event(UEvent.SERVER_STARTING).emit(new ServerLifecycleEventPayload.Starting(this.server()));
     }
 
     default void onServerStarted() {
         AtlantisChunkLoader.setup(Runnable::run);
         Atlantis.listeners().startLoggingPackets();
+        this.event(UEvent.SERVER_STARTED).emit(new ServerLifecycleEventPayload.Started(this.server()));
     }
 
     default void onServerTickPre(MinecraftServer server) {
@@ -90,9 +93,14 @@ public interface ModLoaderDelegate extends ModProxy, TridentHost {
     }
 
     default void onServerStopping() {
+        this.event(UEvent.SERVER_STOPPING).emit(new ServerLifecycleEventPayload.Stopping(this.server()));
         for (var config : AtlantisConfig.allInstances()) {
             config.asyncSaveInner();
         }
+    }
+
+    default void onServerStopped() {
+        this.event(UEvent.SERVER_STOPPED).emit(new ServerLifecycleEventPayload.Stopped(this.server()));
     }
 
     default void onPlayerLogin(ServerPlayer player) {

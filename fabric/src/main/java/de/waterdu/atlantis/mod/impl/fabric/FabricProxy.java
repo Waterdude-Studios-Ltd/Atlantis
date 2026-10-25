@@ -53,7 +53,10 @@ public class FabricProxy extends FabricTridentHost implements ModLoaderDelegate 
         });
         ServerLifecycleEvents.SERVER_STARTED.register(__ -> this.onServerStarted());
         ServerLifecycleEvents.SERVER_STOPPING.register(__ -> this.onServerStopping());
-        ServerLifecycleEvents.SERVER_STOPPED.register(__ -> this.server = null);
+        ServerLifecycleEvents.SERVER_STOPPED.register(__ -> {
+            this.onServerStopped();
+            this.server = null;
+        });
 
         ServerTickEvents.START_SERVER_TICK.register(this::onServerTickPre);
         ServerTickEvents.END_SERVER_TICK.register(this::onServerTickPost);

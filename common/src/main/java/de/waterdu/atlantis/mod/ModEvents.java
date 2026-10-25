@@ -1,13 +1,24 @@
 package de.waterdu.atlantis.mod;
 
+import com.mojang.brigadier.ParseResults;
 import de.waterdu.atlantis.mod.impl.common.event.entity.ActuallyHurtEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.entity.EntityJoinLevelEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.entity.InteractEntityEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.item.ItemNameEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.item.LootTableEventPayload;
 import de.waterdu.atlantis.mod.impl.common.event.meta.SetPlaceholderProviderEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.player.ChatEventPayload;
+import de.waterdu.atlantis.mod.impl.common.event.player.CommandEventPayload;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEvent;
 import de.waterdu.atlantis.util.placeholder.impl.PlaceholderProvider;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -45,5 +56,21 @@ public final class ModEvents {
 
     public SetPlaceholderProviderEventPayload emitSetPlaceholderProvider(PlaceholderProvider provider) {
         return Mods.modLoader().event(UEvent.SET_PLACEHOLDER_PROVIDER).emit(new SetPlaceholderProviderEventPayload(provider));
+    }
+
+    public boolean emitChat(ServerPlayer player, PlayerChatMessage message) {
+        return Mods.modLoader().event(UEvent.CHAT).emit(new ChatEventPayload(player, message)).cancelled();
+    }
+
+    public boolean emitCommand(ParseResults<CommandSourceStack> parse, String command) {
+        return Mods.modLoader().event(UEvent.COMMAND).emit(new CommandEventPayload(parse, command)).cancelled();
+    }
+
+    public boolean emitInteractEntity(ServerPlayer player, Entity entity, InteractEntityEventPayload.Action action, @Nullable InteractionHand hand) {
+        return Mods.modLoader().event(UEvent.PLAYER_INTERACT_ENTITY).emit(new InteractEntityEventPayload(player, entity, action, hand)).cancelled();
+    }
+
+    public boolean emitEntityJoinLevel(Entity entity, ServerLevel level, boolean loadedFromDisk) {
+        return Mods.modLoader().event(UEvent.ENTITY_JOIN_LEVEL).emit(new EntityJoinLevelEventPayload(entity, level, loadedFromDisk)).cancelled();
     }
 }

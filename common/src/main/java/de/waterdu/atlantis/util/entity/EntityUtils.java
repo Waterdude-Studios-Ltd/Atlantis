@@ -13,6 +13,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundPlayerLookAtPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -36,6 +37,13 @@ public final class EntityUtils {
 
     private EntityUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
+    }
+
+    /**
+     * Gets the entity's mutable persistent tag, which Atlantis saves and loads with the entity on every loader.
+     */
+    public static CompoundTag persistentData(Entity entity) {
+        return ((PersistentDataHolder) entity).atlantis$persistentData();
     }
 
     public static void addEffect(LivingEntity entity, Holder<MobEffect> potion, int duration, int amplifier) {
