@@ -21,22 +21,22 @@ public class CobblemonPokedex extends UPokedex<PokedexManager> {
 
     @Override
     public boolean hasSeen(USpecies<?> species) {
-        return this.knowledge((Species) species.dereference()) != PokedexEntryProgress.NONE;
+        return this.knowledge((Species) species.dereference()) != PokedexEntryProgress.UNREGISTERED;
     }
 
     @Override
     public boolean hasCaught(USpecies<?> species) {
-        return this.knowledge((Species) species.dereference()) == PokedexEntryProgress.CAUGHT;
+        return this.knowledge((Species) species.dereference()) == PokedexEntryProgress.OWNED;
     }
 
     @Override
     public int seenCount() {
-        return this.count(PokedexEntryProgress.ENCOUNTERED);
+        return this.count(PokedexEntryProgress.SEEN);
     }
 
     @Override
     public int caughtCount() {
-        return this.count(PokedexEntryProgress.CAUGHT);
+        return this.count(PokedexEntryProgress.OWNED);
     }
 
     @Override

@@ -19,12 +19,12 @@ public class PixelmonBattle extends UBattle<BattleController> {
 
     @Override
     public String id() {
-        return String.valueOf(this.dereference().battleIndex);
+        return String.valueOf(this.dereference().battleIndex());
     }
 
     @Override
     public List<PixelmonBattleParticipant> participants() {
-        return this.dereference().participants.stream().map(PixelmonBattleParticipant::new).toList();
+        return this.dereference().participants().stream().map(PixelmonBattleParticipant::new).toList();
     }
 
     @Override
@@ -39,12 +39,12 @@ public class PixelmonBattle extends UBattle<BattleController> {
 
     @Override
     public int turn() {
-        return this.dereference().battleTurn;
+        return this.dereference().battleTurn();
     }
 
     @Override
     public boolean hasEnded() {
-        return this.dereference().battleEnded;
+        return this.dereference().battleEnded();
     }
 
     @Override
