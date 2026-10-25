@@ -79,6 +79,9 @@ fun Project.publishAtlantis(artifact: String, jar: String = "remapJar", sources:
             maven(rootProject.layout.buildDirectory.dir(MAVEN_STAGING)) { name = "Staging" }
         }
     }
+    tasks.matching { it.name.endsWith("ToStagingRepository") }.configureEach {
+        mustRunAfter(":cleanMavenStaging")
+    }
 }
 
 const val MAVEN_STAGING = "maven-staging"

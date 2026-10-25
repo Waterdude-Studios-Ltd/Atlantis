@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Waterdude Maven</title>
+<meta name="description" content="Maven repository of Waterdude Studios Ltd">
+<link rel="icon" href="/resources/img/logo_a_c.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f7fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --text: #17212b;
+  --muted: #5b6875;
+  --border: #d9e1e8;
+  --accent: #0b74b8;
+  --accent-soft: #e2f0f9;
+  --code-bg: #f1f4f8;
+  --ok: #1a7f4b;
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141a;
+    --surface: #151d25;
+    --surface-2: #1b252f;
+    --text: #e3e9ee;
+    --muted: #93a1ae;
+    --border: #273440;
+    --accent: #4fb3ef;
+    --accent-soft: #15324a;
+    --code-bg: #0f171e;
+    --ok: #4cc58a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141a;
+  --surface: #151d25;
+  --surface-2: #1b252f;
+  --text: #e3e9ee;
+  --muted: #93a1ae;
+  --border: #273440;
+  --accent: #4fb3ef;
+  --accent-soft: #15324a;
+  --code-bg: #0f171e;
+  --ok: #4cc58a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 300 16px/1.55 Montserrat, system-ui, sans-serif;
+}
+main { max-width: 920px; margin: 0 auto; padding: 40px 16px 64px; }
+header h1 { font-weight: 600; font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+header p { margin: 0; color: var(--muted); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre, .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 20px;
+}
+.card h2 { font-size: 1.15rem; font-weight: 600; margin: 0; overflow-wrap: anywhere; }
+.coords { color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+.description { margin: 10px 0 0; }
+.head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: 0.75rem; font-weight: 500; padding: 2px 9px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--accent); white-space: nowrap;
+}
+.badge.plain { background: var(--surface-2); color: var(--muted); }
+.toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 8px; padding: 3px; }
+.tabs button {
+  font: inherit; font-size: 0.85rem; font-weight: 500; border: 0; background: none; color: var(--muted);
+  padding: 5px 12px; border-radius: 6px; cursor: pointer;
+}
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); }
+.tabs button:focus-visible, select:focus-visible, .copy:focus-visible, input:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+select, input[type="search"] {
+  font: inherit; font-size: 0.9rem; color: var(--text); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px;
+}
+input[type="search"] { width: 100%; margin-top: 24px; padding: 10px 14px; }
+.snippet { margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.snippet-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 5px 8px 5px 14px; background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+.label { font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.snippet pre { margin: 0; background: var(--code-bg); padding: 12px 14px; overflow-x: auto; white-space: pre; }
+.copy {
+  flex: none; font: inherit; font-size: 0.78rem; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 6px; padding: 2px 10px; cursor: pointer;
+}
+.copy.done { color: var(--ok); border-color: var(--ok); }
+details { margin-top: 16px; }
+summary { cursor: pointer; font-weight: 500; font-size: 0.9rem; color: var(--muted); }
+.history { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 0.88rem; }
+.history th { text-align: left; font-weight: 500; color: var(--muted); font-size: 0.78rem; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.history td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.history tr:last-child td { border-bottom: 0; }
+.history .files a { margin-right: 10px; white-space: nowrap; }
+.history button { font: inherit; font-size: 0.78rem; border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; }
+.empty { color: var(--muted); text-align: center; margin-top: 32px; }
+footer { margin-top: 40px; color: var(--muted); font-size: 0.8rem; text-align: center; }
+@media (max-width: 560px) {
+  .history .files { display: none; }
+  .history th:nth-child(3) { display: none; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Waterdude Maven</h1>
+    <p>Releases of Atlantis and other projects by Waterdude Studios Ltd.</p>
+  </header>
+
+  <section class="card" id="setup">
+    <h2>Add the repository</h2>
+    <div class="toolbar"><div class="tabs" role="tablist" data-tabs></div></div>
+    <div data-setup></div>
+  </section>
+
+  <input type="search" id="filter" placeholder="Filter artifacts" aria-label="Filter artifacts">
+  <div id="artifacts"></div>
+  <p class="empty" id="empty" hidden>No artifacts match.</p>
+
+  <noscript>
+    <section class="card"><p>Enable JavaScript for dependency snippets. Repository URL: <code>https://waterdu.de/maven</code></p></section>
+  </noscript>
+
+  <footer>
+    <p>© Waterdude Studios Ltd · Registered in England · Company No: 12382607<br><span id="generated"></span></p>
+  </footer>
+</main>
+
+<script type="application/json" id="data">__MAVEN_INDEX_DATA__</script>
+<script>
+(function () {
+  "use strict";
+
+  var data = JSON.parse(document.getElementById("data").textContent);
+  var repo = data.repository;
+  var TABS = [
+    { id: "maven", label: "Maven" },
+    { id: "groovy", label: "Gradle" },
+    { id: "kotlin", label: "Gradle (Kotlin)" }
+  ];
+  var listeners = [];
+  var tab = "kotlin";
+  try { tab = localStorage.getItem("maven-tab") || tab; } catch (e) {}
+
+  function el(tag, attrs, children) {
+    var node = document.createElement(tag);
+    Object.keys(attrs || {}).forEach(function (key) {
+      if (key === "text") node.textContent = attrs[key];
+      else if (key === "class") node.className = attrs[key];
+      else node.setAttribute(key, attrs[key]);
+    });
+    (children || []).forEach(function (child) { if (child) node.appendChild(child); });
+    return node;
+  }
+
+  function copyText(text, button) {
+    function done() {
+      button.textContent = "Copied";
+      button.classList.add("done");
+      setTimeout(function () { button.textContent = "Copy"; button.classList.remove("done"); }, 1500);
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else {
+      fallback();
+    }
+    function fallback() {
+      var area = el("textarea", { style: "position:fixed;opacity:0" });
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      try { document.execCommand("copy"); done(); } catch (e) {}
+      area.remove();
+    }
+  }
+
+  function snippet(label, text) {
+    var pre = el("pre", { text: text });
+    var button = el("button", { class: "copy", type: "button", text: "Copy", "aria-label": "Copy " + (label || "snippet") });
+    button.addEventListener("click", function () { copyText(pre.textContent, button); });
+    return el("div", { class: "snippet" }, [
+      el("div", { class: "snippet-head" }, [el("span", { class: "label", text: label || "" }), button]),
+      pre
+    ]);
+  }
+
+  function tabs(container, available) {
+    function render() {
+      container.textContent = "";
+      available.forEach(function (option) {
+        var button = el("button", { type: "button", role: "tab", "aria-selected": String(option.id === current()), text: option.label });
+        button.addEventListener("click", function () { select(option.id); });
+        container.appendChild(button);
+      });
+    }
+    function current() {
+      return available.some(function (option) { return option.id === tab; }) ? tab : available[available.length - 1].id;
+    }
+    listeners.push(render);
+    render();
+    return current;
+  }
+
+  function select(id) {
+    tab = id;
+    try { localStorage.setItem("maven-tab", id); } catch (e) {}
+    listeners.forEach(function (listener) { listener(); });
+  }
+
+  function dependency(artifact, version, style) {
+    var coordinate = artifact.group + ":" + artifact.artifact + ":" + version;
+    if (artifact.plugin) {
+      return style === "groovy"
+        ? "plugins {\n    id '" + artifact.plugin + "' version '" + version + "'\n}"
+        : "plugins {\n    id(\"" + artifact.plugin + "\") version \"" + version + "\"\n}";
+    }
+    if (style === "maven") {
+      return "<dependency>\n  <groupId>" + artifact.group + "</groupId>\n  <artifactId>" + artifact.artifact +
+        "</artifactId>\n  <version>" + version + "</version>\n</dependency>";
+    }
+    return style === "groovy" ? "implementation '" + coordinate + "'" : "implementation(\"" + coordinate + "\")";
+  }
+
+  function setup() {
+    var section = document.getElementById("setup");
+    var current = tabs(section.querySelector("[data-tabs]"), TABS);
+    var body = section.querySelector("[data-setup]");
+    function render() {
+      body.textContent = "";
+      var style = current();
+      if (style === "maven") {
+        body.appendChild(snippet("pom.xml", "<repositories>\n  <repository>\n    <id>waterdude</id>\n    <url>" + repo + "</url>\n  </repository>\n</repositories>"));
+      } else if (style === "groovy") {
+        body.appendChild(snippet("build.gradle", "repositories {\n    maven { url '" + repo + "' }\n}"));
+        body.appendChild(snippet("settings.gradle, for Gradle plugins", "pluginManagement {\n    repositories {\n        maven { url '" + repo + "' }\n        gradlePluginPortal()\n    }\n}"));
+      } else {
+        body.appendChild(snippet("build.gradle.kts", "repositories {\n    maven(\"" + repo + "\")\n}"));
+        body.appendChild(snippet("settings.gradle.kts, for Gradle plugins", "pluginManagement {\n    repositories {\n        maven(\"" + repo + "\")\n        gradlePluginPortal()\n    }\n}"));
+      }
+    }
+    listeners.push(render);
+    render();
+  }
+
+  function card(artifact) {
+    var versions = artifact.versions;
+    var version = artifact.latest || versions[0].version;
+    var available = artifact.plugin ? TABS.slice(1) : TABS;
+    var path = repo + "/" + artifact.group.replace(/\./g, "/") + "/" + artifact.artifact + "/";
+
+    var picker = el("select", { "aria-label": "Version of " + artifact.name });
+    versions.forEach(function (entry) {
+      picker.appendChild(el("option", { value: entry.version, text: entry.version + (entry.version === artifact.latest ? " (latest)" : "") }));
+    });
+    picker.value = version;
+
+    var tabBar = el("div", { class: "tabs", role: "tablist" });
+    var body = el("div");
+    var section = el("section", { class: "card" }, [
+      el("div", { class: "head" }, [
+        el("div", {}, [
+          el("h2", { text: artifact.name }),
+          el("div", { class: "coords mono", text: artifact.plugin ? "id " + artifact.plugin : artifact.group + ":" + artifact.artifact })
+        ]),
+        el("div", { class: "badges" }, [
+          artifact.plugin ? el("span", { class: "badge", text: "Gradle plugin" }) : null,
+          el("span", { class: "badge", text: "latest " + artifact.latest }),
+          el("span", { class: "badge plain", text: versions.length + (versions.length === 1 ? " version" : " versions") })
+        ])
+      ]),
+      artifact.description ? el("p", { class: "description", text: artifact.description }) : null,
+      el("div", { class: "toolbar" }, [tabBar, picker]),
+      body
+    ]);
+    section.dataset.search = [artifact.name, artifact.group, artifact.artifact, artifact.plugin || "", artifact.description || ""].join(" ").toLowerCase();
+
+    var current = tabs(tabBar, available);
+    function render() {
+      body.textContent = "";
+      var style = current();
+      var file = artifact.plugin ? "plugins" : style === "maven" ? "pom.xml" : "dependencies";
+      body.appendChild(snippet(file, dependency(artifact, picker.value, style)));
+    }
+    picker.addEventListener("change", render);
+    listeners.push(render);
+    render();
+
+    var rows = versions.map(function (entry) {
+      var use = el("button", { type: "button", text: "Use" });
+      use.addEventListener("click", function () { picker.value = entry.version; render(); picker.focus(); });
+      var files = el("td", { class: "files" }, entry.files.map(function (file) {
+        return el("a", { href: path + encodeURIComponent(entry.version) + "/" + encodeURIComponent(file), text: file.replace(artifact.artifact + "-" + entry.version, "").replace(/^[-.]/, "") || file });
+      }));
+      return el("tr", {}, [
+        el("td", { class: "mono", text: entry.version }),
+        el("td", { text: entry.date }),
+        files,
+        el("td", {}, [use])
+      ]);
+    });
+    section.appendChild(el("details", {}, [
+      el("summary", { text: "Version history" }),
+      el("table", { class: "history" }, [
+        el("thead", {}, [el("tr", {}, [el("th", { text: "Version" }), el("th", { text: "Published" }), el("th", { text: "Files" }), el("th")])]),
+        el("tbody", {}, rows)
+      ])
+    ]));
+    return section;
+  }
+
+  setup();
+  var list = document.getElementById("artifacts");
+  data.artifacts.forEach(function (artifact) { list.appendChild(card(artifact)); });
+  document.getElementById("generated").textContent = "Updated " + data.generated;
+
+  var filter = document.getElementById("filter");
+  filter.addEventListener("input", function () {
+    var query = filter.value.trim().toLowerCase();
+    var shown = 0;
+    Array.prototype.forEach.call(list.children, function (section) {
+      var visible = !query || section.dataset.search.indexOf(query) !== -1;
+      section.hidden = !visible;
+      if (visible) shown++;
+    });
+    document.getElementById("empty").hidden = shown !== 0;
+  });
+})();
+</script>
+</body>
+</html>
