@@ -15,6 +15,9 @@
   "icon": "${modId}.png",
   "environment": "*",
   "entrypoints": {
+    "preLaunch": [
+      "de.waterdu.atlantis.AtlantisFabricPreLaunch"
+    ],
     "main": [
       "de.waterdu.atlantis.AtlantisFabric"
     ]

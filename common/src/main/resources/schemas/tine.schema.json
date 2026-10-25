@@ -53,6 +53,16 @@
         "$ref": "#/$defs/range"
       },
       "default": {}
+    },
+    "mixins": {
+      "description": "Mixin configs in the jar, by resource path, e.g. example.mixins.json. Mixins are written against Mojang names and need no refmap. Targets that the game loaded before Tines were discovered can't be mixed into.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "\\.json$"
+      },
+      "uniqueItems": true,
+      "default": []
     }
   },
   "$defs": {

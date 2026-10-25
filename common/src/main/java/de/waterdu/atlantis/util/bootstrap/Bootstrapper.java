@@ -7,7 +7,8 @@ import de.waterdu.atlantis.file.auto.BasicData;
 import de.waterdu.atlantis.file.auto.FileBackedObject;
 import de.waterdu.atlantis.file.auto.I18nFile;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
-import de.waterdu.atlantis.trident.TridentLoader;
+import de.waterdu.atlantis.trident.TridentHost;
+import de.waterdu.atlantis.trident.Trident;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
 import java.lang.annotation.Annotation;
@@ -43,7 +44,7 @@ public final class Bootstrapper {
     public static void resetForTesting() {
         ANNOTATED_CLASSES.clear();
         BOOTSTRAPPED.set(false);
-        TridentLoader.resetForTesting();
+        Trident.resetForTesting();
     }
 
     public static void forEachAnnotatedClass(Class<? extends Annotation> annotation, Consumer<AnnotatedClass> forEach) {
@@ -55,7 +56,7 @@ public final class Bootstrapper {
             return;
         }
 
-        var discovery = TridentLoader.discover(loader, ANNOTATIONS);
+        var discovery = Bootstrapper.discoverTines(loader);
         var classLoader = discovery.classLoader();
         var scanned = new HashMap<>(loader.scanAnnotatedClasses(ANNOTATIONS));
 
@@ -87,6 +88,10 @@ public final class Bootstrapper {
         }
 
         Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> Bootstrapper.invokeStatic(annotated.clazz(), Entrypoint.class));
+    }
+
+    public static Trident.Discovery discoverTines(TridentHost host) {
+        return Trident.discover(host, ANNOTATIONS);
     }
 
     public static void invokeStatic(Class<?> clazz, Class<? extends Annotation> annotation) {

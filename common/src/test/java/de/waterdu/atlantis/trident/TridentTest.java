@@ -27,7 +27,7 @@ import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(AtlantisTestEnvironment.class)
-public class TridentLoaderTest {
+public class TridentTest {
 
     public static final List<String> CALLS = Collections.synchronizedList(new ArrayList<>());
 
@@ -38,7 +38,7 @@ public class TridentLoaderTest {
             public class Main {
                 @de.waterdu.atlantis.trident.Tine.Barb
                 static void barb() {
-                    de.waterdu.atlantis.trident.TridentLoaderTest.CALLS.add("%1$s");
+                    de.waterdu.atlantis.trident.TridentTest.CALLS.add("%1$s");
                 }
             }
             """;
@@ -61,7 +61,7 @@ public class TridentLoaderTest {
                         public class Setup {
                             @de.waterdu.atlantis.util.bootstrap.Entrypoint
                             static void setup() {
-                                de.waterdu.atlantis.trident.TridentLoaderTest.CALLS.add("a.setup");
+                                de.waterdu.atlantis.trident.TridentTest.CALLS.add("a.setup");
                             }
                         }
                         """
@@ -70,7 +70,7 @@ public class TridentLoaderTest {
         bootstrap(loader);
 
         assertThat(CALLS).containsExactly("a", "a.setup");
-        assertThat(TridentLoader.isLoaded("a")).isTrue();
+        assertThat(Trident.isLoaded("a")).isTrue();
     }
 
     @Test
@@ -93,7 +93,7 @@ public class TridentLoaderTest {
                         public class Main {
                             @de.waterdu.atlantis.trident.Tine.Barb
                             static void barb() {
-                                de.waterdu.atlantis.trident.TridentLoaderTest.CALLS.add(a.Api.greet());
+                                de.waterdu.atlantis.trident.TridentTest.CALLS.add(a.Api.greet());
                             }
                         }
                         """
@@ -108,7 +108,7 @@ public class TridentLoaderTest {
         bootstrap(loader);
 
         assertThat(CALLS).containsExactly("a", "hello from a");
-        assertThat(TridentLoader.tines()).extracting(TineContainer::id).containsExactly("a", "b");
+        assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a", "b");
     }
 
     @Test
@@ -138,7 +138,7 @@ public class TridentLoaderTest {
         bootstrap(loader);
 
         assertThat(CALLS).isEmpty();
-        assertThat(TridentLoader.isLoaded("a")).isFalse();
+        assertThat(Trident.isLoaded("a")).isFalse();
     }
 
     @Test
@@ -158,7 +158,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.tines()).extracting(TineContainer::id).containsExactly("a");
+        assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a");
     }
 
     @Test
@@ -175,7 +175,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.tines()).extracting(TineContainer::id).containsExactly("c");
+        assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("c");
     }
 
     @Test
@@ -190,7 +190,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.tines()).extracting(TineContainer::id).containsExactly("a");
+        assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a");
     }
 
     @Test
@@ -207,7 +207,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.tines()).isEmpty();
+        assertThat(Trident.tines()).isEmpty();
     }
 
     @Test
@@ -222,7 +222,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.tines()).isEmpty();
+        assertThat(Trident.tines()).isEmpty();
     }
 
     @Test
@@ -233,7 +233,7 @@ public class TridentLoaderTest {
 
         bootstrap(loader);
 
-        assertThat(TridentLoader.mods()).singleElement().satisfies(mod -> {
+        assertThat(Trident.mods()).singleElement().satisfies(mod -> {
             assertThat(mod.id()).isEqualTo("a");
             assertThat(mod.displayName()).isEqualTo("Alpha");
             assertThat(mod.version()).isEqualTo("1.0.0");
@@ -256,19 +256,19 @@ public class TridentLoaderTest {
                 {"id": "dev", "version": "1.0.0"}
                 """);
 
-        System.setProperty(TridentLoader.DEV_PROPERTY, classes + File.pathSeparator + resources);
+        System.setProperty(Trident.DEV_PROPERTY, classes + File.pathSeparator + resources);
         try {
             bootstrap(loader);
         } finally {
-            System.clearProperty(TridentLoader.DEV_PROPERTY);
+            System.clearProperty(Trident.DEV_PROPERTY);
         }
 
         assertThat(CALLS).containsExactly("dev");
-        assertThat(TridentLoader.tines()).singleElement().satisfies(tine -> assertThat(tine.paths()).containsExactly(classes, resources));
+        assertThat(Trident.tines()).singleElement().satisfies(tine -> assertThat(tine.paths()).containsExactly(classes, resources));
     }
 
     private static void bootstrap(TestModLoader loader) {
-        loader.annotated(Bootstrapped.class, TridentLoader.class);
+        loader.annotated(Bootstrapped.class, Trident.class);
         Bootstrapper.bootstrap(loader);
     }
 
@@ -300,7 +300,7 @@ public class TridentLoaderTest {
     }
 
     private static void jar(TestModLoader loader, String name, String metadata, Map<String, byte[]> classes) throws IOException {
-        var directory = Files.createDirectories(loader.configDir().resolve(TridentLoader.DIRECTORY));
+        var directory = Files.createDirectories(loader.configDir().resolve(Trident.DIRECTORY));
         try (var output = new JarOutputStream(Files.newOutputStream(directory.resolve(name)))) {
             if (metadata != null) {
                 output.putNextEntry(new JarEntry(TineMetadata.FILE_NAME));

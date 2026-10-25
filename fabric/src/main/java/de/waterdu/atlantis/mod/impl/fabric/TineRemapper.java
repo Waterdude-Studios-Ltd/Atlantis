@@ -3,7 +3,7 @@ package de.waterdu.atlantis.mod.impl.fabric;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.trident.TridentLoader;
+import de.waterdu.atlantis.trident.Trident;
 import de.waterdu.atlantis.trident.TridentLogger;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -17,6 +17,7 @@ import net.fabricmc.tinyremapper.NonClassCopyMode;
 import net.fabricmc.tinyremapper.OutputConsumerPath;
 import net.fabricmc.tinyremapper.TinyRemapper;
 import net.fabricmc.tinyremapper.TinyUtils;
+import net.fabricmc.tinyremapper.extension.mixin.MixinExtension;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,7 +43,7 @@ import java.util.Map;
 
 final class TineRemapper {
 
-    static final String CACHE = TridentLoader.DIRECTORY + "/.cache";
+    static final String CACHE = Trident.DIRECTORY + "/.cache";
     static final String MAPPINGS_PROPERTY = "atlantis.trident.mappings";
 
     private static final String NAMED = "named";
@@ -50,7 +51,7 @@ final class TineRemapper {
     private static final String INTERMEDIARY = "intermediary";
     private static final String INTERMEDIARY_MAPPINGS = "mappings/mappings.tiny";
     private static final String VERSION_MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
-    private static final int FORMAT = 1;
+    private static final int FORMAT = 2;
 
     private TineRemapper() {
         ExceptionUtils.throwCannotInstantiateClassException();
@@ -95,7 +96,7 @@ final class TineRemapper {
             TridentLogger.info("Remapping {} Tine(s) to intermediary", pending.size());
             var mappings = TineRemapper.mappings(cache, minecraft);
             var classpath = TineRemapper.namedClassPath(cache, minecraft, mappings);
-            TineRemapper.run(mappings, NAMED, INTERMEDIARY, pending, classpath);
+            TineRemapper.run(mappings, NAMED, INTERMEDIARY, pending, classpath, true);
         }
 
         return List.copyOf(outputs.values());
@@ -129,7 +130,7 @@ final class TineRemapper {
         }
 
         if (!pending.isEmpty()) {
-            TineRemapper.run(mappings, INTERMEDIARY, NAMED, pending, libraries);
+            TineRemapper.run(mappings, INTERMEDIARY, NAMED, pending, libraries, false);
         }
 
         var classpath = new ArrayList<>(intermediary.values());
@@ -137,12 +138,16 @@ final class TineRemapper {
         return classpath;
     }
 
-    private static void run(MemoryMappingTree mappings, String from, String to, Map<Path, Path> jars, List<Path> classpath) throws IOException {
-        var remapper = TinyRemapper.newRemapper()
+    private static void run(MemoryMappingTree mappings, String from, String to, Map<Path, Path> jars, List<Path> classpath, boolean mixins) throws IOException {
+        var builder = TinyRemapper.newRemapper()
                 .withMappings(TinyUtils.createMappingProvider(mappings, from, to))
                 .renameInvalidLocals(true)
-                .rebuildSourceFilenames(true)
-                .build();
+                .rebuildSourceFilenames(true);
+        if (mixins) {
+            builder.extension(new MixinExtension());
+        }
+
+        var remapper = builder.build();
         try {
             remapper.readClassPath(classpath.toArray(Path[]::new));
 
@@ -185,6 +190,13 @@ final class TineRemapper {
 
         try (var reader = new InputStreamReader(intermediary, StandardCharsets.UTF_8)) {
             MappingReader.read(reader, tree);
+        }
+
+        var namespace = tree.getNamespaceId(INTERMEDIARY);
+        for (var mapping : tree.getClasses()) {
+            if (mapping.getDstName(namespace) == null) {
+                mapping.setDstName(mapping.getSrcName(), namespace);
+            }
         }
 
         return tree;

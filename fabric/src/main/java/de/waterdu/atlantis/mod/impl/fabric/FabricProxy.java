@@ -3,10 +3,7 @@ package de.waterdu.atlantis.mod.impl.fabric;
 import de.waterdu.atlantis.mod.impl.fabric.modloader.permission.FabricPermissionNode;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
-import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
-import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
-import de.waterdu.atlantis.trident.TridentLoader;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
 import io.github.classgraph.ClassGraph;
@@ -20,10 +17,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin;
-import net.fabricmc.loader.api.metadata.Person;
-import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -44,11 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class FabricProxy implements ModLoaderDelegate {
-
-    private static final String BUILTIN_MOD_TYPE = "builtin";
-    private static final String ISSUES_CONTACT = "issues";
-    private static final String FABRIC_API_MODULE = "fabric-api:module-lifecycle";
+public class FabricProxy extends FabricTridentHost implements ModLoaderDelegate {
 
     private volatile @Nullable MinecraftServer server;
 
@@ -94,39 +84,8 @@ public class FabricProxy implements ModLoaderDelegate {
     }
 
     @Override
-    public Path configDir() {
-        return FabricLoader.getInstance().getConfigDir();
-    }
-
-    @Override
     public boolean isDedicatedServer() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.SERVER;
-    }
-
-    @Override
-    public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(modId) || TridentLoader.isLoaded(modId);
-    }
-
-    @Override
-    public List<ModInfo> mods() {
-        var mods = new ArrayList<ModInfo>();
-        for (var mod : FabricLoader.getInstance().getAllMods()) {
-            if (FabricProxy.isBuiltin(mod) || mod.getContainingMod().isPresent() || mod.getMetadata().containsCustomValue(FABRIC_API_MODULE)) {
-                continue;
-            }
-            var metadata = mod.getMetadata();
-            mods.add(new ModInfo(
-                    metadata.getId(),
-                    metadata.getName(),
-                    metadata.getVersion().getFriendlyString(),
-                    metadata.getAuthors().stream().map(Person::getName).toList(),
-                    metadata.getContact().get(ISSUES_CONTACT).orElse(null),
-                    () -> VersionCheck.UNSUPPORTED
-            ));
-        }
-        mods.addAll(TridentLoader.mods());
-        return mods;
     }
 
     @Override
@@ -138,7 +97,7 @@ public class FabricProxy implements ModLoaderDelegate {
     public Map<Class<? extends Annotation>, List<String>> scanAnnotatedClasses(Collection<Class<? extends Annotation>> annotations) {
         var paths = new LinkedHashSet<Path>();
         for (var mod : FabricLoader.getInstance().getAllMods()) {
-            if (FabricProxy.isBuiltin(mod)) {
+            if (FabricTridentHost.isBuiltin(mod)) {
                 continue;
             }
             for (var root : mod.getRootPaths()) {
@@ -164,17 +123,6 @@ public class FabricProxy implements ModLoaderDelegate {
             }
         }
         return classes;
-    }
-
-    private static boolean isBuiltin(ModContainer mod) {
-        return BUILTIN_MOD_TYPE.equals(mod.getMetadata().getType());
-    }
-
-    @Override
-    public ClassLoader addToClassPath(List<Path> jars) {
-        var launcher = FabricLauncherBase.getLauncher();
-        TineRemapper.remap(jars, this.configDir()).forEach(launcher::addToClassPath);
-        return FabricProxy.class.getClassLoader();
     }
 
     @Override

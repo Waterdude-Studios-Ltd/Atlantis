@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the main class of a Tine, a mod loaded by the {@link TridentLoader}. A Tine jar may contain at most one.
+ * Marks the main class of a Tine, a mod loaded by the {@link Trident}. A Tine jar may contain at most one.
  * The Tine's ID, version, and dependencies are declared in a {@code tine.json} at the root of its jar.
  */
 @Retention(RetentionPolicy.RUNTIME)

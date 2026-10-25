@@ -23,6 +23,9 @@ import java.io.File
  * API, builds a Mojang-named jar, and adds a Fabric server run that loads the Tine through Trident, plus a client run
  * that joins it. Tines are server-only, so the client run doesn't load the Tine itself.
  *
+ * Mixins stay in Mojang names without a refmap, since NeoForge runs on Mojang names and Atlantis remaps Tines for
+ * Fabric production itself, so Loom's mixin annotation processor is turned off.
+ *
  * Versions default to the Atlantis release this plugin was built with, and can be overridden with the Gradle
  * properties `tine.atlantis`, `tine.minecraft`, `tine.parchment`, `tine.fabricLoader` and `tine.fabricApi`.
  */
@@ -57,6 +60,7 @@ class TinePlugin : Plugin<Project> {
         }
 
         val loom = extensions.getByType<LoomGradleExtensionAPI>()
+        loom.mixin.useLegacyMixinAp.set(false)
         dependencies.apply {
             add("minecraft", "com.mojang:minecraft:${versions.minecraft}")
             add("mappings", loom.layered {
@@ -169,6 +173,13 @@ class TinePlugin : Plugin<Project> {
         }
         if (metadata["version"] !is String) {
             throw GradleException("$TINE_JSON is missing a version")
+        }
+        val mixins = metadata["mixins"] ?: return
+        if (mixins !is List<*> || mixins.any { it !is String }) {
+            throw GradleException("$TINE_JSON has invalid mixins, they must be a list of mixin config paths")
+        }
+        mixins.filterIsInstance<String>().filterNot { file.resolveSibling(it).isFile }.takeIf { it.isNotEmpty() }?.let { missing ->
+            throw GradleException("$TINE_JSON lists mixin configs that aren't in src/main/resources: ${missing.joinToString()}")
         }
     }
 

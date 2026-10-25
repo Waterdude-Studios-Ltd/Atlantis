@@ -2,12 +2,10 @@ package de.waterdu.atlantis.mod.impl.neoforge;
 
 import cpw.mods.cl.ModuleClassLoader;
 import cpw.mods.modlauncher.Launcher;
-import de.waterdu.atlantis.trident.TridentLoader;
+import de.waterdu.atlantis.trident.Trident;
 import de.waterdu.atlantis.trident.TridentLogger;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
@@ -25,7 +23,7 @@ public final class TridentClassLoader extends URLClassLoader {
     }
 
     public static ClassLoader install(List<Path> jars, ClassLoader parent) {
-        var urls = TridentLoader.jarsToURLs(jars);
+        var urls = Trident.jarsToURLs(jars);
         var loader = new TridentClassLoader(urls, parent);
         if (parent instanceof ModuleClassLoader moduleClassLoader) {
             moduleClassLoader.setFallbackClassLoader(new Fallback(loader, Launcher.class.getClassLoader()));

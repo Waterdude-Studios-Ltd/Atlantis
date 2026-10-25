@@ -2,7 +2,6 @@ package de.waterdu.atlantis.trident;
 
 import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapper;
@@ -44,27 +43,33 @@ import java.util.stream.Collectors;
  * These are loaded before anything else, so they can still register lifecycle listeners via loader proxies and
  * set up anything they need to. Their {@link Bootstrapped} and config classes are discovered alongside Atlantis' own.
  * They are loaded onto Atlantis' classloader where the modloader allows it (Fabric), or otherwise a shared child
- * classloader that Atlantis and other mods can still resolve classes from (NeoForge), and are accessible to one another.
+ * classloader that Atlantis and other mods can still resolve classes from (NeoForge), and are accessible to one
+ * another.
+ * Mixin configs listed in a Tine's {@value TineMetadata#FILE_NAME} are registered once its jar is on the classpath.
+ * Fabric discovers Tines at preLaunch so that those mixins can target nearly any class, while NeoForge can only
+ * discover them during mod construction, after much of the game has loaded.
  * During development, one further Tine can be loaded from the paths in the {@value #DEV_PROPERTY} system property,
  * joined by {@link File#pathSeparator}, which the Tine Gradle plugin sets on its runs.
  */
 @Bootstrapped(order = -50)
-public final class TridentLoader {
+public final class Trident {
 
     public static final String DIRECTORY = "atlantis/trident";
     public static final String DEV_PROPERTY = "atlantis.trident.dev";
 
     private static volatile Map<String, TineContainer> tines = Map.of();
-    private static volatile ClassLoader classLoader = TridentLoader.class.getClassLoader();
+    private static volatile ClassLoader classLoader = Trident.class.getClassLoader();
+    private static volatile @Nullable Discovery discovery;
 
-    private TridentLoader() {
+    private Trident() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
     @VisibleForTesting
     public static void resetForTesting() {
         tines = Map.of();
-        classLoader = TridentLoader.class.getClassLoader();
+        classLoader = Trident.class.getClassLoader();
+        discovery = null;
     }
 
     public static boolean isLoaded(String id) {
@@ -83,14 +88,21 @@ public final class TridentLoader {
         return classLoader;
     }
 
-    public static Discovery discover(ModLoaderDelegate loader, Collection<Class<? extends Annotation>> annotations) {
+    public static synchronized Discovery discover(TridentHost host, Collection<Class<? extends Annotation>> annotations) {
+        if (discovery == null) {
+            discovery = Trident.find(host, annotations);
+        }
+        return discovery;
+    }
+
+    private static Discovery find(TridentHost loader, Collection<Class<? extends Annotation>> annotations) {
         TridentLogger.info("Starting Tine discovery");
 
         var sources = new ArrayList<List<Path>>();
-        TridentLoader.jars(loader.configDir().resolve(DIRECTORY)).forEach(jar -> sources.add(List.of(jar)));
-        TridentLoader.devTine().ifPresent(sources::add);
-        var candidates = TridentLoader.read(loader, sources, annotations);
-        var ordered = TridentLoader.resolve(loader, candidates);
+        Trident.jars(loader.configDir().resolve(DIRECTORY)).forEach(jar -> sources.add(List.of(jar)));
+        Trident.devTine().ifPresent(sources::add);
+        var candidates = Trident.read(loader, sources, annotations);
+        var ordered = Trident.resolve(loader, candidates);
         if (ordered.isEmpty()) {
             TridentLogger.info("No Tines found");
             return new Discovery(classLoader, Map.of());
@@ -111,6 +123,7 @@ public final class TridentLoader {
         }
 
         tines = Collections.unmodifiableMap(containers);
+        TineMixins.register(containers.values());
 
         TridentLogger.info("Loaded {} Tine(s): {}", containers.size(), containers.values().stream()
                 .map(container -> container.id() + " " + container.metadata().version())
@@ -175,13 +188,13 @@ public final class TridentLoader {
         return urls;
     }
 
-    private static Map<String, Candidate> read(ModLoaderDelegate loader, List<List<Path>> sources, Collection<Class<? extends Annotation>> annotations) {
+    private static Map<String, Candidate> read(TridentHost loader, List<List<Path>> sources, Collection<Class<? extends Annotation>> annotations) {
         var candidates = new LinkedHashMap<String, Candidate>();
         var duplicates = new ArrayList<String>();
 
         for (var paths : sources) {
             var jar = paths.getFirst();
-            var candidate = TridentLoader.scan(paths, annotations);
+            var candidate = Trident.scan(paths, annotations);
             if (candidate == null) {
                 continue;
             }
@@ -233,7 +246,7 @@ public final class TridentLoader {
         }
     }
 
-    private static List<Candidate> resolve(ModLoaderDelegate loader, Map<String, Candidate> candidates) {
+    private static List<Candidate> resolve(TridentHost loader, Map<String, Candidate> candidates) {
         if (candidates.isEmpty()) {
             return List.of();
         }
@@ -249,7 +262,7 @@ public final class TridentLoader {
             changed = false;
             for (var iterator = remaining.values().iterator(); iterator.hasNext(); ) {
                 var metadata = iterator.next().container().metadata();
-                var problem = TridentLoader.findUnmetDependency(loader, metadata, remaining, versions);
+                var problem = Trident.findUnmetDependency(loader, metadata, remaining, versions);
                 if (problem != null) {
                     TridentLogger.error("Skipping Tine {}, {}", metadata.id(), problem);
                     iterator.remove();
@@ -300,7 +313,7 @@ public final class TridentLoader {
         return ordered;
     }
 
-    private static @Nullable String findUnmetDependency(ModLoaderDelegate loader, TineMetadata metadata, Map<String, Candidate> tines, Map<String, String> versions) {
+    private static @Nullable String findUnmetDependency(TridentHost loader, TineMetadata metadata, Map<String, Candidate> tines, Map<String, String> versions) {
         for (var dependency : metadata.depends().entrySet()) {
             var id = dependency.getKey();
             var range = VersionRange.parse(dependency.getValue());
