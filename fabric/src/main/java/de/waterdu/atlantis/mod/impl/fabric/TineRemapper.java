@@ -3,8 +3,8 @@ package de.waterdu.atlantis.mod.impl.fabric;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.trident.TridentLoader;
+import de.waterdu.atlantis.trident.TridentLogger;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.launch.FabricLauncherBase;
@@ -63,7 +63,7 @@ final class TineRemapper {
         }
 
         if (!INTERMEDIARY.equals(namespace)) {
-            AtlantisLogger.warn("Not remapping Tines, the runtime namespace is {}", namespace);
+            TridentLogger.warn("Not remapping Tines, the runtime namespace is {}", namespace);
             return paths;
         }
 
@@ -92,7 +92,7 @@ final class TineRemapper {
         }
 
         if (!pending.isEmpty()) {
-            AtlantisLogger.info("Remapping {} Tine(s) to intermediary", pending.size());
+            TridentLogger.info("Remapping {} Tine(s) to intermediary", pending.size());
             var mappings = TineRemapper.mappings(cache, minecraft);
             var classpath = TineRemapper.namedClassPath(cache, minecraft, mappings);
             TineRemapper.run(mappings, NAMED, INTERMEDIARY, pending, classpath);
@@ -201,7 +201,7 @@ final class TineRemapper {
             return file;
         }
 
-        AtlantisLogger.info("Downloading Mojang mappings for Minecraft {}", minecraft);
+        TridentLogger.info("Downloading Mojang mappings for Minecraft {}", minecraft);
         try (var client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NORMAL).build()) {
             var manifest = TineRemapper.json(client, VERSION_MANIFEST);
             String versionUrl = null;

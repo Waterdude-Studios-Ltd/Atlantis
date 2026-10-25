@@ -2,7 +2,6 @@ package de.waterdu.atlantis.trident;
 
 import com.google.common.annotations.VisibleForTesting;
 import de.waterdu.atlantis.Atlantis;
-import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
 import de.waterdu.atlantis.util.bootstrap.Bootstrapped;
@@ -85,19 +84,22 @@ public final class TridentLoader {
     }
 
     public static Discovery discover(ModLoaderDelegate loader, Collection<Class<? extends Annotation>> annotations) {
+        TridentLogger.info("Starting Tine discovery");
+
         var sources = new ArrayList<List<Path>>();
         TridentLoader.jars(loader.configDir().resolve(DIRECTORY)).forEach(jar -> sources.add(List.of(jar)));
         TridentLoader.devTine().ifPresent(sources::add);
         var candidates = TridentLoader.read(loader, sources, annotations);
         var ordered = TridentLoader.resolve(loader, candidates);
         if (ordered.isEmpty()) {
+            TridentLogger.info("No Tines found");
             return new Discovery(classLoader, Map.of());
         }
 
         try {
             classLoader = loader.addToClassPath(ordered.stream().flatMap(candidate -> candidate.container().paths().stream()).toList());
         } catch (RuntimeException e) {
-            AtlantisLogger.error("Failed to add Tines to the classpath", e);
+            TridentLogger.error("Failed to add Tines to the classpath", e);
             return new Discovery(classLoader, Map.of());
         }
 
@@ -110,7 +112,7 @@ public final class TridentLoader {
 
         tines = Collections.unmodifiableMap(containers);
 
-        AtlantisLogger.info("Loaded {} Tine(s): {}", containers.size(), containers.values().stream()
+        TridentLogger.info("Loaded {} Tine(s): {}", containers.size(), containers.values().stream()
                 .map(container -> container.id() + " " + container.metadata().version())
                 .collect(Collectors.joining(", ")));
 
@@ -118,7 +120,9 @@ public final class TridentLoader {
     }
 
     @Entrypoint
-    public static void barb() {
+    public static void load() {
+        TridentLogger.info("Loading {} Tine(s)", tines.size());
+
         for (var tine : tines.values()) {
             var mainClass = tine.mainClass();
             if (mainClass == null) {
@@ -128,7 +132,7 @@ public final class TridentLoader {
             try {
                 Bootstrapper.invokeStatic(Class.forName(mainClass, false, classLoader), Tine.Barb.class);
             } catch (ClassNotFoundException | LinkageError e) {
-                AtlantisLogger.error("Failed to load main class " + mainClass + " of Tine " + tine.id(), e);
+                TridentLogger.error("Failed to load main class " + mainClass + " of Tine " + tine.id(), e);
             }
         }
     }
@@ -140,7 +144,7 @@ public final class TridentLoader {
                 return files.filter(path -> Files.isRegularFile(path) && path.getFileName().toString().endsWith(".jar")).sorted().toList();
             }
         } catch (IOException e) {
-            AtlantisLogger.error("Failed to list Tines in " + directory, e);
+            TridentLogger.error("Failed to list Tines in " + directory, e);
             return List.of();
         }
     }
@@ -184,9 +188,9 @@ public final class TridentLoader {
 
             var metadata = candidate.container().metadata();
             if (loader.isModLoaded(metadata.id())) {
-                AtlantisLogger.error("Skipping Tine {} ({}), a mod with that ID is already loaded", metadata.id(), jar.getFileName());
+                TridentLogger.error("Skipping Tine {} ({}), a mod with that ID is already loaded", metadata.id(), jar.getFileName());
             } else if (!metadata.atlantisRange().test(Atlantis.VERSION)) {
-                AtlantisLogger.error("Skipping Tine {} ({}), it requires Atlantis {} but {} is installed", metadata.id(), jar.getFileName(), metadata.atlantis(), Atlantis.VERSION);
+                TridentLogger.error("Skipping Tine {} ({}), it requires Atlantis {} but {} is installed", metadata.id(), jar.getFileName(), metadata.atlantis(), Atlantis.VERSION);
             } else if (candidates.putIfAbsent(metadata.id(), candidate) != null) {
                 duplicates.add(metadata.id());
             }
@@ -194,7 +198,7 @@ public final class TridentLoader {
 
         for (var id : duplicates) {
             if (candidates.remove(id) != null) {
-                AtlantisLogger.error("Skipping Tine {}, more than one jar declares that ID", id);
+                TridentLogger.error("Skipping Tine {}, more than one jar declares that ID", id);
             }
         }
 
@@ -206,14 +210,14 @@ public final class TridentLoader {
         try (var scan = new ClassGraph().overrideClasspath(paths).enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().scan()) {
             var resources = scan.getResourcesWithPath(TineMetadata.FILE_NAME);
             if (resources.isEmpty()) {
-                AtlantisLogger.warn("Skipping {}, it has no {}", jar.getFileName(), TineMetadata.FILE_NAME);
+                TridentLogger.warn("Skipping {}, it has no {}", jar.getFileName(), TineMetadata.FILE_NAME);
                 return null;
             }
 
             var metadata = TineMetadata.parse(resources.getFirst().getContentAsString());
             var mainClasses = scan.getClassesWithAnnotation(Tine.class.getName()).getNames();
             if (mainClasses.size() > 1) {
-                AtlantisLogger.error("Skipping Tine {} ({}), it has more than one @Tine class: {}", metadata.id(), jar.getFileName(), mainClasses);
+                TridentLogger.error("Skipping Tine {} ({}), it has more than one @Tine class: {}", metadata.id(), jar.getFileName(), mainClasses);
                 return null;
             }
 
@@ -224,7 +228,7 @@ public final class TridentLoader {
 
             return new Candidate(new TineContainer(metadata, paths, mainClasses.isEmpty() ? null : mainClasses.getFirst()), classes);
         } catch (IOException | RuntimeException e) {
-            AtlantisLogger.error("Skipping " + jar.getFileName() + ", it could not be read", e);
+            TridentLogger.error("Skipping " + jar.getFileName() + ", it could not be read", e);
             return null;
         }
     }
@@ -247,7 +251,7 @@ public final class TridentLoader {
                 var metadata = iterator.next().container().metadata();
                 var problem = TridentLoader.findUnmetDependency(loader, metadata, remaining, versions);
                 if (problem != null) {
-                    AtlantisLogger.error("Skipping Tine {}, {}", metadata.id(), problem);
+                    TridentLogger.error("Skipping Tine {}, {}", metadata.id(), problem);
                     iterator.remove();
                     changed = true;
                 }
@@ -288,7 +292,7 @@ public final class TridentLoader {
         if (ordered.size() < remaining.size()) {
             for (var id : remaining.keySet()) {
                 if (waitingOn.get(id) > 0) {
-                    AtlantisLogger.error("Skipping Tine {}, it is part of or depends on a dependency cycle", id);
+                    TridentLogger.error("Skipping Tine {}, it is part of or depends on a dependency cycle", id);
                 }
             }
         }

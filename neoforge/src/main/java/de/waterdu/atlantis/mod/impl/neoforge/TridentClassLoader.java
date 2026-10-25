@@ -2,8 +2,8 @@ package de.waterdu.atlantis.mod.impl.neoforge;
 
 import cpw.mods.cl.ModuleClassLoader;
 import cpw.mods.modlauncher.Launcher;
-import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.trident.TridentLoader;
+import de.waterdu.atlantis.trident.TridentLogger;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -30,7 +30,7 @@ public final class TridentClassLoader extends URLClassLoader {
         if (parent instanceof ModuleClassLoader moduleClassLoader) {
             moduleClassLoader.setFallbackClassLoader(new Fallback(loader, Launcher.class.getClassLoader()));
         } else {
-            AtlantisLogger.warn("Atlantis was not loaded by a module classloader, other mods won't be able to resolve Tine classes");
+            TridentLogger.warn("Atlantis was not loaded by a module classloader, other mods won't be able to resolve Tine classes");
         }
         return loader;
     }
