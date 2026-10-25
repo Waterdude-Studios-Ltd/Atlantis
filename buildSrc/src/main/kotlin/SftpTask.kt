@@ -9,7 +9,7 @@ import java.io.File
 
 /**
  * Base for tasks that work on the Waterdude maven over SFTP with password authentication. The server's host key must
- * already be in `~/.ssh/known_hosts`.
+ * already be in the global 'known_hosts' file.
  */
 abstract class SftpTask : DefaultTask() {
 

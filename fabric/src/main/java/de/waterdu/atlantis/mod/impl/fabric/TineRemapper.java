@@ -40,13 +40,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Tines are compiled against Mojang's names, which Fabric only uses in development. In production, Tine jars are
- * remapped to intermediary before they are put on the classpath, and the results are cached by content hash in
- * {@value #CACHE}. Only bytecode references are remapped, so class and member names in strings or reflection won't
- * resolve in production. The Mojang mappings are downloaded once per Minecraft version, or read from the file in the
- * {@value #MAPPINGS_PROPERTY} system property.
- */
 final class TineRemapper {
 
     static final String CACHE = TridentLoader.DIRECTORY + "/.cache";
@@ -68,6 +61,7 @@ final class TineRemapper {
         if (NAMED.equals(namespace)) {
             return paths;
         }
+
         if (!INTERMEDIARY.equals(namespace)) {
             AtlantisLogger.warn("Not remapping Tines, the runtime namespace is {}", namespace);
             return paths;
@@ -151,6 +145,7 @@ final class TineRemapper {
                 .build();
         try {
             remapper.readClassPath(classpath.toArray(Path[]::new));
+
             var tags = new LinkedHashMap<Path, InputTag>();
             for (var jar : jars.keySet()) {
                 var tag = remapper.createInputTag();
@@ -161,12 +156,15 @@ final class TineRemapper {
             for (var entry : jars.entrySet()) {
                 var output = entry.getValue();
                 Files.createDirectories(output.getParent());
+
                 var temporary = output.resolveSibling(output.getFileName() + ".tmp");
                 Files.deleteIfExists(temporary);
+
                 try (var consumer = new OutputConsumerPath.Builder(temporary).assumeArchive(true).build()) {
                     consumer.addNonClassFiles(entry.getKey(), NonClassCopyMode.FIX_META_INF, remapper);
                     remapper.apply(consumer, tags.get(entry.getKey()));
                 }
+
                 Files.move(temporary, output, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             }
         } finally {
@@ -184,9 +182,11 @@ final class TineRemapper {
         if (intermediary == null) {
             throw new IOException("Intermediary mappings (" + INTERMEDIARY_MAPPINGS + ") are not on the classpath");
         }
+
         try (var reader = new InputStreamReader(intermediary, StandardCharsets.UTF_8)) {
             MappingReader.read(reader, tree);
         }
+
         return tree;
     }
 
@@ -212,6 +212,7 @@ final class TineRemapper {
                     break;
                 }
             }
+
             if (versionUrl == null) {
                 throw new IOException("Minecraft " + minecraft + " is not in Mojang's version manifest");
             }

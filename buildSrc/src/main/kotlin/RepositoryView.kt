@@ -1,7 +1,6 @@
 import com.jcraft.jsch.ChannelSftp
 import java.io.File
 
-/** Read access to a maven repository, with paths relative to its root. */
 interface RepositoryView {
 
     data class Entry(val name: String, val directory: Boolean, val modified: Long)
@@ -26,7 +25,6 @@ interface RepositoryView {
         override fun read(path: String) = root.resolve(path).takeIf { it.isFile }?.readText()
     }
 
-    /** Shows [top] over [bottom], as the repository will look once [top] is uploaded. */
     class Overlay(private val top: RepositoryView, private val bottom: RepositoryView) : RepositoryView {
         override fun list(path: String): List<Entry> {
             val upper = top.list(path)
