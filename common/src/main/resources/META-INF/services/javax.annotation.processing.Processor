@@ -1,3 +1,4 @@
 de.waterdu.atlantis.file.DatabaseSerializableValidator
 de.waterdu.atlantis.file.auto.AtlantisConfigValidator
 de.waterdu.atlantis.util.bootstrap.BootstrappedValidator
+de.waterdu.atlantis.trident.TineValidator

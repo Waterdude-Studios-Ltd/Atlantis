@@ -6,6 +6,7 @@ import de.waterdu.atlantis.mod.wrapper.modloader.event.UEventBus;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
+import de.waterdu.atlantis.trident.TridentLoader;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
 import io.github.classgraph.ClassGraph;
@@ -22,6 +23,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.impl.launch.FabricLauncherBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -103,7 +105,7 @@ public class FabricProxy implements ModLoaderDelegate {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return FabricLoader.getInstance().isModLoaded(modId);
+        return FabricLoader.getInstance().isModLoaded(modId) || TridentLoader.isLoaded(modId);
     }
 
     @Override
@@ -123,6 +125,7 @@ public class FabricProxy implements ModLoaderDelegate {
                     () -> VersionCheck.UNSUPPORTED
             ));
         }
+        mods.addAll(TridentLoader.mods());
         return mods;
     }
 
@@ -165,6 +168,13 @@ public class FabricProxy implements ModLoaderDelegate {
 
     private static boolean isBuiltin(ModContainer mod) {
         return BUILTIN_MOD_TYPE.equals(mod.getMetadata().getType());
+    }
+
+    @Override
+    public ClassLoader addToClassPath(List<Path> jars) {
+        var launcher = FabricLauncherBase.getLauncher();
+        jars.forEach(launcher::addToClassPath);
+        return FabricProxy.class.getClassLoader();
     }
 
     @Override

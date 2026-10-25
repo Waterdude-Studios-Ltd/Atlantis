@@ -9,6 +9,7 @@ import de.waterdu.atlantis.mod.wrapper.modloader.mod.ModInfo;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
 import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionStatus;
 import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
+import de.waterdu.atlantis.trident.TridentLoader;
 import de.waterdu.atlantis.permission.Permissions;
 import de.waterdu.atlantis.util.server.CommandRegistry;
 import net.minecraft.core.BlockPos;
@@ -170,7 +171,7 @@ public class NeoForgeProxy implements ModLoaderDelegate {
 
     @Override
     public boolean isModLoaded(String modId) {
-        return ModList.get().isLoaded(modId);
+        return ModList.get().isLoaded(modId) || TridentLoader.isLoaded(modId);
     }
 
     @Override
@@ -188,6 +189,7 @@ public class NeoForgeProxy implements ModLoaderDelegate {
                     () -> NeoForgeProxy.versionCheck(mod)
             ));
         }
+        mods.addAll(TridentLoader.mods());
         return mods;
     }
 
@@ -221,6 +223,11 @@ public class NeoForgeProxy implements ModLoaderDelegate {
             }
         }
         return classes;
+    }
+
+    @Override
+    public ClassLoader addToClassPath(List<Path> jars) {
+        return TridentClassLoader.install(jars, NeoForgeProxy.class.getClassLoader());
     }
 
     @Override

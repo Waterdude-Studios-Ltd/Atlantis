@@ -7,6 +7,7 @@ import de.waterdu.atlantis.file.auto.BasicData;
 import de.waterdu.atlantis.file.auto.FileBackedObject;
 import de.waterdu.atlantis.file.auto.I18nFile;
 import de.waterdu.atlantis.mod.proxy.delegate.ModLoaderDelegate;
+import de.waterdu.atlantis.trident.TridentLoader;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
 import java.lang.annotation.Annotation;
@@ -42,6 +43,7 @@ public final class Bootstrapper {
     public static void resetForTesting() {
         ANNOTATED_CLASSES.clear();
         BOOTSTRAPPED.set(false);
+        TridentLoader.resetForTesting();
     }
 
     public static void forEachAnnotatedClass(Class<? extends Annotation> annotation, Consumer<AnnotatedClass> forEach) {
@@ -53,8 +55,17 @@ public final class Bootstrapper {
             return;
         }
 
-        var classLoader = Bootstrapper.class.getClassLoader();
-        for (var entry : loader.scanAnnotatedClasses(ANNOTATIONS).entrySet()) {
+        var discovery = TridentLoader.discover(loader, ANNOTATIONS);
+        var classLoader = discovery.classLoader();
+        var scanned = new HashMap<>(loader.scanAnnotatedClasses(ANNOTATIONS));
+
+        discovery.classes().forEach((annotation, names) -> scanned.merge(annotation, names, (first, second) -> {
+            var merged = new ArrayList<>(first);
+            merged.addAll(second);
+            return merged;
+        }));
+
+        for (var entry : scanned.entrySet()) {
             var annotation = entry.getKey();
             for (var className : entry.getValue()) {
                 Class<?> clazz;
@@ -75,31 +86,32 @@ public final class Bootstrapper {
             bootstrapped.sort(Comparator.comparingInt(annotated -> ((Bootstrapped) annotated.annotation()).order()));
         }
 
-        Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> {
-            var clazz = annotated.clazz();
-            for (var method : clazz.getDeclaredMethods()) {
-                if (!method.isAnnotationPresent(Entrypoint.class)) {
-                    continue;
-                }
+        Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> Bootstrapper.invokeStatic(annotated.clazz(), Entrypoint.class));
+    }
 
-                if (!Modifier.isStatic(method.getModifiers()) || method.getParameterCount() != 0) {
-                    AtlantisLogger.warn("Skipping entrypoint {}#{}, entrypoints must be static and take no parameters", clazz.getName(), method.getName());
-                    continue;
-                }
-
-                try {
-                    method.setAccessible(true);
-                    method.invoke(null);
-                } catch (InvocationTargetException e) {
-                    AtlantisLogger.error("Failed to bootstrap class " + clazz.getName(), e.getCause());
-                    continue;
-                } catch (ReflectiveOperationException | RuntimeException e) {
-                    AtlantisLogger.error("Failed to bootstrap class " + clazz.getName(), e);
-                    continue;
-                }
-
-                AtlantisLogger.debug("Bootstrapped class {} via {}", clazz.getName(), method.getName());
+    public static void invokeStatic(Class<?> clazz, Class<? extends Annotation> annotation) {
+        for (var method : clazz.getDeclaredMethods()) {
+            if (!method.isAnnotationPresent(annotation)) {
+                continue;
             }
-        });
+
+            if (!Modifier.isStatic(method.getModifiers()) || method.getParameterCount() != 0) {
+                AtlantisLogger.warn("Skipping @{} method {}#{}, it must be static and take no parameters", annotation.getSimpleName(), clazz.getName(), method.getName());
+                continue;
+            }
+
+            try {
+                method.setAccessible(true);
+                method.invoke(null);
+            } catch (InvocationTargetException e) {
+                AtlantisLogger.error("Failed to invoke @" + annotation.getSimpleName() + " method " + clazz.getName() + "#" + method.getName(), e.getCause());
+                continue;
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                AtlantisLogger.error("Failed to invoke @" + annotation.getSimpleName() + " method " + clazz.getName() + "#" + method.getName(), e);
+                continue;
+            }
+
+            AtlantisLogger.debug("Invoked @{} method {}#{}", annotation.getSimpleName(), clazz.getName(), method.getName());
+        }
     }
 }

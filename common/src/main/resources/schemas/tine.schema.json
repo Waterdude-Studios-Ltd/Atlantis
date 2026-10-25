@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://waterdu.de/atlantis/schemas/tine.schema.json",
+  "title": "Tine",
+  "description": "Metadata of a Tine, a mod loaded by Atlantis' Trident loader from config/atlantis/trident. Placed at the root of the Tine's jar as tine.json.",
+  "type": "object",
+  "required": ["id", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "id": {
+      "description": "Unique mod ID. Must not clash with any other Tine or modloader mod.",
+      "type": "string",
+      "pattern": "^[a-z0-9_.-]+$"
+    },
+    "version": {
+      "description": "Semantic version of the Tine, e.g. 1.0.0 or 1.2.0-beta.1.",
+      "type": "string",
+      "pattern": "^v?\\d+(\\.\\d+){0,2}(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "name": {
+      "description": "Display name. Defaults to the ID.",
+      "type": "string"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "issues": {
+      "description": "Issue tracker URL.",
+      "type": "string",
+      "format": "uri"
+    },
+    "atlantis": {
+      "$ref": "#/$defs/range",
+      "description": "Atlantis versions this Tine supports.",
+      "default": "*"
+    },
+    "order": {
+      "description": "Load order among Tines that don't depend on each other. Lower loads earlier.",
+      "type": "integer",
+      "default": 0
+    },
+    "depends": {
+      "description": "Required Tines or modloader mods, by ID, with the versions they must match. Tine dependencies always load first.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/range"
+      },
+      "default": {}
+    }
+  },
+  "$defs": {
+    "range": {
+      "description": "Space-separated constraints that must all match, with || between alternatives. Constraints are *, a bare version (exact), or a version prefixed by =, >, >=, <, <=, ~ (same minor) or ^ (same major).",
+      "type": "string",
+      "examples": ["*", ">=9.0.0", "^1.2.0", ">=1.0.0 <2.0.0 || ^3.0.0"]
+    }
+  }
+}

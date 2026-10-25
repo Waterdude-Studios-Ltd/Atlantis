@@ -19,6 +19,7 @@ import de.waterdu.atlantis.mod.wrapper.modloader.permission.UPermissionNode;
 import de.waterdu.atlantis.occasion.OccasionManager;
 import de.waterdu.atlantis.playerdata.UUIDNameCache;
 import de.waterdu.atlantis.self.AtlantisCommand;
+import de.waterdu.atlantis.trident.TridentLoader;
 import de.waterdu.atlantis.ui.api.AtlantisUI;
 import de.waterdu.atlantis.ui.api.Decorations;
 import de.waterdu.atlantis.ui.api.PageOptions;
@@ -37,7 +38,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 
+import java.io.UncheckedIOException;
 import java.lang.annotation.Annotation;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -138,6 +143,10 @@ public interface ModLoaderDelegate extends ModProxy {
     boolean isFakePlayer(ServerPlayer player);
 
     Map<Class<? extends Annotation>, List<String>> scanAnnotatedClasses(Collection<Class<? extends Annotation>> annotations);
+
+    default ClassLoader addToClassPath(List<Path> jars) {
+        return new URLClassLoader("trident", TridentLoader.jarsToURLs(jars), ModLoaderDelegate.class.getClassLoader());
+    }
 
     boolean onBlockPlace(ServerPlayer player, BlockPos pos);
 

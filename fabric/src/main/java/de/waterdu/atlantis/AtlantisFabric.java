@@ -1,6 +1,5 @@
 package de.waterdu.atlantis;
 
-import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.mod.impl.fabric.FabricProxy;
 import net.fabricmc.api.ModInitializer;
 
