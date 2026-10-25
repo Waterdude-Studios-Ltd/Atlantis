@@ -5,7 +5,7 @@ repositories {
     maven("https://repo.spongepowered.org/repository/maven-public/")
     maven("https://maven.impactdev.net/repository/development/")
     maven("https://jitpack.io")
-    maven("https://waterdu.de/maven")
+    maven("https://waterdu.de/maven") { content { includeGroupAndSubgroups("de.waterdu") } }
     maven("https://hub.spigotmc.org/nexus/repository/public/")
     mavenCentral()
     mavenLocal()

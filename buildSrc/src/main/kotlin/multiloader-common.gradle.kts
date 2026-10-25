@@ -46,7 +46,7 @@ repositories {
     maven("https://maven.kikugie.dev/snapshots") { name = "KikuGie Snapshots" }
     maven("https://thedarkcolour.github.io/KotlinForForge/")
     maven("https://jitpack.io")
-    maven("https://waterdu.de/maven")
+    maven("https://waterdu.de/maven") { content { includeGroupAndSubgroups("de.waterdu") } }
     maven("https://hub.spigotmc.org/nexus/repository/public/")
     maven("https://maven.impactdev.net/repository/development/")
     exclusiveContent {
