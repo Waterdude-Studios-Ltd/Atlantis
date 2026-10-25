@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.mod;
 
+import de.waterdu.atlantis.mod.plugin.PluginBridge;
 import de.waterdu.atlantis.mod.proxy.ModProxy;
 import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import org.jspecify.annotations.NullMarked;
@@ -84,6 +85,17 @@ public final class ModExtension {
 
     public boolean plugin() {
         return this.plugin;
+    }
+
+    public boolean isPluginAndLoaded() {
+        if (!this.plugin) {
+            return false;
+        }
+        try {
+            return PluginBridge.canMake(this.modId);
+        } catch (LinkageError __) {
+            return false;
+        }
     }
 
     public Language language() {
@@ -177,6 +189,9 @@ public final class ModExtension {
                     this.proxy(Loader.FABRIC, proxy);
                 }
                 case SPIGOT -> {
+                    if (this.supportedLoaders.isEmpty() && this.mainClass == null) {
+                        this.mainClass("org.bukkit.Bukkit");
+                    }
                     this.proxy(Loader.NEOFORGE_AND_FABRIC, proxy);
                     this.proxies.put(loader, Lazy.of(proxy));
                     this.supportedLoaders.add(loader);

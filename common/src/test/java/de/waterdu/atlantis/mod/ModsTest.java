@@ -96,13 +96,16 @@ class ModsTest {
     }
 
     @Test
-    void activatesPluginExtensionThatIsNotALoadedMod(TestModLoader loader) {
-        extension("fake_plugin", ModExtension.Priority.NORMAL, recording("fake_plugin")).plugin().build();
+    void skipsPluginExtensionWithoutBukkitAndKeepsActivatingOthers(TestModLoader loader) {
+        extension("fake_plugin", ModExtension.Priority.HIGHEST, recording("fake_plugin")).plugin().build();
+        extension("fake_mod", ModExtension.Priority.LOWEST, recording("fake_mod")).build();
+        loader.loadMod("fake_mod");
 
         bootstrap(loader);
 
-        assertThat(Mods.isPresent("fake_plugin")).isTrue();
-        assertThat(SETUPS).containsExactly("fake_plugin");
+        assertThat(Mods.isPresent("fake_plugin")).isFalse();
+        assertThat(Mods.isPresent("fake_mod")).isTrue();
+        assertThat(SETUPS).containsExactly("fake_mod");
     }
 
     @Test

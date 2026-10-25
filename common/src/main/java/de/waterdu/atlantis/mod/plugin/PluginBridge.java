@@ -4,6 +4,7 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.mod.plugin.reflection.PluginField;
 import de.waterdu.atlantis.mod.plugin.reflection.PluginMethod;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 
@@ -23,6 +24,10 @@ public class PluginBridge {
     private final Map<Class<?>, Map<String, PluginMethod<?>>> methods = new ConcurrentHashMap<>();
 
     protected PluginBridge(String name) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException {
+        if (!canMake(name)) {
+            throw new IllegalPluginAccessException("No such enabled plugin: " + name);
+        }
+
         this.plugin = (JavaPlugin) Bukkit.getPluginManager().getPlugin(name);
         var method = JavaPlugin.class.getDeclaredMethod("getPluginLoader");
         method.setAccessible(true);
@@ -30,6 +35,11 @@ public class PluginBridge {
         var field = pluginLoader.getClass().getDeclaredField("loaders");
         field.setAccessible(true);
         this.loaders = (List<?>) field.get(pluginLoader);
+    }
+
+    public static boolean canMake(String name) {
+        var plugin = Bukkit.getPluginManager().getPlugin(name);
+        return plugin != null && plugin.isEnabled();
     }
 
     public Optional<Class<?>> findClass(String classpath) {

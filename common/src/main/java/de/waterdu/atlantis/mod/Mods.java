@@ -52,8 +52,8 @@ public final class Mods {
 
     public static final ModExtension NONE = ModExtension.builder()
             .modId(Atlantis.ID)
-            .mainClass("de.waterdu.atlantis.Atlantis")
             .proxy(ModExtension.Loader.ALL, () -> new ModProxy() {})
+            .mainClass("de.waterdu.atlantis.Atlantis")
             .language(ModExtension.Language.JAVA)
             .priority(ModExtension.Priority.LOWEST)
             .build();
@@ -109,7 +109,7 @@ public final class Mods {
     public static final ModExtension IMPACTOR = ModExtension.builder()
             .modId("impactor")
             .mainClass("net.impactdev.impactor.api.Impactor")
-            .proxy(ModExtension.Loader.SPIGOT, ImpactorProxy::new)
+            .proxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, ImpactorProxy::new)
             .delegates(EconomyDelegate.class)
             .language(ModExtension.Language.JAVA)
             .priority(ModExtension.Priority.LOW)
@@ -117,7 +117,6 @@ public final class Mods {
 
     public static final ModExtension VAULT = ModExtension.builder()
             .modId("vault")
-            .mainClass("net.milkbowl.vault.Vault")
             .proxy(ModExtension.Loader.SPIGOT, VaultProxy::new)
             .delegates(EconomyDelegate.class)
             .plugin()
@@ -176,10 +175,10 @@ public final class Mods {
     }
 
     private static boolean isActive(ModExtension extension) {
-        if (!extension.supports(ACTIVE_LOADER) || !(extension.plugin() || extension.mainClassPresent())) {
+        if (!extension.supports(ACTIVE_LOADER) || !extension.mainClassPresent()) {
             return false;
         }
-        return extension.modLoader() || extension.plugin() || Mods.modLoader().isModLoaded(extension.modId());
+        return extension.modLoader() || Mods.modLoader().isModLoaded(extension.modId()) || extension.isPluginAndLoaded();
     }
 
     public static void registerExtensions(ModExtension... extensions) {
