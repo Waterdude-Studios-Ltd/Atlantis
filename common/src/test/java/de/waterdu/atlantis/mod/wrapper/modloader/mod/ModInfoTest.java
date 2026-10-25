@@ -12,7 +12,7 @@ class ModInfoTest {
     @Test
     void versionCheckIsLazy() {
         var calls = new AtomicInteger();
-        var info = new ModInfo("atlantis", "Atlantis", "9.0.0", List.of("Waterdude"), null, () -> {
+        var info = new ModInfo("atlantis", "Atlantis", "9.0.1", List.of("Waterdude"), null, () -> {
             calls.incrementAndGet();
             return new VersionCheck(VersionStatus.OUTDATED, "9.1.0");
         });
