@@ -173,7 +173,7 @@ public class FabricProxy implements ModLoaderDelegate {
     @Override
     public ClassLoader addToClassPath(List<Path> jars) {
         var launcher = FabricLauncherBase.getLauncher();
-        jars.forEach(launcher::addToClassPath);
+        TineRemapper.remap(jars, this.configDir()).forEach(launcher::addToClassPath);
         return FabricProxy.class.getClassLoader();
     }
 

@@ -40,6 +40,8 @@ dependencies {
         "io.lettuce:lettuce-core:6.2.3.RELEASE",
         "io.projectreactor:reactor-core:3.4.27",
         "org.reactivestreams:reactive-streams:1.0.4",
+        "net.fabricmc:tiny-remapper:0.11.1",
+        "net.fabricmc:mapping-io:0.7.1",
     ).forEach { library ->
         include(implementation(library) {
             isTransitive = false
