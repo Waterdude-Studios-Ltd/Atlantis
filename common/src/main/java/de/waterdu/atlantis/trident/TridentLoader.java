@@ -13,6 +13,7 @@ import de.waterdu.atlantis.util.java.version.VersionRange;
 import io.github.classgraph.ClassGraph;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.annotation.Annotation;
@@ -21,6 +22,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,7 +30,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.PriorityQueue;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -42,11 +46,14 @@ import java.util.stream.Collectors;
  * set up anything they need to. Their {@link Bootstrapped} and config classes are discovered alongside Atlantis' own.
  * They are loaded onto Atlantis' classloader where the modloader allows it (Fabric), or otherwise a shared child
  * classloader that Atlantis and other mods can still resolve classes from (NeoForge), and are accessible to one another.
+ * During development, one further Tine can be loaded from the paths in the {@value #DEV_PROPERTY} system property,
+ * joined by {@link File#pathSeparator}, which the Tine Gradle plugin sets on its runs.
  */
 @Bootstrapped(order = -50)
 public final class TridentLoader {
 
     public static final String DIRECTORY = "atlantis/trident";
+    public static final String DEV_PROPERTY = "atlantis.trident.dev";
 
     private static volatile Map<String, TineContainer> tines = Map.of();
     private static volatile ClassLoader classLoader = TridentLoader.class.getClassLoader();
@@ -78,14 +85,17 @@ public final class TridentLoader {
     }
 
     public static Discovery discover(ModLoaderDelegate loader, Collection<Class<? extends Annotation>> annotations) {
-        var candidates = TridentLoader.read(loader, TridentLoader.jars(loader.configDir().resolve(DIRECTORY)), annotations);
+        var sources = new ArrayList<List<Path>>();
+        TridentLoader.jars(loader.configDir().resolve(DIRECTORY)).forEach(jar -> sources.add(List.of(jar)));
+        TridentLoader.devTine().ifPresent(sources::add);
+        var candidates = TridentLoader.read(loader, sources, annotations);
         var ordered = TridentLoader.resolve(loader, candidates);
         if (ordered.isEmpty()) {
             return new Discovery(classLoader, Map.of());
         }
 
         try {
-            classLoader = loader.addToClassPath(ordered.stream().map(candidate -> candidate.container().path()).toList());
+            classLoader = loader.addToClassPath(ordered.stream().flatMap(candidate -> candidate.container().paths().stream()).toList());
         } catch (RuntimeException e) {
             AtlantisLogger.error("Failed to add Tines to the classpath", e);
             return new Discovery(classLoader, Map.of());
@@ -135,6 +145,20 @@ public final class TridentLoader {
         }
     }
 
+    private static Optional<List<Path>> devTine() {
+        var property = System.getProperty(DEV_PROPERTY);
+        if (property == null || property.isBlank()) {
+            return Optional.empty();
+        }
+
+        var paths = Arrays.stream(property.split(Pattern.quote(File.pathSeparator)))
+                .filter(path -> !path.isBlank())
+                .map(Path::of)
+                .filter(Files::exists)
+                .toList();
+        return paths.isEmpty() ? Optional.empty() : Optional.of(paths);
+    }
+
     public static URL[] jarsToURLs(List<Path> jars) {
         var urls = new URL[jars.size()];
         for (var i = 0; i < urls.length; i++) {
@@ -147,12 +171,13 @@ public final class TridentLoader {
         return urls;
     }
 
-    private static Map<String, Candidate> read(ModLoaderDelegate loader, List<Path> jars, Collection<Class<? extends Annotation>> annotations) {
+    private static Map<String, Candidate> read(ModLoaderDelegate loader, List<List<Path>> sources, Collection<Class<? extends Annotation>> annotations) {
         var candidates = new LinkedHashMap<String, Candidate>();
         var duplicates = new ArrayList<String>();
 
-        for (var jar : jars) {
-            var candidate = TridentLoader.scan(jar, annotations);
+        for (var paths : sources) {
+            var jar = paths.getFirst();
+            var candidate = TridentLoader.scan(paths, annotations);
             if (candidate == null) {
                 continue;
             }
@@ -176,8 +201,9 @@ public final class TridentLoader {
         return candidates;
     }
 
-    private static @Nullable Candidate scan(Path jar, Collection<Class<? extends Annotation>> annotations) {
-        try (var scan = new ClassGraph().overrideClasspath(jar).enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().scan()) {
+    private static @Nullable Candidate scan(List<Path> paths, Collection<Class<? extends Annotation>> annotations) {
+        var jar = paths.getFirst();
+        try (var scan = new ClassGraph().overrideClasspath(paths).enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().scan()) {
             var resources = scan.getResourcesWithPath(TineMetadata.FILE_NAME);
             if (resources.isEmpty()) {
                 AtlantisLogger.warn("Skipping {}, it has no {}", jar.getFileName(), TineMetadata.FILE_NAME);
@@ -196,7 +222,7 @@ public final class TridentLoader {
                 classes.put(annotation, scan.getClassesWithAnnotation(annotation.getName()).getNames());
             }
 
-            return new Candidate(new TineContainer(metadata, jar, mainClasses.isEmpty() ? null : mainClasses.getFirst()), classes);
+            return new Candidate(new TineContainer(metadata, paths, mainClasses.isEmpty() ? null : mainClasses.getFirst()), classes);
         } catch (IOException | RuntimeException e) {
             AtlantisLogger.error("Skipping " + jar.getFileName() + ", it could not be read", e);
             return null;

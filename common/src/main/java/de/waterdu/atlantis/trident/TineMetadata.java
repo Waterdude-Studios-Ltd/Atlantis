@@ -28,9 +28,11 @@ public record TineMetadata(
         if (id == null || !ResourceLocation.isValidNamespace(id)) {
             throw new IllegalArgumentException("Invalid Tine ID '" + id + "', IDs may only contain [a-z0-9_.-]");
         }
+
         if (version == null || Version.parse(version).isEmpty()) {
             throw new IllegalArgumentException("Invalid version '" + version + "' for Tine " + id);
         }
+
         name = name == null ? id : name;
         authors = authors == null ? List.of() : List.copyOf(authors);
         atlantis = atlantis == null ? "*" : atlantis;

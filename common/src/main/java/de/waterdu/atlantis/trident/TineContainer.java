@@ -5,8 +5,13 @@ import de.waterdu.atlantis.mod.wrapper.modloader.mod.VersionCheck;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.List;
 
-public record TineContainer(TineMetadata metadata, Path path, @Nullable String mainClass) {
+public record TineContainer(TineMetadata metadata, List<Path> paths, @Nullable String mainClass) {
+
+    public TineContainer {
+        paths = List.copyOf(paths);
+    }
 
     public String id() {
         return this.metadata.id();

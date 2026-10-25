@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import javax.tools.JavaFileObject;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -239,6 +240,31 @@ public class TridentLoaderTest {
             assertThat(mod.authors()).containsExactly("Waterdude");
             assertThat(mod.issueTracker()).isEqualTo("https://example.org");
         });
+    }
+
+    @Test
+    void loadsDevTineFromSplitDirectories(TestModLoader loader) throws IOException {
+        var root = loader.configDir().resolve("dev-tine");
+        var classes = Files.createDirectories(root.resolve("classes"));
+        var resources = Files.createDirectories(root.resolve("resources"));
+        for (var entry : compile(Map.of("dev.Main", MAIN.formatted("dev"))).entrySet()) {
+            var file = classes.resolve(entry.getKey());
+            Files.createDirectories(file.getParent());
+            Files.write(file, entry.getValue());
+        }
+        Files.writeString(resources.resolve(TineMetadata.FILE_NAME), """
+                {"id": "dev", "version": "1.0.0"}
+                """);
+
+        System.setProperty(TridentLoader.DEV_PROPERTY, classes + File.pathSeparator + resources);
+        try {
+            bootstrap(loader);
+        } finally {
+            System.clearProperty(TridentLoader.DEV_PROPERTY);
+        }
+
+        assertThat(CALLS).containsExactly("dev");
+        assertThat(TridentLoader.tines()).singleElement().satisfies(tine -> assertThat(tine.paths()).containsExactly(classes, resources));
     }
 
     private static void bootstrap(TestModLoader loader) {
