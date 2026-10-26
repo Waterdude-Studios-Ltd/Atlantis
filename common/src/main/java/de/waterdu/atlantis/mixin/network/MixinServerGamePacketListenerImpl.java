@@ -2,6 +2,7 @@ package de.waterdu.atlantis.mixin.network;
 
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.mod.impl.common.event.entity.InteractEntityEventPayload;
+import de.waterdu.atlantis.util.network.ActionReader;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,31 +41,8 @@ public abstract class MixinServerGamePacketListenerImpl {
         }
         var reader = new ActionReader();
         packet.dispatch(reader);
-        if (reader.action != null && Mods.events().emitInteractEntity(this.player, entity, reader.action, reader.hand)) {
+        if (reader.action() != null && Mods.events().emitInteractEntity(this.player, entity, reader.action(), reader.hand())) {
             ci.cancel();
-        }
-    }
-
-    private static final class ActionReader implements ServerboundInteractPacket.Handler {
-
-        private InteractEntityEventPayload.@Nullable Action action;
-        private @Nullable InteractionHand hand;
-
-        @Override
-        public void onInteraction(InteractionHand hand) {
-            this.action = InteractEntityEventPayload.Action.INTERACT;
-            this.hand = hand;
-        }
-
-        @Override
-        public void onInteraction(InteractionHand hand, Vec3 location) {
-            this.action = InteractEntityEventPayload.Action.INTERACT_AT;
-            this.hand = hand;
-        }
-
-        @Override
-        public void onAttack() {
-            this.action = InteractEntityEventPayload.Action.ATTACK;
         }
     }
 }
