@@ -18,7 +18,7 @@ public class Atlantis {
     public static final String MOD_ID = ID;
     public static final String NAME = "Atlantis";
     public static final String MOD_NAME = NAME;
-    public static final String VERSION = "9.0.1";
+    public static final String VERSION = "9.1.0";
     public static final String WATER_NAME = "Water";
     public static final String[] WATER_NAME_AS_ARRAY = new String[] { WATER_NAME };
     public static final String ERROR_TEXT = "An error occurred in Atlantis";
