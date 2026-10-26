@@ -99,7 +99,7 @@ public final class Mods {
 
     public static final ModExtension COBBLEMON = ModExtension.builder()
             .modId("cobblemon")
-            .mainClass("com.cobblemon.mod.common.CobblemonKt")
+            .mainClass("com.cobblemon.mod.common.Cobblemon")
             .reflectiveConstructorProxy(ModExtension.Loader.NEOFORGE_AND_FABRIC, "de.waterdu.atlantis.mod.impl.cobblemon.CobblemonProxy")
             .delegates(PokemonDelegate.class)
             .language(ModExtension.Language.KOTLIN)
