@@ -22,6 +22,13 @@ public abstract class UMove<T> extends ModWrapper<T> {
 
     public abstract int maxPP();
 
+    /**
+     * How many PP Ups have been applied, from 0 to 3.
+     */
+    public abstract int ppUps();
+
+    public abstract void setPPUps(int ppUps);
+
     public void restorePP() {
         this.setPP(this.maxPP());
     }

@@ -39,6 +39,11 @@ public abstract class UParty<T, P extends UPokemon<?>> extends ModWrapper<T> imp
 
     public abstract void heal();
 
+    /**
+     * Recalls every Pokémon from the party that is currently sent out.
+     */
+    public abstract void retrieveAll();
+
     public int countAble() {
         var count = 0;
         for (var pokemon : this.all()) {

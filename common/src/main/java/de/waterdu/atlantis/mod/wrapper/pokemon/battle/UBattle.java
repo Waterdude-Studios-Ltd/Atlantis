@@ -29,6 +29,11 @@ public abstract class UBattle<T> extends ModWrapper<T> {
 
     public abstract void end();
 
+    /**
+     * Ends the battle with the given participant's side losing.
+     */
+    public abstract void forfeit(UBattleParticipant<?> loser);
+
     public List<? extends UBattleParticipant<?>> side(int side) {
         var participants = new ArrayList<UBattleParticipant<?>>();
         for (var participant : this.participants()) {

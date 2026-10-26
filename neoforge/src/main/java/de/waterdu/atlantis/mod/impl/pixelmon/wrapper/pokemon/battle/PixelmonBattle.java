@@ -2,11 +2,15 @@ package de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.battle;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
 import com.pixelmonmod.pixelmon.api.battles.BattleEndCause;
+import com.pixelmonmod.pixelmon.api.battles.BattleResults;
 import com.pixelmonmod.pixelmon.battles.controller.BattleController;
+import com.pixelmonmod.pixelmon.battles.controller.participants.BattleParticipant;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattle;
+import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattleParticipant;
 import net.minecraft.server.level.ServerPlayer;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class PixelmonBattle extends UBattle<BattleController> {
@@ -48,7 +52,17 @@ public class PixelmonBattle extends UBattle<BattleController> {
     }
 
     @Override
+    public void forfeit(UBattleParticipant<?> loser) {
+        var side = ((BattleParticipant) loser.dereference()).team;
+        var results = new HashMap<BattleParticipant, BattleResults>();
+        for (var participant : this.dereference().participants()) {
+            results.put(participant, participant.team == side ? BattleResults.DEFEAT : BattleResults.VICTORY);
+        }
+        this.dereference().endBattle(BattleEndCause.FORFEIT, results);
+    }
+
+    @Override
     public void end() {
-        this.dereference().endBattle(BattleEndCause.FORCE);
+        this.dereference().endBattle(BattleEndCause.COMMAND);
     }
 }

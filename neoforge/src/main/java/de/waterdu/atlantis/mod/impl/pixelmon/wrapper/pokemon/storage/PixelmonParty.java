@@ -1,6 +1,7 @@
 package de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.storage;
 
 import com.pixelmonmod.pixelmon.Pixelmon;
+import com.pixelmonmod.pixelmon.api.events.PokemonRetrievedEvent;
 import com.pixelmonmod.pixelmon.api.storage.PartyStorage;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.PixelmonPokemon;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
@@ -97,6 +98,13 @@ public class PixelmonParty extends UParty<PartyStorage, PixelmonPokemon> {
     public void heal() {
         if (this.isLoaded()) {
             this.dereference().heal();
+        }
+    }
+
+    @Override
+    public void retrieveAll() {
+        if (this.isLoaded()) {
+            this.dereference().retrieveAll(PokemonRetrievedEvent.Constants.FORCED);
         }
     }
 }

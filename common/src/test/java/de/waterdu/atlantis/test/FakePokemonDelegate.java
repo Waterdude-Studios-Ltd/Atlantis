@@ -6,8 +6,13 @@ import de.waterdu.atlantis.mod.ModExtension;
 import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.proxy.delegate.PokemonDelegate;
+import de.waterdu.atlantis.mod.proxy.delegate.PokemonFeature;
+import de.waterdu.atlantis.mod.wrapper.pokemon.battle.BattleSettings;
+import de.waterdu.atlantis.mod.wrapper.pokemon.battle.TrainerSettings;
 import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattle;
+import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattleClause;
 import de.waterdu.atlantis.mod.wrapper.pokemon.entity.UPokemonEntity;
+import de.waterdu.atlantis.mod.wrapper.pokemon.entity.UTrainer;
 import de.waterdu.atlantis.mod.wrapper.pokemon.parsing.UPokemonSpec;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.UPokemon;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UAbility;
@@ -262,8 +267,38 @@ public final class FakePokemonDelegate implements PokemonDelegate {
     }
 
     @Override
-    public CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, ServerPlayer player2) {
+    public CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, @Nullable List<? extends UPokemon<?>> team1, ServerPlayer player2, @Nullable List<? extends UPokemon<?>> team2, BattleSettings settings) {
         throw unsupported();
+    }
+
+    @Override
+    public CompletableFuture<@Nullable UBattle<?>> startTrainerBattle(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, UTrainer<?> trainer, TrainerSettings trainerSettings, BattleSettings settings) {
+        throw unsupported();
+    }
+
+    @Override
+    public UTrainer<?> spawnTrainer(ServerLevel level, Vec3 position, float yaw, Component name) {
+        throw unsupported();
+    }
+
+    @Override
+    public @Nullable UTrainer<?> trainer(Entity entity) {
+        return null;
+    }
+
+    @Override
+    public boolean supports(PokemonFeature feature) {
+        return false;
+    }
+
+    @Override
+    public List<? extends UBattleClause<?>> battleClauses() {
+        return List.of();
+    }
+
+    @Override
+    public ItemStack showdownItem(String name) {
+        return ItemStack.EMPTY;
     }
 
     public final class Spec extends UPokemonSpec<String, Pokemon> {

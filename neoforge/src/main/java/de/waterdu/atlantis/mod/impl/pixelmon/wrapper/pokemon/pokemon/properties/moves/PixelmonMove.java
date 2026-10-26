@@ -32,4 +32,14 @@ public class PixelmonMove extends UMove<Attack> {
     public int maxPP() {
         return this.dereference().getMaxPP();
     }
+
+    @Override
+    public int ppUps() {
+        return this.dereference().getPPLevel();
+    }
+
+    @Override
+    public void setPPUps(int ppUps) {
+        this.dereference().setPPLevel(Math.clamp(ppUps, 0, 3));
+    }
 }

@@ -32,4 +32,14 @@ public class CobblemonMove extends UMove<Move> {
     public int maxPP() {
         return this.dereference().getMaxPp();
     }
+
+    @Override
+    public int ppUps() {
+        return this.dereference().getRaisedPpStages();
+    }
+
+    @Override
+    public void setPPUps(int ppUps) {
+        this.dereference().setRaisedPpStages(Math.clamp(ppUps, 0, 3));
+    }
 }

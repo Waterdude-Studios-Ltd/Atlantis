@@ -81,4 +81,13 @@ public class CobblemonParty extends UParty<PartyStore, CobblemonPokemon> {
     public void heal() {
         this.dereference().heal();
     }
+
+    @Override
+    public void retrieveAll() {
+        for (var pokemon : this.dereference()) {
+            if (pokemon.getEntity() != null) {
+                pokemon.tryRecallWithAnimation();
+            }
+        }
+    }
 }
