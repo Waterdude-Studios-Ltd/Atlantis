@@ -184,15 +184,19 @@ public final class ShowdownFormat {
     }
 
     private static @Nullable UForm<?> findForm(USpecies<?> species, String forme, Map<String, String> formAliases) {
-        var aliased = formAliases.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(forme)).map(Map.Entry::getValue).findFirst().orElse(forme);
-        var form = lookup(species::form, aliased);
-        if (form != null) {
-            return form;
-        }
-        var wanted = aliased.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
-        for (var candidate : species.forms()) {
-            if (candidate.name().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "").equals(wanted)) {
-                return candidate;
+        var names = new ArrayList<String>();
+        formAliases.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(forme)).map(Map.Entry::getValue).forEach(names::add);
+        names.add(forme);
+        for (var name : names) {
+            var form = lookup(species::form, name);
+            if (form != null) {
+                return form;
+            }
+            var wanted = name.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
+            for (var candidate : species.forms()) {
+                if (candidate.name().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "").equals(wanted)) {
+                    return candidate;
+                }
             }
         }
         return null;
@@ -269,19 +273,20 @@ public final class ShowdownFormat {
         private @Nullable UPokemon<?> create(PokemonDelegate delegate, Map<String, String> formAliases) {
             USpecies<?> species = null;
             UForm<?> form = null;
-            var direct = lookup(name -> delegate.hasSpecies(name) ? delegate.species(name) : null, this.species);
-            if (direct != null) {
-                species = direct;
-            } else {
-                var split = this.species.split("-");
-                for (var i = split.length - 1; i > 0 && species == null; i--) {
-                    var speciesName = String.join("-", List.of(split).subList(0, i));
-                    var found = lookup(name -> delegate.hasSpecies(name) ? delegate.species(name) : null, speciesName);
-                    if (found != null) {
+            var split = this.species.split("-");
+            for (var i = split.length - 1; i > 0 && form == null; i--) {
+                var speciesName = String.join("-", List.of(split).subList(0, i));
+                var found = lookup(name -> delegate.hasSpecies(name) ? delegate.species(name) : null, speciesName);
+                if (found != null) {
+                    var foundForm = findForm(found, String.join("-", List.of(split).subList(i, split.length)), formAliases);
+                    if (foundForm != null) {
                         species = found;
-                        form = findForm(found, String.join("-", List.of(split).subList(i, split.length)), formAliases);
+                        form = foundForm;
                     }
                 }
+            }
+            if (species == null) {
+                species = lookup(name -> delegate.hasSpecies(name) ? delegate.species(name) : null, this.species);
             }
             if (species == null) {
                 return null;
@@ -291,9 +296,6 @@ public final class ShowdownFormat {
             }
 
             var pokemon = species.create(this.level);
-            if (form != null) {
-                pokemon.setForm(form);
-            }
             pokemon.setLevel(this.level);
             if (this.nickname != null && !this.nickname.isBlank()) {
                 pokemon.setNickname(this.nickname);
@@ -306,6 +308,9 @@ public final class ShowdownFormat {
             }
             pokemon.setShiny(this.shiny);
             pokemon.setFriendship(this.friendship);
+            if (form != null) {
+                pokemon.setForm(form);
+            }
             if (this.item != null) {
                 var item = delegate.showdownItem(this.item);
                 if (!item.isEmpty()) {
