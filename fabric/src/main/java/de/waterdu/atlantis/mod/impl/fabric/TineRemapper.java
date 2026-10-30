@@ -105,7 +105,7 @@ final class TineRemapper {
     private static List<Path> namedClassPath(Path cache, String minecraft, MemoryMappingTree mappings) throws IOException {
         var intermediary = new LinkedHashMap<Path, Path>();
         var sources = new HashSet<Path>();
-        for (var mod : List.of("minecraft", Atlantis.MOD_ID)) {
+        for (var mod : List.of("minecraft", Atlantis.ID)) {
             var container = FabricLoader.getInstance().getModContainer(mod).orElseThrow();
             var version = container.getMetadata().getVersion().getFriendlyString();
             for (var path : container.getOrigin().getPaths()) {

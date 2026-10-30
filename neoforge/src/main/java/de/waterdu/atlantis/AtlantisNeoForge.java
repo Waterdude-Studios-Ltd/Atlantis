@@ -5,7 +5,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 
-@Mod(Atlantis.MOD_ID)
+@Mod(Atlantis.ID)
 public class AtlantisNeoForge {
 
     private static AtlantisNeoForge INSTANCE;
