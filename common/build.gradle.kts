@@ -148,6 +148,35 @@ java {
     withSourcesJar()
 }
 
+val generateBuildInfo = tasks.register("generateBuildInfo") {
+    description = "Generates `BuildInfo` which provides constants to the built mod"
+    val id = commonMod.id
+    val name = commonMod.name
+    val version = commonMod.version
+    val output = layout.buildDirectory.dir("generated/sources/buildInfo/java")
+    inputs.property("version", version)
+    outputs.dir(output)
+    doLast {
+        val file = output.get().file("de/waterdu/atlantis/BuildInfo.java").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            """
+            package de.waterdu.atlantis;
+
+            final class BuildInfo {
+                static final String ID = "$id";
+                static final String NAME = "$name";
+                static final String VERSION = "$version";
+            }
+            """.trimIndent() + "\n"
+        )
+    }
+}
+
+sourceSets.main {
+    java.srcDir(generateBuildInfo)
+}
+
 publishAtlantis("atlantis-common", sources = "remapSourcesJar")
 
 val gametest: SourceSet = sourceSets.create("gametest") {
@@ -180,7 +209,7 @@ artifacts {
     afterEvaluate {
         val mainSourceSet = sourceSets.main.get()
         mainSourceSet.java.sourceDirectories.files.forEach {
-            add(commonJava.name, it)
+            add(commonJava.name, it) { builtBy(generateBuildInfo) }
         }
         mainSourceSet.resources.sourceDirectories.files.forEach {
             add(commonResources.name, it)

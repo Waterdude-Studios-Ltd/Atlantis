@@ -76,9 +76,9 @@ public class Atlantis {
     /**
      * Mod ID, also used as the namespace for Atlantis' own config files.
      */
-    public static final String ID = "atlantis";
-    public static final String NAME = "Atlantis";
-    public static final String VERSION = "9.1.1";
+    public static final String ID = BuildInfo.ID;
+    public static final String NAME = BuildInfo.NAME;
+    public static final String VERSION = BuildInfo.VERSION;
     /**
      * Username of the Atlantis author account, matched case-insensitively by {@link #isPlayerWater(String)}.
      */
