@@ -214,7 +214,7 @@ public final class AtlantisUI {
                             serverPlayer.setContainerCounter(1);
                             serverPlayer.connection.send(new ClientboundOpenScreenPacket(serverPlayer.getContainerCounter(), ff.getType(options), i.displayName()));
                             serverPlayer.containerMenu.broadcastChanges();
-                            ((PlayerExt) serverPlayer).initMenu(c);
+                            serverPlayer.initMenu(c);
                             c.updateDisplay(reference, true);
                         }
                         AtlantisUI.LOCKED.remove(serverPlayer.getUUID());
