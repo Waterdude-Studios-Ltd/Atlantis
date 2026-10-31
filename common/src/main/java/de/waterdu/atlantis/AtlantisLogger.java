@@ -13,6 +13,13 @@ public final class AtlantisLogger {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Logs at the given severity. {@link Severity#NONE} logs nothing.
+     *
+     * @param       severity    The level to log at.
+     * @param       message     The message, with {@code {}} placeholders for args.
+     * @param       args        Values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     */
     public static void log(Severity severity, String message, Object... args) {
         switch (severity) {
             case ERROR -> AtlantisLogger.error(message, args);
@@ -22,6 +29,13 @@ public final class AtlantisLogger {
         }
     }
 
+    /**
+     * Logs at the given severity with a stack trace. {@link Severity#NONE} logs nothing.
+     *
+     * @param       severity    The level to log at.
+     * @param       message     The message. Placeholders are not filled in.
+     * @param       err         The error whose stack trace to log.
+     */
     public static void log(Severity severity, String message, Throwable err) {
         switch (severity) {
             case ERROR -> AtlantisLogger.error(message, err);
@@ -63,6 +77,11 @@ public final class AtlantisLogger {
         AtlantisLogger.LOGGER.debug(message, err);
     }
 
+    /**
+     * Returns a no-op builder when debug logging is disabled, so nothing passed to it is formatted.
+     *
+     * @return                  A debug-level {@link LogBuilder}.
+     */
     public static LogBuilder debugBuilder() {
         return LOGGER.atDebug();
     }
@@ -72,6 +91,9 @@ public final class AtlantisLogger {
         WARN,
         INFO,
         DEBUG,
+        /**
+         * Disables logging, for example in settings that choose a level.
+         */
         NONE,
     }
 }

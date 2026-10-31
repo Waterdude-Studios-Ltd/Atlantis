@@ -74,7 +74,7 @@ import java.util.function.Supplier;
 public class Atlantis {
 
     /**
-     * Mod ID, also used as the namespace for Atlantis' own config files.
+     * Mod ID, also used as the namespace for Atlantis' own config files and keys.
      */
     public static final String ID = BuildInfo.ID;
     public static final String NAME = BuildInfo.NAME;
