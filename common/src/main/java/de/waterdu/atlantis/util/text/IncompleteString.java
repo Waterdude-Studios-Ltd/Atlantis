@@ -31,6 +31,9 @@ public class IncompleteString {
         }
     }
 
+    /**
+     * Changes this instance and returns it. Use {@link #copy()} first to keep the original.
+     */
     public IncompleteString replace(CharSequence target, CharSequence replacement) {
         for (var i = 0; i < this.strings.length; i++) {
             this.strings[i] = this.strings[i].replace(target, replacement);
@@ -38,6 +41,12 @@ public class IncompleteString {
         return this;
     }
 
+    /**
+     * Inserts {@code replacement} in place of {@code target}. A segment changes only if it contains {@code target} exactly once.
+     *
+     * @param       target      A regular expression.
+     * @return                  A new instance. This instance does not change.
+     */
     public IncompleteString replace(String target, IncompleteString replacement) {
         var builder = IncompleteString.builder();
         if (this.wrapper) {
@@ -85,6 +94,9 @@ public class IncompleteString {
         return builder.toString();
     }
 
+    /**
+     * Fills the placeholders in order. A placeholder without a value stays empty. This method ignores extra values.
+     */
     public String complete(Object... placeholders) {
         if (this.wrapper) {
             return this.strings[0];
