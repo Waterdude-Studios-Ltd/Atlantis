@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * DatabaseSettings.storage builds the pool from every setting. Building a Database doesn't connect.
+ * DatabaseSettings.storage builds the pool from every setting. A Database does not connect when it is built.
  */
 @ExtendWith(AtlantisTestEnvironment.class)
 class DatabaseSettingsStorageTest {

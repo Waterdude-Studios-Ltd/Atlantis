@@ -5,8 +5,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 /**
- * Rules for a battle started through {@code PokemonDelegate}. Settings a mod doesn't support, as reported by
- * {@code PokemonDelegate#supports}, are ignored.
+ * Rules for a battle started through {@code PokemonDelegate}. Settings that the mod does not support are ignored.
+ * {@code PokemonDelegate#supports} reports which settings the mod supports.
  */
 public final class BattleSettings {
 
@@ -93,7 +93,8 @@ public final class BattleSettings {
     }
 
     /**
-     * Seconds the players get to pick their team in the mod's own team selection screen, or {@link #NONE} to skip it.
+     * Seconds that the players have to select their team in the mod's team selection screen, or {@link #NONE} to skip
+     * the screen.
      */
     public int teamSelectTime() {
         return this.teamSelectTime;
@@ -111,15 +112,15 @@ public final class BattleSettings {
     }
 
     /**
-     * The most Pokémon each side brings. Larger teams are cut down to this many.
+     * The maximum number of Pokémon that each side brings. Larger teams are reduced to this number.
      */
     public int teamSize() {
         return this.teamSize;
     }
 
     /**
-     * Clause ids from {@code PokemonDelegate#battleClauses()}. Clauses that are enforced in battle are applied to it;
-     * team clauses should be checked with {@link UBattleClause#validate} before the battle starts.
+     * Clause ids from {@code PokemonDelegate#battleClauses()}. Clauses that are enforced in battle apply to the battle.
+     * Check team clauses with {@link UBattleClause#validate} before the battle starts.
      */
     public List<String> clauses() {
         return this.clauses;
@@ -130,7 +131,7 @@ public final class BattleSettings {
     }
 
     /**
-     * Whether the battle uses copies of the teams, so that nothing that happens in it affects the real Pokémon.
+     * Whether the battle uses copies of the teams. If true, events in the battle do not affect the real Pokémon.
      */
     public boolean cloneTeams() {
         return this.cloneTeams;

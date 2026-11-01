@@ -11,8 +11,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for designating a file accessible via an {@link AtlantisConfig} instance created via
- * {@link AtlantisConfigProxy}, but only as an instance of {@link Data}.
+ * Marks a file that is accessible through an {@link AtlantisConfig} instance created by
+ * {@link AtlantisConfigProxy}. The file is accessible only as an instance of {@link Data}.
  * <p>
  * This annotation is equivalent to the following annotation, where "this" refers to the annotated object:
  * {@literal @FileBackedObject(mod = Mod.MOD_ID, path = this.class.getSimpleName().toLowerCase(), force = true)}
@@ -24,9 +24,9 @@ import java.lang.annotation.Target;
 public @interface BasicData {
 
     /**
-     * The {@link AtlantisConfig} this will be accessible from.
+     * The {@link AtlantisConfig} that this file is accessible from.
      *
-     * @return The owner of this configuration's modid.
+     * @return The mod ID of the owner of this configuration.
      */
     String mod();
 }

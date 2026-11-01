@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Gives every entity a loader-neutral persistent tag, saved under {@value #KEY}.
+ * Gives every entity a loader-neutral persistent tag. The entity saves the tag under {@value #KEY}.
  */
 @Mixin(Entity.class)
 public abstract class MixinEntity implements PersistentDataHolder {

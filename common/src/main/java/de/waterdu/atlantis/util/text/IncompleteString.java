@@ -210,8 +210,8 @@ public class IncompleteString {
         public IncompleteString build() {
             var strings = new String[this.count];
             var order = new boolean[this.strings.size()];
-            if (this.strings.size() == 1 && this.strings.get(0) != null) {
-                return IncompleteString.of(this.strings.get(0));
+            if (this.strings.size() == 1 && this.strings.getFirst() != null) {
+                return IncompleteString.of(this.strings.getFirst());
             }
             var s = 0;
             for (var i = 0; i < order.length; i++) {

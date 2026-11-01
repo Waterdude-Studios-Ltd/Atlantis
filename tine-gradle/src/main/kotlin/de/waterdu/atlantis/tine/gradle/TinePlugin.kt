@@ -19,14 +19,14 @@ import org.gradle.language.jvm.tasks.ProcessResources
 import java.io.File
 
 /**
- * Sets up a Tine project: compiles against vanilla Minecraft with Mojang mappings and Parchment plus Atlantis' common
- * API, builds a Mojang-named jar, and adds a Fabric server run that loads the Tine through Trident, plus a client run
- * that joins it. Tines are server-only, so the client run doesn't load the Tine itself.
+ * Sets up a Tine project. The plugin compiles against vanilla Minecraft with Mojang mappings and Parchment, and
+ * against Atlantis' common API. It builds a Mojang-named jar. It adds a Fabric server run that loads the Tine through
+ * Trident, and a client run that joins this server. Tines are server-only. Thus, the client run does not load the Tine.
  *
- * Mixins stay in Mojang names without a refmap, since NeoForge runs on Mojang names and Atlantis remaps Tines for
- * Fabric production itself, so Loom's mixin annotation processor is turned off.
+ * Mixins stay in Mojang names without a refmap. NeoForge runs on Mojang names, and Atlantis itself remaps Tines for
+ * Fabric production. Thus, the plugin turns off Loom's mixin annotation processor.
  *
- * Versions default to the Atlantis release this plugin was built with, and can be overridden with the Gradle
+ * Versions default to the Atlantis release that this plugin was built with. You can override them with the Gradle
  * properties `tine.atlantis`, `tine.minecraft`, `tine.parchment`, `tine.fabricLoader` and `tine.fabricApi`.
  */
 class TinePlugin : Plugin<Project> {

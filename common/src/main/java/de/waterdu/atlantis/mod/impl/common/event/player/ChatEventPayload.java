@@ -8,8 +8,8 @@ import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Fires on the server thread after a chat message has been validated and before it is broadcast. Cancelling it
- * stops the broadcast without breaking the player's signed message chain.
+ * Fires on the server thread after the server validates a chat message and before it broadcasts the message. If you
+ * cancel the event, the server does not broadcast the message, and the player's signed message chain stays intact.
  */
 public class ChatEventPayload implements EventPayload, Cancellable {
 

@@ -20,18 +20,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 /**
- * A command that takes its arguments as a list of words, for commands that parse their own arguments rather than
- * describing them to Brigadier. It is registered under {@link #name()} and every {@link #aliases()}, which are read
- * again once the server has started so that names from configs, which load after commands are first built, are
- * picked up.
+ * A command that takes its arguments as a list of words. Use it for commands that parse their own arguments instead
+ * of describing them to Brigadier. Atlantis registers it under {@link #name()} and every {@link #aliases()}. Atlantis
+ * reads these names again after the server has started. This gets the names from configs, because configs load after
+ * the first build of the commands.
  */
 public abstract class ArgumentCommand {
 
     private static final String ARGUMENTS = "arguments";
 
     /**
-     * Registers the command with every dispatcher Atlantis builds, and with the live dispatcher once the server has
-     * started.
+     * Registers the command with every dispatcher that Atlantis builds, and with the live dispatcher after the server
+     * has started.
      */
     public void register() {
         CommandRegistry.register(this::register);
@@ -76,7 +76,7 @@ public abstract class ArgumentCommand {
     public abstract void execute(CommandContext<CommandSourceStack> context, String... args);
 
     /**
-     * Gets the possible values for the last argument. They are filtered to those starting with what has been typed.
+     * Gets the possible values for the last argument. Only the values that start with the typed text are returned.
      */
     public List<String> suggestions(CommandContext<CommandSourceStack> context, String... args) {
         return List.of();

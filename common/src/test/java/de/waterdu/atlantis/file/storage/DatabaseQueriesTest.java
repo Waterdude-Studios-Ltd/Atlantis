@@ -14,7 +14,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * The SQL that Database generates, checked without a database.
+ * Checks the SQL that Database generates, without a database.
  */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)

@@ -35,8 +35,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * ServerUtils, Concurrency, Task, PlayerReference, MessageUtils and NetworkUtils against the running server and
- * mock players. Tasks and async work go through Atlantis' shared thread pool, which player joins also use for a
- * blocking Mojang skin lookup, so those tests allow many (unthrottled) ticks.
+ * mock players. Tasks and async work go through Atlantis' shared thread pool. Player joins also use this pool for a
+ * blocking Mojang skin lookup. Thus, those tests allow many (unthrottled) ticks.
  */
 public final class ServerUtilsGameTest {
 

@@ -7,7 +7,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
 /**
- * Mock servers for code that only needs {@code ServerUtils.server()} to exist. Use with {@link MinecraftBootstrapped}.
+ * Mock servers for code that only needs {@code ServerUtils.server()} to exist.
+ * Use them with {@link MinecraftBootstrapped}.
  */
 public final class MockServers {
 

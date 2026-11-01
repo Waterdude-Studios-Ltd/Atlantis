@@ -65,7 +65,7 @@ public interface PokemonDelegate extends ModProxy {
     }
 
     /**
-     * Gets the item for the named Poké Ball, falling back to a plain Poké Ball if there is no ball with that name.
+     * Gets the item for the named Poké Ball. If no ball has that name, gets the item for a plain Poké Ball.
      */
     default ItemStack pokeBallItem(String name) {
         UPokeBall<?> ball = this.pokeBall(name);
@@ -93,7 +93,7 @@ public interface PokemonDelegate extends ModProxy {
     }
 
     /**
-     * Looks for the Pokémon in the player's party, then in their PC.
+     * Searches for the Pokémon in the player's party, then in their PC.
      */
     default @Nullable UPokemon<?> find(PlayerReference player, UUID uuid) {
         UPokemon<?> pokemon = this.party(player).find(uuid);
@@ -105,7 +105,7 @@ public interface PokemonDelegate extends ModProxy {
     String specDelimiter();
 
     /**
-     * Looks a species up by name, falling back to the mod's placeholder species if there is none. Use
+     * Finds a species by name. If there is no such species, returns the mod's placeholder species. Use
      * {@link #hasSpecies(String)} to check first.
      */
     USpecies<?> species(String name);
@@ -135,7 +135,7 @@ public interface PokemonDelegate extends ModProxy {
     List<? extends UElementalType<?>> elementalTypes();
 
     /**
-     * Looks a stat up by one of the names in {@link UStat}, such as {@link UStat#ATTACK}.
+     * Finds a stat by one of the names in {@link UStat}, such as {@link UStat#ATTACK}.
      */
     @Nullable UStat<?> stat(String name);
 
@@ -144,7 +144,7 @@ public interface PokemonDelegate extends ModProxy {
     List<? extends UStat<?>> permanentStats();
 
     /**
-     * Looks a nature up by its English name, such as {@code adamant}.
+     * Finds a nature by its English name, such as {@code adamant}.
      */
     @Nullable UNature<?> nature(String name);
 
@@ -153,21 +153,21 @@ public interface PokemonDelegate extends ModProxy {
     UNature<?> randomNature();
 
     /**
-     * Looks a gender up by one of the names in {@link UGender}.
+     * Finds a gender by one of the names in {@link UGender}.
      */
     @Nullable UGender<?> gender(String name);
 
     List<? extends UGender<?>> genders();
 
     /**
-     * Looks a persistent status up by one of the names in {@link UStatus}.
+     * Finds a persistent status by one of the names in {@link UStatus}.
      */
     @Nullable UStatus<?> status(String name);
 
     List<? extends UStatus<?>> statuses();
 
     /**
-     * Looks a move category up by one of the names in {@link UMoveCategory}.
+     * Finds a move category by one of the names in {@link UMoveCategory}.
      */
     @Nullable UMoveCategory<?> moveCategory(String name);
 
@@ -190,30 +190,30 @@ public interface PokemonDelegate extends ModProxy {
     }
 
     /**
-     * Starts a battle between the player's party and a wild Pokémon. The future completes with {@code null} if the
-     * battle could not start, for example because either side is already battling.
+     * Starts a battle between the player's party and a wild Pokémon. If the battle cannot start, the future completes
+     * with {@code null}. For example, the battle cannot start when either side is already in a battle.
      */
     CompletableFuture<@Nullable UBattle<?>> startWildBattle(ServerPlayer player, UPokemonEntity<?> wild);
 
     /**
-     * Starts a singles battle between two players' parties. The future completes with {@code null} if the battle
-     * could not start.
+     * Starts a singles battle between two players' parties. If the battle cannot start, the future completes with
+     * {@code null}.
      */
     default CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, ServerPlayer player2) {
         return this.startPlayerBattle(player1, null, player2, null, BattleSettings.defaults());
     }
 
     /**
-     * Starts a battle between two players. A {@code null} team means the player's party; an explicit team is used as
-     * given, so pass {@link BattleSettings#cloneTeams()} when it contains Pokémon that aren't in the party. The future
-     * completes with {@code null} if the battle could not start.
+     * Starts a battle between two players. A {@code null} team means the player's party. The battle uses an explicit
+     * team as given. Thus, pass {@link BattleSettings#cloneTeams()} when the team contains Pokémon that are not in the
+     * party. If the battle cannot start, the future completes with {@code null}.
      */
     CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, @Nullable List<? extends UPokemon<?>> team1, ServerPlayer player2, @Nullable List<? extends UPokemon<?>> team2, BattleSettings settings);
 
     /**
-     * Starts a battle between a player and a trainer spawned with {@link #spawnTrainer}, using the trainer's team.
-     * A {@code null} team means the player's party. The future completes with {@code null} if the battle could not
-     * start, including when the trainer is already battling.
+     * Starts a battle between a player and a trainer spawned with {@link #spawnTrainer}. The trainer uses its own team.
+     * A {@code null} team means the player's party. If the battle cannot start, the future completes with
+     * {@code null}. This includes when the trainer is already in a battle.
      */
     CompletableFuture<@Nullable UBattle<?>> startTrainerBattle(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, UTrainer<?> trainer, TrainerSettings trainerSettings, BattleSettings settings);
 
@@ -263,7 +263,7 @@ public interface PokemonDelegate extends ModProxy {
     }
 
     /**
-     * Parses Pokémon from Showdown team text. Sets with species that don't exist are skipped.
+     * Parses Pokémon from Showdown team text. Skips sets whose species does not exist.
      */
     default List<UPokemon<?>> importShowdown(String text) {
         return ShowdownFormat.read(this, text, this.showdownFormAliases());

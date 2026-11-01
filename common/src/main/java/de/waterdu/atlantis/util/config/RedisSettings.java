@@ -26,7 +26,7 @@ public abstract class RedisSettings {
         this.properties = properties;
     }
 
-    public abstract Redis storage(String modid);
+    public abstract Redis storage(String modId);
 
     public static class URL extends RedisSettings {
 
@@ -46,7 +46,7 @@ public abstract class RedisSettings {
         }
 
         @Override
-        public Redis storage(String modid) {
+        public Redis storage(String modId) {
             return new Redis(this.url);
         }
     }
@@ -79,7 +79,7 @@ public abstract class RedisSettings {
         }
 
         @Override
-        public Redis storage(String modid) {
+        public Redis storage(String modId) {
             return new Redis(this.ip, this.port, this.username, this.password.toCharArray());
         }
     }

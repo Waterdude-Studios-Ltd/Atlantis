@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Looks up player skins by name through the server's Mojang session service, off the main thread.
+ * Looks up player skins by name through the Mojang session service of the server. Lookups run off the main thread.
  */
 public final class PlayerSkins {
 
@@ -27,8 +27,8 @@ public final class PlayerSkins {
     }
 
     /**
-     * Finds the skin of the player with this name. The future completes with null if there is no such player or
-     * the lookup fails, and always completes off the main thread.
+     * Finds the skin of the player with this name. The future completes with null if no such player exists or the
+     * lookup fails. The future always completes off the main thread.
      */
     public static CompletableFuture<@Nullable Skin> find(String name) {
         return CompletableFuture.supplyAsync(() -> lookup(name), Atlantis.THREAD_POOL.getPool());
@@ -68,7 +68,7 @@ public final class PlayerSkins {
     public record Skin(String url, boolean slim) {
 
         /**
-         * Downloads the skin image. Blocks, so call it off the main thread.
+         * Downloads the skin image. This method blocks, so do not call it on the main thread.
          */
         public byte[] download() throws IOException {
             try (InputStream stream = URI.create(this.url).toURL().openStream()) {

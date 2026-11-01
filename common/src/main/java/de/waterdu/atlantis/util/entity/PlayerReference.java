@@ -166,11 +166,11 @@ public final class PlayerReference {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends PlayerData> CompletableFuture<T> data(String modid, Class<T> type) {
+    public <T extends PlayerData> CompletableFuture<T> data(String modId, Class<T> type) {
         if (this.data.containsKey(type)) {
             return CompletableFuture.completedFuture((T)this.data.get(type));
         }
-        return AtlantisConfigProxy.of(modid).get(type, this.uuid()).whenComplete((data, err) -> {
+        return AtlantisConfigProxy.of(modId).get(type, this.uuid()).whenComplete((data, err) -> {
             if (data != null) {
                 this.data.put(type, data);
             }
@@ -182,11 +182,11 @@ public final class PlayerReference {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends PlayerData> T dataNow(String modid, Class<T> type) {
+    public <T extends PlayerData> T dataNow(String modId, Class<T> type) {
         if (this.data.containsKey(type)) {
             return (T) this.data.get(type);
         }
-        return this.data(modid, type).join();
+        return this.data(modId, type).join();
     }
 
     public CompletableFuture<AtlantisPlayer> atlantisData() {

@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * Parsing of Redis connection URLs. Valid URLs connect straight away, so only invalid ones go through the constructor.
+ * Parsing of Redis connection URLs. Valid URLs connect immediately. Thus, only invalid URLs go through the constructor.
  */
 @ExtendWith(AtlantisTestEnvironment.class)
 class RedisUrlTest {

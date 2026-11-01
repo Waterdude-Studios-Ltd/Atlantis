@@ -16,15 +16,15 @@ import java.util.function.Supplier;
 /**
  * <h1>Atlantis</h1>
  * <p>
- * Collection of useful tools for mod plugin developers, including a sub-modloader for development streamlining.
- * Designed to be used as an external library, shaded in, or copied from directly.
- * Also provides meta and convenience functionalities to enhance the server administration experience.
+ * A collection of useful tools for mod plugin developers. It includes a sub-modloader that makes development simpler.
+ * You can use it as an external library, shade it in, or copy from it directly.
+ * It also provides meta and convenience functions that make server administration easier.
  * <p>
  * ---
  * <p>
- * Atlantis is dually licensed under both GNU LGPL v3 and MIT.
- * License text for both can be found below, and in LICENSE.md.
- * You are free to choose which license applies to you for your use case.
+ * Atlantis has a dual license: GNU LGPL v3 and MIT.
+ * The license text for both is below and in LICENSE.md.
+ * You can choose the license that applies to your use case.
  * <p>
  * ---
  * <p>
@@ -74,13 +74,13 @@ import java.util.function.Supplier;
 public class Atlantis {
 
     /**
-     * Mod ID, also used as the namespace for Atlantis' own config files and keys.
+     * Mod ID. Atlantis also uses it as the namespace for its own config files and keys.
      */
     public static final String ID = BuildInfo.ID;
     public static final String NAME = BuildInfo.NAME;
     public static final String VERSION = BuildInfo.VERSION;
     /**
-     * Username of the Atlantis author account, matched case-insensitively by {@link #isPlayerWater(String)}.
+     * Username of the Atlantis author account. {@link #isPlayerWater(String)} matches it case-insensitively.
      */
     public static final String WATER_NAME = "Waterdude";
     /**
@@ -101,7 +101,7 @@ public class Atlantis {
      */
     public static final int DEFAULT_THREADS = 4;
     /**
-     * Shared pool of daemon threads for async work. Errors thrown by tasks are caught and logged.
+     * Shared pool of daemon threads for async work. The pool catches and logs errors that tasks throw.
      */
     public static final AtlantisThreadPool THREAD_POOL = AtlantisThreadPool.createNewThreadPool(NAME, DEFAULT_THREADS, true);
     /**
@@ -112,8 +112,8 @@ public class Atlantis {
     private static final Lazy<AtlantisListeners> LISTENERS = Lazy.of(AtlantisListeners::new);
 
     /**
-     * Created on first call, which registers its event listeners through {@code Mods.modLoader()}.
-     * Must not be called before {@code Mods} has bootstrapped.
+     * The first call creates the listeners and registers them through {@code Mods.modLoader()}.
+     * Do not call this before {@code Mods} has bootstrapped.
      *
      * @return                  Atlantis' own event listeners.
      */
@@ -142,7 +142,7 @@ public class Atlantis {
     }
 
     /**
-     * Always false, as no UUID is registered for the author account. Use a name-based overload instead.
+     * Always false, because no UUID is registered for the author account. Use a name-based overload instead.
      *
      * @param       uuid        The UUID to check.
      * @return                  false.

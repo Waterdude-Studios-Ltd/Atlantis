@@ -9,8 +9,8 @@ import net.minecraft.resources.ResourceKey;
 
 /**
  * GameTestLevels registers an Atlantis level through REGISTRY_INJECT before the server loads its registries.
- * A GameTest server builds its dimensions from the flat preset alone, so the level stem is created but no
- * ServerLevel is made from it, unlike on a normal server.
+ * A GameTest server builds its dimensions only from the flat preset. Thus, the server creates the level stem, but it
+ * does not make a ServerLevel from it. A normal server makes the ServerLevel.
  */
 public final class RegistryInjectGameTest {
 

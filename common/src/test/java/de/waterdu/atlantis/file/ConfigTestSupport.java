@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
 /**
- * Helpers for the config system tests. Most config work runs on Atlantis' thread pool, so tests wait for its results.
+ * Helpers for the config system tests. Most config work runs on Atlantis' thread pool. Thus, tests wait for its
+ * results.
  */
 final class ConfigTestSupport {
 
@@ -62,7 +63,7 @@ final class ConfigTestSupport {
         }
     }
 
-    /** Registers a config directly, like AtlantisConfigFinder does, and returns it. */
+    /** Registers a config directly, as AtlantisConfigFinder does, and returns it. */
     static <T extends Configuration> Config<T> register(Class<T> clazz, Storage storage) {
         return register(clazz, storage, false, false);
     }

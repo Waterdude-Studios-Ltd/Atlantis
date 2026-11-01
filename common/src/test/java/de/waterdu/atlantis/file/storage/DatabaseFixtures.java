@@ -171,6 +171,6 @@ final class DatabaseFixtures {
         }
     }
 
-    /** The same data under a second config, standing in for another server on the same Redis channel. */
+    /** The same data under a second config. It represents another server on the same Redis channel. */
     public static class RedisReplica extends RedisRecord {}
 }

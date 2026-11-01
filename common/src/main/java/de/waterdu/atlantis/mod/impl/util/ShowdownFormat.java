@@ -42,7 +42,7 @@ public final class ShowdownFormat {
     }
 
     /**
-     * Parses every set in the text. Sets whose species can't be found are skipped.
+     * Parses every set in the text. Skips sets whose species it cannot find.
      *
      * @param formAliases maps Showdown forme names to the mod's form names, matched case-insensitively
      */

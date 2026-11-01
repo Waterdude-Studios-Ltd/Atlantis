@@ -24,8 +24,9 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 /**
- * Installs a fresh {@link TestModLoader} as {@code Mods.modLoader()} before each test, with its own temporary config
- * directory, and resets Atlantis' global state afterwards. Tests can take the {@link TestModLoader} as a parameter.
+ * Before each test, installs a new {@link TestModLoader} as {@code Mods.modLoader()}. The loader has its own temporary
+ * config directory. After each test, resets the global state of Atlantis. Tests can take the {@link TestModLoader} as
+ * a parameter.
  */
 public final class AtlantisTestEnvironment implements BeforeEachCallback, AfterEachCallback, ParameterResolver {
 

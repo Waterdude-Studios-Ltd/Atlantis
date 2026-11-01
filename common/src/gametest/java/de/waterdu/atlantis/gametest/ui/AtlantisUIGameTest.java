@@ -43,9 +43,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 /**
- * AtlantisUI on a mock player. Pages are built and clicks handled on Atlantis' shared thread pool, which every
- * player join also uses for a blocking Mojang skin lookup. A GameTest server ticks unthrottled, so the wait for the
- * pool is many ticks: the timeout covers roughly two minutes of that.
+ * AtlantisUI on a mock player. Atlantis builds pages and handles clicks on its shared thread pool. Every player join
+ * also uses this pool for a blocking Mojang skin lookup. A GameTest server ticks without a throttle. Thus, the wait
+ * for the pool lasts many ticks. The timeout covers approximately two minutes of these ticks.
  */
 public final class AtlantisUIGameTest {
 

@@ -41,7 +41,7 @@ public abstract class DatabaseSettings {
         this.properties = properties;
     }
 
-    public abstract Database storage(String modid);
+    public abstract Database storage(String modId);
 
     public int connections() {
         return this.connections;
@@ -77,8 +77,8 @@ public abstract class DatabaseSettings {
         }
 
         @Override
-        public Database storage(String modid) {
-            return new Database(this.url, modid, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
+        public Database storage(String modId) {
+            return new Database(this.url, modId, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
         }
     }
 
@@ -110,8 +110,8 @@ public abstract class DatabaseSettings {
         }
 
         @Override
-        public Database storage(String modid) {
-            return new Database(modid, this.ip, this.port, this.username, this.password, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
+        public Database storage(String modId) {
+            return new Database(modId, this.ip, this.port, this.username, this.password, this.minIdle, this.connections(), this.connectionTimeout, this.idleTimeout, this.leakDetection, this.propertyArray());
         }
     }
 

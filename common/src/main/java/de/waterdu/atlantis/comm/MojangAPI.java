@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 public final class MojangAPI {
 
     /**
-     * Single point of access for requesting something from the Mojang API.
+     * Single point of access for requests to the Mojang API.
      * Uses {@link Query}, a type-bounded {@link Runnable}.
      * <p>
      * Available default queries:
@@ -17,11 +17,11 @@ public final class MojangAPI {
      * {@link UsernameQuery}, returns a {@link String}.
      * {@link UUIDQuery}, returns a {@link UUID}.
      * <p>
-     * Information obtained this way is also automatically cached by Atlantis. See {@link AtlantisData}.
+     * Atlantis also caches the information from these requests automatically. See {@link AtlantisData}.
      *
      * @param query The {@link Query} to submit to Mojang.
-     * @return A future which will be completed with the result of the {@link Query}.
-     * If nothing comes back, null will be returned.
+     * @return A future that completes with the result of the {@link Query}.
+     * If nothing comes back, the result is null.
      * @param <T> The type returned by the {@link Query} used.
      */
     public static <T> CompletableFuture<T> query(Query<T> query) {

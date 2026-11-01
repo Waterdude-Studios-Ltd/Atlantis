@@ -24,8 +24,8 @@ import static de.waterdu.atlantis.file.StorageTestConfigs.awaitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Redis storage against a real Redis server. Two configs on the same channel stand in for two servers. Needs
- * Docker; skipped without it.
+ * Redis storage against a real Redis server. Two configs on the same channel represent two servers. Needs Docker.
+ * Without Docker, the test is skipped.
  */
 @Tag("integration")
 @Testcontainers(disabledWithoutDocker = true)

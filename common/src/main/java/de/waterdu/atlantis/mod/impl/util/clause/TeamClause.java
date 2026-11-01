@@ -16,8 +16,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Battle clauses written against the wrappers, for Pokémon mods without a clause system of their own. A clause with
- * a Showdown rule is also enforced by Showdown during the battle.
+ * Battle clauses written against the wrappers, for Pokémon mods that do not have their own clause system. Showdown
+ * also enforces a clause that has a Showdown rule during the battle.
  */
 public final class TeamClause extends UBattleClause<String> {
 

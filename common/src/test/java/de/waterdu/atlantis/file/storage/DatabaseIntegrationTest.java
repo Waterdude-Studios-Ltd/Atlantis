@@ -23,7 +23,7 @@ import static de.waterdu.atlantis.file.StorageTestConfigs.await;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Database storage against a real MySQL server. Needs Docker; skipped without it.
+ * Database storage against a real MySQL server. Requires Docker. The tests are skipped if Docker is not available.
  */
 @Tag("integration")
 @Testcontainers(disabledWithoutDocker = true)

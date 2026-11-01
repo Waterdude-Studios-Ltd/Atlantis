@@ -15,8 +15,8 @@ public class ConfigurationHolder<C extends Configuration> {
     private final ReentrantLock lock = new ReentrantLock();
     private final ResettableLazy<C> instance;
 
-    private ConfigurationHolder(String modid, Class<C> type) {
-        this.instance = ResettableLazy.concurrentOf(() -> AtlantisConfigProxy.of(modid).get(type));
+    private ConfigurationHolder(String modId, Class<C> type) {
+        this.instance = ResettableLazy.concurrentOf(() -> AtlantisConfigProxy.of(modId).get(type));
     }
 
     @VisibleForTesting
@@ -29,8 +29,8 @@ public class ConfigurationHolder<C extends Configuration> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <C extends Configuration> ConfigurationHolder<C> of(String modid, Class<C> type) {
-        return (ConfigurationHolder<C>) HOLDERS.computeIfAbsent(type, c -> new ConfigurationHolder<>(modid, (Class<C>) c));
+    public static <C extends Configuration> ConfigurationHolder<C> of(String modId, Class<C> type) {
+        return (ConfigurationHolder<C>) HOLDERS.computeIfAbsent(type, c -> new ConfigurationHolder<>(modId, (Class<C>) c));
     }
 
     protected static void invalidateOf(Class<?> type) {

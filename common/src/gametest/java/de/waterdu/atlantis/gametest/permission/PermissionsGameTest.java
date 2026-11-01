@@ -9,8 +9,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Atlantis' default groups: "user" (everyone, permission level 0) grants *.user.+, "admin" (operators, level 2)
- * grants *.admin.+.
+ * The default groups of Atlantis: The "user" group (everyone, permission level 0) grants *.user.+. The "admin" group
+ * (operators, level 2) grants *.admin.+.
  */
 public final class PermissionsGameTest {
 

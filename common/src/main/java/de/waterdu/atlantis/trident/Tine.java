@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks the main class of a Tine, a mod loaded by the {@link Trident}. A Tine jar may contain at most one.
- * The Tine's ID, version, and dependencies are declared in a {@code tine.json} in the jar's resources.
+ * Marks the main class of a Tine. A Tine is a mod that the {@link Trident} loads. A Tine jar can contain at most one
+ * main class. A {@code tine.json} file in the jar's resources declares the Tine's ID, version, and dependencies.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
@@ -16,8 +16,8 @@ import java.lang.annotation.Target;
 public @interface Tine {
 
     /**
-     * Marks the static, parameterless initialization method of a Tine. Barbs are called in Tine load order once
-     * {@link de.waterdu.atlantis.mod.Mods} has bootstrapped, before any other bootstrap entrypoints and
+     * Marks the static, parameterless initialization method of a Tine. Trident calls barbs in Tine load order after
+     * {@link de.waterdu.atlantis.mod.Mods} has bootstrapped. It calls them before all other bootstrap entrypoints and
      * modloader-specific lifecycle events.
      */
     @Retention(RetentionPolicy.RUNTIME)

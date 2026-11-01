@@ -37,8 +37,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Database {@link Storage} implementation for AquaConfig.
  * <p>
- * Details will be gotten from the {@link Config} instance where possible.
- * Alternatively, when passing through properties, make sure to include the following at a minimum:
+ * The details come from the {@link Config} instance where possible.
+ * If you pass properties instead, include at least the following:
  * - serverName
  * - port
  * - databaseName

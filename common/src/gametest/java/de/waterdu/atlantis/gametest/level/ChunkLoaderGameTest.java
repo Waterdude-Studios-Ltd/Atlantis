@@ -9,7 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.ChunkPos;
 
 /**
- * Chunk forcing through AtlantisChunkLoader. Each test uses its own chunks, far from the test structures.
+ * Tests chunk forcing through AtlantisChunkLoader. Each test uses its own chunks, far from the test structures.
  */
 public final class ChunkLoaderGameTest {
 

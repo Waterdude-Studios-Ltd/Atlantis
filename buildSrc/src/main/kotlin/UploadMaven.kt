@@ -17,9 +17,10 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
- * Uploads a staged maven repository. Remote `maven-metadata.xml` files are merged with the staged ones so existing
- * versions stay listed, and released versions that are already on the server are only overwritten with [force].
- * The repository's index page is regenerated afterwards. With [dryRun], the server is read but nothing is written.
+ * Uploads a staged maven repository. The task merges remote `maven-metadata.xml` files with the staged ones, so that
+ * existing versions stay listed. The task overwrites released versions that are already on the server only with
+ * [force]. Then, the task regenerates the repository's index page. With [dryRun], the task reads the server but
+ * writes nothing.
  */
 @DisableCachingByDefault(because = "Uploads to a remote server")
 abstract class UploadMaven : SftpTask() {

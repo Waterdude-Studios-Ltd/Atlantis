@@ -85,7 +85,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Makes {@link #compile()} ignore colour codes. Changes this text, or returns a mutable copy if it is {@link Immutable}.
+     * Makes {@link #compile()} ignore color codes. Changes this text, or returns a mutable copy if it is {@link Immutable}.
      */
     public Text raw() {
         this.raw = true;
@@ -101,7 +101,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Makes {@link #compile()} treat the value as a translation key, ignoring colour codes.
+     * Makes {@link #compile()} treat the value as a translation key and ignore color codes.
      * Changes this text, or returns a mutable copy if it is {@link Immutable}.
      */
     public Text translatable() {
@@ -250,7 +250,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @return                  The uncompiled value, including colour codes.
+     * @return                  The uncompiled value, including color codes.
      */
     public String get() {
         return this.value;
@@ -293,7 +293,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Treats this text as a command, to be given a source and placeholders before it is executed.
+     * Treats this text as a command. Give the command a source and placeholders before it executes.
      */
     public Command.CommandContext prepareCommand() {
         return Command.of(this).prepareContext();
@@ -309,8 +309,8 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Compiles to a component: a translatable one if {@link #translatable()} was called, a literal one if {@link #raw()}
-     * was called, otherwise one with colour codes applied by {@link TextUtils#colorize(String)}.
+     * Compiles to a component. The component is translatable if {@link #translatable()} was called. It is literal if
+     * {@link #raw()} was called. Otherwise, {@link TextUtils#colorize(String)} applies the color codes.
      *
      * @param       ifEmptyAddSpace     Whether empty text becomes a single space. Ignored for translatable text.
      * @return                          A new component.
@@ -364,7 +364,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Also true for a {@link String} with the same value, though the string won't consider itself equal to this.
+     * Also true for a {@link String} with the same value. But the string does not consider itself equal to this text.
      */
     @Override
     public boolean equals(Object obj) {
@@ -410,7 +410,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * Stores the value as a plain string, so the raw and translatable flags are lost.
+     * Stores the value as a plain string. Thus, the raw and translatable flags are lost.
      */
     public static class TypeAdapter implements JsonSerializer<Text>, JsonDeserializer<Text> {
 
@@ -498,8 +498,8 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * Stores the value as a plain string, or as an object with {@code value}, {@code raw} and {@code translate}
-         * when either flag is set.
+         * Stores the value as a plain string. If either flag is set, stores the value as an object with
+         * {@code value}, {@code raw} and {@code translate}.
          */
         public static class TypeAdapter implements JsonSerializer<Immutable>, JsonDeserializer<Immutable> {
 
@@ -532,7 +532,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @return                  A builder for text with colour codes.
+     * @return                  A builder for text with color codes.
      */
     public static Builder builder() {
         return new Builder();
@@ -557,7 +557,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * Appends a vanilla colour or style code for each format.
+         * Appends a vanilla color or style code for each format.
          */
         public Builder style(ChatFormatting... styles) {
             for (var style : styles) {
@@ -567,10 +567,10 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * Appends a hex colour code, which applies until the next code.
+         * Appends a hex color code. The code applies until the next code.
          *
-         * @param       color       The colour.
-         * @param       styles      Styles to apply alongside the colour.
+         * @param       color       The color.
+         * @param       styles      Styles to apply with the color.
          * @return                  This builder.
          */
         public Builder color(Color color, ChatFormatting... styles) {
@@ -581,11 +581,11 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * Appends a gradient code, which spreads over the text until the next code.
+         * Appends a gradient code. The gradient spreads over the text until the next code.
          *
-         * @param       from        The colour of the first character.
-         * @param       to          The colour of the last character.
-         * @param       styles      Styles to apply alongside the gradient.
+         * @param       from        The color of the first character.
+         * @param       to          The color of the last character.
+         * @param       styles      Styles to apply with the gradient.
          * @return                  This builder.
          */
         public Builder gradient(Color from, Color to, ChatFormatting... styles) {

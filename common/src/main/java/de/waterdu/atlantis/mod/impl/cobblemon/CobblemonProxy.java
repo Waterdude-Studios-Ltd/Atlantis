@@ -466,8 +466,8 @@ public class CobblemonProxy implements PokemonDelegate {
     }
 
     /**
-     * The party a player battles with: their real party when nothing needs changing, otherwise a store of copies
-     * trimmed to the team size and lowered to the level cap.
+     * The party that a player battles with. This is their real party when no change is necessary. Otherwise, it is a
+     * store of copies, trimmed to the team size and lowered to the level cap.
      */
     private PartyStore battleParty(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, BattleSettings settings) {
         var party = Cobblemon.INSTANCE.getStorage().getParty(player);

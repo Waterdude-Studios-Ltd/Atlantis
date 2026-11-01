@@ -27,7 +27,7 @@ public interface Page {
     /**
      * Returns the {@link PageOptions} object for all pages.
      *
-     * @param player The user this page is being shown to.
+     * @param player The user that sees this page.
      * @return The options to apply to this page.
      * @see PageOptions
      */
@@ -36,23 +36,23 @@ public interface Page {
     }
 
     /**
-     * Add buttons to a page in order to be shown.
+     * Adds the buttons that the page shows.
      * Buttons are instances of {@link Button}.
      *
-     * @param player The user this page is being shown to.
-     * @param collector The button collector to supply buttons to.
+     * @param player The user that sees this page.
+     * @param collector The button collector that receives the buttons.
      * @see                         Button
      */
     default void addButtons(PlayerReference player, final ButtonCollector collector) {}
 
     /**
-     * Called when a button on the page is pressed.
+     * Called when the user presses a button on the page.
      *
-     * @param player The user this page is being shown to.
-     * @param index The index of the button pressed.
+     * @param player The user that sees this page.
+     * @param index The index of the pressed button.
      * @param click The {@link Click} representing the user's action.
      *
-     * @deprecated Use functional style click handlers instead, see {@link Button.Builder} methods.
+     * @deprecated Use functional click handlers instead. See the {@link Button.Builder} methods.
      */
     @Deprecated
     default void onButtonClick(PlayerReference player, int index, Click click) {}
@@ -61,9 +61,9 @@ public interface Page {
      * Called each tick.
      *
      * @param tick The tick this call represents.
-     * @param player The user this page is being shown to.
+     * @param player The user that sees this page.
      * @param buttons The buttons object for this page.
-     * @return The buttons to now show on this page.
+     * @return The buttons that this page now shows.
      * @see Buttons
      */
     default Buttons onUpdate(long tick, PlayerReference player, Buttons buttons) {
@@ -71,33 +71,33 @@ public interface Page {
     }
 
     /**
-     * Called when the page is about to be closed.
+     * Called before the page closes.
      *
-     * @param player The user this page is being shown to.
-     * @return Whether to continue with the closure.
+     * @param player The user that sees this page.
+     * @return Whether to continue to close the page.
      */
     default boolean onClose(PlayerReference player) {
         return true;
     }
 
     /**
-     * Called after the page is closed.
+     * Called after the page closes.
      *
-     * @param player The user this page is being shown to.
+     * @param player The user that sees this page.
      */
     default void afterClose(PlayerReference player) {}
 
     /**
-     * Called when a draggable page has been changed.
+     * Called when a draggable page changes.
      *
-     * @param player The user this page is being shown to.
+     * @param player The user that sees this page.
      * @param inventory The inventory of this page.
-     * @param closed Whether this change occurred due to the page being closed or not.
+     * @param closed Whether the page closure caused this change.
      */
     default void onChanged(PlayerReference player, AtlantisInventoryInternal inventory, boolean closed) {}
 
     /**
-     * Open the page for a given player.
+     * Opens the page for a player.
      *
      * @param player The user to show this page to.
      */
@@ -106,7 +106,7 @@ public interface Page {
     }
 
     /**
-     * Open the page for a given player.
+     * Opens the page for a player.
      *
      * @param player The user to show this page to.
      */
@@ -115,9 +115,9 @@ public interface Page {
     }
 
     /**
-     * Marker for whether this page should be used for page closure, due to how {@link ConcurrentHashMap} is
+     * Marker for whether to use this page for page closure, because of how {@link ConcurrentHashMap} is
      * implemented.
-     * This should probably be left alone if you don't know what this is for.
+     * If you do not know what this is for, it is best not to change it.
      *
      * @return Whether this page is a closure marker.
      */

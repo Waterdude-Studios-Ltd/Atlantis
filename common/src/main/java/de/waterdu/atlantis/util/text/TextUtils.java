@@ -23,11 +23,11 @@ import java.util.regex.Pattern;
 public final class TextUtils {
 
     /**
-     * Prefix of the numbered placeholders filled in by {@link #format(String, Object...)}, as in {@code %1}.
+     * Prefix of the numbered placeholders that {@link #format(String, Object...)} replaces, for example {@code %1}.
      */
     public static final String PLACEHOLDER_CHAR = "%";
     /**
-     * Colour code prefix accepted by {@link #colorize(String)}, converted to {@link #TRUE_COLOR_CHAR}.
+     * Color code prefix that {@link #colorize(String)} accepts and converts to {@link #TRUE_COLOR_CHAR}.
      */
     public static final String COLOR_CHAR = "&";
     /**
@@ -35,22 +35,22 @@ public final class TextUtils {
      */
     public static final String TRUE_COLOR_CHAR = "§";
     /**
-     * Marks a hex colour code, as in {@code &#RRGGBB}.
+     * Marks a hex color code, for example {@code &#RRGGBB}.
      */
     public static final String HEX_CHAR = "#";
     /**
-     * Marks a gradient colour code, as in {@code &#@RRGGBB-RRGGBB}.
+     * Marks a gradient color code, for example {@code &#@RRGGBB-RRGGBB}.
      */
     public static final String GRADIENT_CHAR = "@";
     public static final String HEX_PATTERN = TextUtils.TRUE_COLOR_CHAR + TextUtils.HEX_CHAR;
     public static final String GRADIENT_PATTERN = TextUtils.HEX_PATTERN + TextUtils.GRADIENT_CHAR;
     /**
-     * {@link String#format} pattern that turns red, green and blue values from 0 to 255 into a hex colour.
+     * {@link String#format} pattern that turns red, green and blue values from 0 to 255 into a hex color.
      */
     public static final String COLOR_FORMAT = "#%02x%02x%02x";
     public static final Pattern NON_ALPHANUMERIC_PATTERN = Pattern.compile("[^a-zA-Z0-9]");
     /**
-     * Style array with every style off. Shared, so it must not be modified.
+     * Style array with every style off. This array is shared, so do not modify it.
      *
      * @see #getStyleArray(String)
      */
@@ -64,7 +64,7 @@ public final class TextUtils {
     /**
      * Replaces {@code %1}, {@code %2} and so on with the matching argument.
      *
-     * @param       in          The text to fill in.
+     * @param       in          The text that contains the placeholders.
      * @param       args        The values for each placeholder, starting at {@code %1}. Components lose their styling.
      * @return                  A new {@link Text}.
      */
@@ -75,7 +75,7 @@ public final class TextUtils {
     /**
      * Replaces {@code %1}, {@code %2} and so on with the matching argument.
      *
-     * @param       in          The text to fill in.
+     * @param       in          The text that contains the placeholders.
      * @param       args        The values for each placeholder, starting at {@code %1}. Components lose their styling.
      * @return                  A new {@link Text}.
      */
@@ -92,16 +92,16 @@ public final class TextUtils {
     }
 
     /**
-     * Turns a string with colour codes into a component. Codes can start with {@code &} or {@code §}.
+     * Turns a string with color codes into a component. Codes can start with {@code &} or {@code §}.
      * <ul>
-     *     <li>{@code &a}, {@code &l} and the other vanilla codes are kept as legacy formatting.</li>
-     *     <li>{@code &#RRGGBB} colours the text up to the next code.</li>
-     *     <li>{@code &#@RRGGBB-RRGGBB[-RRGGBB...]} spreads a gradient over the text up to the next code. It needs at least two colours.</li>
-     *     <li>Either hex form can be followed by style codes in brackets, such as {@code &#FF0000[lo]}. See {@link #getStyleArray(String)}.</li>
+     *     <li>{@code &a}, {@code &l} and the other vanilla codes stay as legacy formatting.</li>
+     *     <li>{@code &#RRGGBB} colors the text up to the next code.</li>
+     *     <li>{@code &#@RRGGBB-RRGGBB[-RRGGBB...]} applies a gradient to the text up to the next code. It must have at least two colors.</li>
+     *     <li>Each hex form can have style codes in brackets after it, for example {@code &#FF0000[lo]}. See {@link #getStyleArray(String)}.</li>
      * </ul>
      *
-     * @param       in          The string to colourise.
-     * @return                  The colourised component, or an empty component if there is no text.
+     * @param       in          The string to colorize.
+     * @return                  The colorized component, or an empty component if there is no text.
      */
     public static MutableComponent colorize(String in) {
         in = in.replace(TextUtils.COLOR_CHAR, TextUtils.TRUE_COLOR_CHAR);
@@ -284,9 +284,9 @@ public final class TextUtils {
     }
 
     /**
-     * Joins all strings, swapping the one at {@code exceptIndex} for {@code exceptString}.
+     * Joins all strings, but replaces the string at {@code exceptIndex} with {@code exceptString}.
      *
-     * @param       exceptIndex     The index of the string to swap.
+     * @param       exceptIndex     The index of the string to replace.
      * @param       exceptString    The string to put in its place.
      * @param       delimiter       The separator between strings.
      * @param       strings         The strings to join.
@@ -308,7 +308,7 @@ public final class TextUtils {
     }
 
     /**
-     * Removes every character outside ASCII. ASCII punctuation is kept.
+     * Removes every character that is not ASCII. ASCII punctuation stays.
      */
     public static String stripSpecialCharacters(String in) {
         return CharMatcher.ascii().retainFrom(in);
@@ -338,7 +338,8 @@ public final class TextUtils {
     }
 
     /**
-     * Applies a style array to the component and all of its siblings, turning off any style the array doesn't set.
+     * Applies a style array to the component and all of its siblings.
+     * This turns off any style that the array does not set.
      *
      * @param       text        The component to style.
      * @param       style       An array from {@link #getStyleArray(String)}.
@@ -360,12 +361,12 @@ public final class TextUtils {
     }
 
     /**
-     * Converts to {@link Text} as {@link #asText(Object)} does, then fills in placeholders for each context in order.
-     * Placeholders are left as they are when no placeholder provider is installed.
+     * Converts the object to {@link Text} as {@link #asText(Object)} does. Then replaces the placeholders for each
+     * context in order. If no placeholder provider is installed, the placeholders do not change.
      *
      * @param       textLike    The text to convert.
      * @param       contexts    The objects to resolve placeholders against, such as a player.
-     * @return                  The text with placeholders filled in.
+     * @return                  The text with the placeholders replaced.
      */
     public static Text asTextWithPlaceholders(Object textLike, Object... contexts) {
         var text = TextUtils.asText(textLike);
@@ -376,12 +377,12 @@ public final class TextUtils {
     }
 
     /**
-     * Converts to {@link Text} as {@link #asText(Object)} does, then fills in placeholders for each context in order.
-     * Placeholders are left as they are when no placeholder provider is installed.
+     * Converts the object to {@link Text} as {@link #asText(Object)} does. Then replaces the placeholders for each
+     * context in order. If no placeholder provider is installed, the placeholders do not change.
      *
      * @param       textLike    The text to convert.
      * @param       contexts    The objects to resolve placeholders against, such as a player.
-     * @return                  The text with placeholders filled in.
+     * @return                  The text with the placeholders replaced.
      */
     public static Text asTextWithPlaceholders(Object textLike, Collection<Object> contexts) {
         var text = TextUtils.asText(textLike);
@@ -421,7 +422,7 @@ public final class TextUtils {
 
     /**
      * @param       textLike    A component, which is returned as-is, a {@link Text}, which is compiled,
-     *                          or any other object, which is converted with toString and colourised. Must not be null.
+     *                          or any other object, which is converted with toString and colorized. Must not be null.
      * @return                  The object as a component.
      */
     public static MutableComponent asComponent(Object textLike) {
@@ -436,7 +437,7 @@ public final class TextUtils {
 
     /**
      * @param       textLike    A component, a {@link Text}, or any other object. Must not be null.
-     * @return                  The component's plain text, the {@link Text}'s uncompiled string with its colour codes,
+     * @return                  The component's plain text, the {@link Text}'s uncompiled string with its color codes,
      *                          or the object's toString.
      */
     public static String asString(Object textLike) {
@@ -450,7 +451,8 @@ public final class TextUtils {
     }
 
     /**
-     * Converts each element with {@link #asText(Object)}. {@link Text} elements are reused, so they may be immutable.
+     * Converts each element with {@link #asText(Object)}.
+     * This method reuses {@link Text} elements, so they can be immutable.
      */
     public static Text[] toArray(Object[] textLikes) {
         var texts = new Text[textLikes.length];
@@ -489,7 +491,7 @@ public final class TextUtils {
     }
 
     /**
-     * Useful for checking that brackets are balanced.
+     * Use this to check that brackets are balanced.
      *
      * @return                  The number of {@code add} characters minus the number of {@code subtract} characters.
      */
@@ -529,7 +531,7 @@ public final class TextUtils {
     }
 
     /**
-     * Title-cases the string, leaving short words such as "the" and "of" in lower case after the first word.
+     * Converts the string to title case. After the first word, short words such as "the" and "of" stay in lower case.
      *
      * @see #capitalizeEachWord(String, Set)
      */
@@ -538,12 +540,12 @@ public final class TextUtils {
     }
 
     /**
-     * Lower-cases the string, then capitalises each word separated by a space.
-     * The first word is always capitalised.
+     * Converts the string to lower case, then capitalizes each word separated by a space.
+     * The first word is always capitalized.
      *
-     * @param       in                  The string to capitalise.
+     * @param       in                  The string to capitalize.
      * @param       doNotCapitalize     Lower case words to leave as they are after the first word.
-     * @return                          The capitalised string.
+     * @return                          The capitalized string.
      */
     public static String capitalizeEachWord(String in, Set<String> doNotCapitalize) {
         var builder = new StringBuilder();

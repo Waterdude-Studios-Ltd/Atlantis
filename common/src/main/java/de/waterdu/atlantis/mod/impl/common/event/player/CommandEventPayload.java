@@ -9,7 +9,7 @@ import net.minecraft.commands.CommandSourceStack;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Fires before a parsed command runs, from any source. Cancelling it stops the command silently.
+ * Fires before a parsed command from any source runs. If a listener cancels it, the command stops silently.
  */
 public class CommandEventPayload implements EventPayload, Cancellable {
 
@@ -40,7 +40,7 @@ public class CommandEventPayload implements EventPayload, Cancellable {
     }
 
     /**
-     * The first literal of the command as it was typed, such as {@code tp} for {@code /tp @s ~ ~ ~}.
+     * The first literal of the command, as typed, for example {@code tp} for {@code /tp @s ~ ~ ~}.
      */
     public @Nullable String rootLiteral() {
         var nodes = this.parse.getContext().getNodes();

@@ -21,7 +21,7 @@ public class PixelmonBattleClause extends UBattleClause<Holder.Reference<BattleR
     }
 
     /**
-     * The rule's id, without the namespace for Pixelmon's own rules, such as {@code species_clause}.
+     * The rule's id. For Pixelmon's own rules, the id has no namespace, for example {@code species_clause}.
      */
     @Override
     public String id() {

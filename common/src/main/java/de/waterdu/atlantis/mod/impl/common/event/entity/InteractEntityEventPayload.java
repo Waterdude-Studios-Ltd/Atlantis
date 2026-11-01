@@ -10,9 +10,9 @@ import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Fires on the server thread when a player attacks or right-clicks an entity, before the entity or any mod
- * handles it. A single right-click usually arrives as an {@link Action#INTERACT_AT} followed by an
- * {@link Action#INTERACT}, once per hand, so a listener that takes over right-clicks should cancel both.
+ * Fires on the server thread when a player attacks or right-clicks an entity. It fires before the entity or any mod
+ * handles the action. A single right-click usually arrives as an {@link Action#INTERACT_AT} and then an
+ * {@link Action#INTERACT}, once for each hand. Thus, a listener that takes over right-clicks should cancel both.
  */
 public class InteractEntityEventPayload implements EventPayload, Cancellable {
 

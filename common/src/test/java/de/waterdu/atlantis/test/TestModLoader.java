@@ -26,8 +26,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 /**
- * A {@link ModLoaderDelegate} for JUnit tests, with no server unless a test provides one. Tests control the loaded
- * mods and the classes the annotation scan reports. Block hooks allow everything.
+ * A {@link ModLoaderDelegate} for JUnit tests. It has no server unless a test provides one. Tests control the loaded
+ * mods and the classes that the annotation scan reports. Block hooks allow everything.
  */
 public final class TestModLoader implements ModLoaderDelegate {
 
@@ -55,7 +55,7 @@ public final class TestModLoader implements ModLoaderDelegate {
         return this;
     }
 
-    /** Reports a class name from the annotation scan without loading it, e.g. one that does not exist. */
+    /** Reports a class name from the annotation scan without loading it, for example one that does not exist. */
     public TestModLoader annotatedName(Class<? extends Annotation> annotation, String className) {
         this.annotatedClasses.computeIfAbsent(annotation, __ -> new ArrayList<>()).add(className);
         return this;
@@ -71,7 +71,7 @@ public final class TestModLoader implements ModLoaderDelegate {
         return UEventBus.SinkEventBus.INSTANCE;
     }
 
-    /** Reports the given server, typically a mock, from {@link #server()}. */
+    /** Reports the given server, usually a mock, from {@link #server()}. */
     public TestModLoader server(@Nullable MinecraftServer server) {
         this.server = server;
         return this;

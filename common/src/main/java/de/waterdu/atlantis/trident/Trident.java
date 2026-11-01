@@ -34,22 +34,23 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Due to the NeoForge/Fabric proxies present within Atlantis, mods that depend on Atlantis don't strictly need to know
- * about either launcher.
- * As such, we want to manage the loading of such mods ourselves.
- * This loading functionality is called "Trident", with an individual mod a "Tine".
- * These JARs should be placed within "./config/atlantis/trident" and describe themselves with a
- * {@value TineMetadata#FILE_NAME}.
- * These are loaded before anything else, so they can still register lifecycle listeners via loader proxies and
- * set up anything they need to. Their {@link Bootstrapped} and config classes are discovered alongside Atlantis' own.
- * They are loaded onto Atlantis' classloader where the modloader allows it (Fabric), or otherwise a shared child
- * classloader that Atlantis and other mods can still resolve classes from (NeoForge), and are accessible to one
- * another.
- * Mixin configs listed in a Tine's {@value TineMetadata#FILE_NAME} are registered once its jar is on the classpath.
- * Fabric discovers Tines at preLaunch so that those mixins can target nearly any class, while NeoForge can only
- * discover them during mod construction, after much of the game has loaded.
- * During development, one further Tine can be loaded from the paths in the {@value #DEV_PROPERTY} system property,
- * joined by {@link File#pathSeparator}, which the Tine Gradle plugin sets on its runs.
+ * Atlantis has NeoForge and Fabric proxies. Thus, mods that depend on Atlantis do not strictly need to know about
+ * either launcher.
+ * For this reason, Atlantis manages the loading of these mods itself.
+ * This loading system is called "Trident", and an individual mod is called a "Tine".
+ * Put these JARs in "./config/atlantis/trident". Each JAR describes itself with a {@value TineMetadata#FILE_NAME}.
+ * Trident loads them before anything else. Thus, they can still register lifecycle listeners through loader proxies
+ * and set up everything they need. Their {@link Bootstrapped} and config classes are discovered together with the
+ * classes of Atlantis.
+ * Where the mod loader allows it (Fabric), Trident loads them onto the classloader of Atlantis. Otherwise (NeoForge),
+ * Trident loads them onto a shared child classloader. Atlantis and other mods can still resolve classes from that
+ * classloader. Tines can access one another.
+ * When the jar of a Tine is on the classpath, Trident registers the mixin configs that its
+ * {@value TineMetadata#FILE_NAME} lists.
+ * Fabric discovers Tines at preLaunch, so their mixins can target nearly any class. NeoForge can only discover them
+ * during mod construction, after much of the game has loaded.
+ * During development, Trident can load one more Tine from the paths in the {@value #DEV_PROPERTY} system property.
+ * The paths are joined by {@link File#pathSeparator}. The Tine Gradle plugin sets this property on its runs.
  */
 @Bootstrapped(order = -50)
 public final class Trident {

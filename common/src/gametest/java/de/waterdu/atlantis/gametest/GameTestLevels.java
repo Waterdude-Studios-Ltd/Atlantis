@@ -14,8 +14,8 @@ import net.minecraft.world.level.Level;
 import java.lang.reflect.Method;
 
 /**
- * An Atlantis level the test mod registers before the server loads its registries, so REGISTRY_INJECT can be
- * tested without writing Atlantis' level config first.
+ * An Atlantis level that the test mod registers before the server loads its registries. This lets the tests check
+ * REGISTRY_INJECT without writing Atlantis' level config first.
  */
 public final class GameTestLevels {
 

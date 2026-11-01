@@ -17,8 +17,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Emits CHAT before a validated message is broadcast, and PLAYER_INTERACT_ENTITY once the interaction has passed
- * the range and world border checks, just before it is dispatched to the entity.
+ * Emits CHAT before the server broadcasts a validated message. Emits PLAYER_INTERACT_ENTITY after the interaction
+ * passes the range and world border checks, immediately before the server dispatches it to the entity.
  */
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class MixinServerGamePacketListenerImpl {

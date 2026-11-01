@@ -62,8 +62,8 @@ public abstract class BattleEventPayload extends PokemonModEventPayload {
     }
 
     /**
-     * A battle has ended. Every participant has a result; a battle ended by force or by a player fleeing gives the
-     * remaining participants a draw.
+     * A battle has ended. Every participant has a result. If a battle ends by force or because a player flees, the
+     * remaining participants get a draw.
      */
     public static class End extends BattleEventPayload {
 

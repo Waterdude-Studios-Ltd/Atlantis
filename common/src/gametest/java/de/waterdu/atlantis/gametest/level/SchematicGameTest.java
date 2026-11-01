@@ -26,13 +26,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Schematic loading, placing and undoing. The fixture is written when the tests are first run:
+ * Tests that load, place and undo schematics. The first test run writes the fixture:
  * <pre>
  *   y=1:  air    stone
  *   y=0:  stone  chest (5 diamonds in slot 0)
  *         x=0    x=1
  * </pre>
- * The schematic history is global, so tests that undo run in batches where nothing else places a schematic.
+ * The schematic history is global. Thus, tests that undo run in batches where no other test places a schematic.
  */
 public final class SchematicGameTest {
 

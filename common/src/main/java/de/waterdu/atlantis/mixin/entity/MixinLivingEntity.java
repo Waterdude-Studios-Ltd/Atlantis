@@ -13,9 +13,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 /**
- * Emits ACTUALLY_HURT in {@code actuallyHurt}, where the damage left after armour, effects and absorption is
- * recorded and then taken from health. Listeners can change or cancel that damage. {@code Player} overrides
- * {@code actuallyHurt}, so {@code MixinPlayer} repeats these injectors.
+ * Emits ACTUALLY_HURT in {@code actuallyHurt}. That method records the damage that remains after armor, effects and
+ * absorption, and then removes it from health. Listeners can change or cancel that damage. {@code Player} overrides
+ * {@code actuallyHurt}. Thus, {@code MixinPlayer} repeats these injectors.
  */
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity {

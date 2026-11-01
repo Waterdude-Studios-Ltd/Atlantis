@@ -31,7 +31,7 @@ public class ReceivedEventPayload extends PokemonEventPayload {
     }
 
     /**
-     * How the Pokémon was received, as named by the Pokémon mod, or {@link #UNKNOWN_CAUSE} if the mod does not say.
+     * How the Pokémon was received, as the Pokémon mod names it, or {@link #UNKNOWN_CAUSE} if the mod does not say.
      */
     public String cause() {
         return this.cause;

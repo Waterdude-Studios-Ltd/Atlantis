@@ -35,7 +35,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
- * Class for registering various elements for use by an AtlantisLevel.
+ * Registers elements that an AtlantisLevel uses.
  */
 @Bootstrapped
 public final class AtlantisLevelRegistry {
@@ -82,11 +82,11 @@ public final class AtlantisLevelRegistry {
 
     /**
      * Registers a new {@link ChunkGenerator}.
-     * Should be done during mod initialization.
+     * Do this during mod initialization.
      *
      * @param namespace The namespace of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
      * @param path The path of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
-     * @param chunkGenerator Function of {@link String} args to the actual {@link ChunkGenerator}.
+     * @param chunkGenerator Function that converts {@link String} arguments to the {@link ChunkGenerator}.
      * @return The {@link ResourceLocation} key of this {@link ChunkGenerator}.
      */
     public static ResourceLocation registerChunkGenerator(String namespace, String path, ChunkGeneratorFunction chunkGenerator) {
@@ -97,11 +97,11 @@ public final class AtlantisLevelRegistry {
 
     /**
      * Gets a registered {@link ChunkGenerator} if present, or an empty optional if not.
-     * Can be supplied with arguments in case the {@link ChunkGenerator} being used supports them.
+     * You can supply arguments if the {@link ChunkGenerator} supports them.
      *
      * @param key The {@link ResourceLocation} key of a {@link ChunkGenerator}.
-     * @param level The {@link AtlantisLevel} this is being gotten for.
-     * @param args The {@link String} args to pass to the {@link ChunkGenerator}.
+     * @param level The {@link AtlantisLevel} to get it for.
+     * @param args The {@link String} arguments to pass to the {@link ChunkGenerator}.
      * @return A new {@link ChunkGenerator}, if present.
      */
     public static Optional<ChunkGenerator> getChunkGenerator(ResourceLocation key, AtlantisLevel level, RegistryOps.RegistryInfo<Biome> biomes, String... args) throws InvalidAtlantisLevelException {
@@ -114,11 +114,11 @@ public final class AtlantisLevelRegistry {
 
     /**
      * Registers a new {@link DimensionType}.
-     * Should be done during mod initialization.
+     * Do this during mod initialization.
      *
      * @param namespace The namespace of the {@link ResourceLocation} key of this {@link DimensionType}.
      * @param path The path of the {@link ResourceLocation} key of this {@link DimensionType}.
-     * @param dimensionType Function of {@link String} args to the actual {@link DimensionType}.
+     * @param dimensionType Function that converts {@link String} arguments to the {@link DimensionType}.
      * @return The {@link ResourceLocation} key of this {@link DimensionType}.
      */
     public static ResourceLocation registerDimensionType(String namespace, String path, LevelElementFunction<DimensionType> dimensionType) {
@@ -135,11 +135,11 @@ public final class AtlantisLevelRegistry {
 
     /**
      * Gets a registered {@link DimensionType} if present, or an empty optional if not.
-     * Can be supplied with arguments in case the {@link DimensionType} being used supports them.
+     * You can supply arguments if the {@link DimensionType} supports them.
      *
      * @param key The {@link ResourceLocation} key of a {@link DimensionType}.
-     * @param level The {@link AtlantisLevel} this is being gotten for.
-     * @param args The {@link String} args to pass to the {@link DimensionType}.
+     * @param level The {@link AtlantisLevel} to get it for.
+     * @param args The {@link String} arguments to pass to the {@link DimensionType}.
      * @return A new {@link DimensionType}, if present.
      */
     public static Optional<Pair<ResourceKey<DimensionType>, DimensionType>> getDimensionType(ResourceLocation key, AtlantisLevel level, String... args) throws InvalidAtlantisLevelException {

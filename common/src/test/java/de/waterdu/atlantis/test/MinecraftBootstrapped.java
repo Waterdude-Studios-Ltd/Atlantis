@@ -8,8 +8,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Bootstraps vanilla Minecraft (builtin registries, components, codecs) once per JVM before the annotated test
- * class runs. Mixins are not applied.
+ * Bootstraps vanilla Minecraft (built-in registries, components and codecs) once per JVM, before the annotated test
+ * class runs. It does not apply mixins.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

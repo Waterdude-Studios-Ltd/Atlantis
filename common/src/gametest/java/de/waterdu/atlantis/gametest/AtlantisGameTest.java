@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a {@code public static void name(GameTestHelper)} method as a GameTest. Both loaders register these
- * through {@link AtlantisGameTests#collect()}, so test and template names are identical on NeoForge and Fabric.
+ * Marks a {@code public static void name(GameTestHelper)} method as a GameTest. Both loaders register these methods
+ * through {@link AtlantisGameTests#collect()}. Thus, test and template names are identical on NeoForge and Fabric.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

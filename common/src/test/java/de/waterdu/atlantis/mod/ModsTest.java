@@ -23,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 /**
- * Drives the real {@code Mods.bootstrap()} entrypoint through the Bootstrapper, with the TestModLoader installed as
- * the mod loader.
+ * Runs the real {@code Mods.bootstrap()} entrypoint through the Bootstrapper. The TestModLoader is installed as the
+ * mod loader.
  */
 @ExtendWith(AtlantisTestEnvironment.class)
 class ModsTest {

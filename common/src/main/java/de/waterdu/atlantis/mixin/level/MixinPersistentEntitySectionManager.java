@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Emits ENTITY_JOIN_LEVEL from the one method every server-side entity addition goes through, both for new
- * entities and for those loaded with their chunk.
+ * Emits ENTITY_JOIN_LEVEL from the one method that every server-side entity addition goes through. This applies to
+ * new entities and to entities loaded with their chunk.
  */
 @Mixin(PersistentEntitySectionManager.class)
 public abstract class MixinPersistentEntitySectionManager {

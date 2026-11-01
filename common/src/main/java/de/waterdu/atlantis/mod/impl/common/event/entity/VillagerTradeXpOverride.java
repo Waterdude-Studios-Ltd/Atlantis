@@ -3,8 +3,8 @@ package de.waterdu.atlantis.mod.impl.common.event.entity;
 import java.util.function.IntSupplier;
 
 /**
- * Carries the XP decided by {@code VILLAGER_TRADE_XP} into {@code Villager#rewardTradeXp}, which otherwise reads it
- * from the offer. Internal to Atlantis' trade mixins.
+ * Carries the XP that {@code VILLAGER_TRADE_XP} decides into {@code Villager#rewardTradeXp}. Otherwise, that method
+ * reads the XP from the offer. For internal use by the trade mixins of Atlantis.
  */
 public final class VillagerTradeXpOverride {
 

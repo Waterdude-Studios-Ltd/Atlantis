@@ -8,9 +8,9 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
- * Generates the `index.html` of a maven repository from what is on the server: every artifact with its version
- * history and copyable dependency snippets. Gradle plugin markers are shown as plugins, in place of the artifact
- * they point to.
+ * Generates the `index.html` of a Maven repository from the contents of the server. The page lists every artifact
+ * with its version history and dependency snippets that the user can copy. The page shows Gradle plugin markers as
+ * plugins, in place of the artifact that they point to.
  */
 object MavenIndex {
 

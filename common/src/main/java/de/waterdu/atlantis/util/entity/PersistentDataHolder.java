@@ -3,7 +3,7 @@ package de.waterdu.atlantis.util.entity;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Implemented on every {@code Entity} by Atlantis. Use {@link EntityUtils#persistentData} rather than this directly.
+ * Atlantis implements this on every {@code Entity}. Use {@link EntityUtils#persistentData} instead of this directly.
  */
 public interface PersistentDataHolder {
 

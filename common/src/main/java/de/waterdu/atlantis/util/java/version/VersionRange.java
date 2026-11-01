@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A set of version constraints, e.g. {@code >=1.2.0 <2.0.0 || ^3.1.0}. Space-separated constraints must all match and
- * {@code ||} separates alternatives. Supports {@code *}, {@code =}, {@code >}, {@code >=}, {@code <}, {@code <=},
- * {@code ~} (same minor, or same major if only a major is given) and {@code ^} (same major, or same leftmost non-zero
- * component). A bare version requires an exact match.
+ * A set of version constraints, for example {@code >=1.2.0 <2.0.0 || ^3.1.0}. All space-separated constraints must
+ * match. {@code ||} separates alternatives. The range supports {@code *}, {@code =}, {@code >}, {@code >=}, {@code <},
+ * {@code <=}, {@code ~} (same minor, or same major if only a major is given) and {@code ^} (same major, or same
+ * leftmost non-zero component). A bare version requires an exact match.
  */
 public record VersionRange(List<List<Constraint>> alternatives) {
 

@@ -31,8 +31,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * Class which make up what is shown on a {@link Page}.
- * These can be created on the fly when a page is shown to a player, or can be created and held in advance.
+ * Buttons make up the contents of a {@link Page}.
+ * You can create buttons when a page opens for a player, or you can create and keep them in advance.
  *
  * @author Sam Plummer sam@waterdu.de
  * @version 1.0
@@ -41,7 +41,7 @@ import java.util.function.Predicate;
 public class Button {
 
     /**
-     * UUID to identify this button with.
+     * UUID that identifies this button.
      */
     private final UUID uuid = UUID.randomUUID();
 
@@ -51,7 +51,7 @@ public class Button {
     private Text name;
 
     /**
-     * Name of this button, as an {@link Component} directly, to allow for use of translations, etc.
+     * Name of this button as a {@link Component}, for example to use translations.
      */
     private Component directName = null;
 
@@ -61,7 +61,7 @@ public class Button {
     private List<Text> lore;
 
     /**
-     * Lore of this button, as {@link Component}s directly, to allow for use of translations, etc.
+     * Lore of this button as {@link Component}s, for example to use translations.
      */
     private List<Component> directLore = null;
 
@@ -71,22 +71,22 @@ public class Button {
     private String tooltip = "";
 
     /**
-     * Item which this button is displayed as.
+     * Item that the UI displays for this button.
      */
     private ItemStack item;
 
     /**
-     * Whether to hide tooltips on the button or not.
+     * Whether to hide tooltips on the button.
      */
     private boolean hideTooltips;
 
     /**
-     * Whether to hide all tooltips on the button or not.
+     * Whether to hide all tooltips on the button.
      */
     private boolean hideAllTooltips;
 
     /**
-     * Whether to display this button as the stack provided fully, ignoring name and lore.
+     * Whether to display this button exactly as the given stack. If true, the button ignores the name and lore.
      */
     private boolean stackOverride;
 
@@ -96,24 +96,24 @@ public class Button {
     private boolean hasEffect;
 
     /**
-     * Index at which this button will be shown on the {@link Page}.
+     * Index at which the {@link Page} shows this button.
      */
     private int index;
 
     /**
-     * Group this button is for.
+     * Group that this button is for.
      */
     private int group = 0;
 
     /**
-     * Page this button is for.
-     * -1 equals all pages.
+     * Page that this button is for.
+     * -1 means all pages.
      */
     private int page = -1;
 
     /**
-     * Number of repeat presses allowed in this current page session.
-     * Integer.MIN_VALUE equals unlimited.
+     * Number of repeat presses that are allowed in the current page session.
+     * Integer.MIN_VALUE means no limit.
      */
     private int presses = Integer.MIN_VALUE;
 
@@ -123,17 +123,17 @@ public class Button {
     private final List<OnClickTask> onClickTasks = new ArrayList<>();
 
     /**
-     * Whether the task is run async or sync
+     * Whether the task runs asynchronously or synchronously.
      */
     private boolean async = true;
 
     /**
-     * Whether to update this on the next tick.
+     * Whether to update this button on the next tick.
      */
     private boolean changed = true;
 
     /**
-     * Whether this represents nothing or not.
+     * Whether this button represents nothing.
      */
     private boolean empty = false;
 
@@ -208,7 +208,7 @@ public class Button {
     }
 
     /**
-     * Constructs a button with stack override.
+     * Constructs a button with a stack override.
      *
      * @param item {@link Button#item}
      * @param index {@link Button#index}
@@ -234,7 +234,7 @@ public class Button {
     }
 
     /**
-     * Creates the ItemStack which is then what is actually displayed in the UI as this button.
+     * Creates the ItemStack that the UI displays for this button.
      *
      * @return Display of this button.
      * @see ItemStack

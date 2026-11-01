@@ -9,9 +9,9 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
- * Pokémon storage belonging to a player. Storage may load asynchronously. A wrapper whose storage had not loaded when
- * it was looked up stays unloaded: {@link #isLoaded()} is false, reads return empty results and writes do nothing. Wait
- * on {@code future()} and look the storage up again in that case.
+ * Pokémon storage that belongs to a player. Storage can load asynchronously. If the storage had not loaded when the
+ * wrapper was looked up, the wrapper stays unloaded. Then {@link #isLoaded()} is false, reads return empty results, and
+ * writes do nothing. In that case, wait on {@code future()} and look up the storage again.
  */
 public interface UStorage<P extends UPokemon<?>> {
 
@@ -22,14 +22,14 @@ public interface UStorage<P extends UPokemon<?>> {
     int capacity();
 
     /**
-     * Every Pokémon in this storage, skipping empty slots.
+     * Every Pokémon in this storage, without the empty slots.
      */
     List<P> all();
 
     boolean hasSpace();
 
     /**
-     * Puts the Pokémon in the first free slot. A party that is full sends the Pokémon to the PC instead.
+     * Puts the Pokémon in the first free slot. If the party is full, the Pokémon goes to the PC instead.
      */
     boolean add(UPokemon<?> pokemon);
 

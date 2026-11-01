@@ -6,7 +6,7 @@ import org.jspecify.annotations.Nullable;
  * How a trainer battles.
  *
  * @param ai       one of {@code PokemonDelegate#trainerAIs()}, or null for the mod's default
- * @param bossTier one of {@code PokemonDelegate#bossTiers()}, or null for none; ignored where boss tiers aren't supported
+ * @param bossTier one of {@code PokemonDelegate#bossTiers()}, or null for none; ignored where boss tiers are not supported
  */
 public record TrainerSettings(@Nullable String ai, @Nullable String bossTier) {
 

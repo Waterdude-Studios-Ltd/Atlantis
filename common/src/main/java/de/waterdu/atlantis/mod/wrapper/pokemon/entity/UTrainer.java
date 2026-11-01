@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * An NPC trainer from the Pokémon mod, spawned with {@code PokemonDelegate#spawnTrainer}. Use
- * {@code UEvent.PLAYER_INTERACT_ENTITY} to react to players right-clicking it.
+ * {@code UEvent.PLAYER_INTERACT_ENTITY} to react when a player right-clicks it.
  */
 public abstract class UTrainer<T extends Entity> extends ModWrapper<T> {
 
@@ -32,7 +32,7 @@ public abstract class UTrainer<T extends Entity> extends ModWrapper<T> {
     public abstract void setTeam(List<? extends UPokemon<?>> team);
 
     /**
-     * Gives the trainer the skin of the player with this name. The skin is looked up asynchronously.
+     * Gives the trainer the skin of the player with this name. The skin lookup is asynchronous.
      */
     public abstract void setSkin(String playerName);
 

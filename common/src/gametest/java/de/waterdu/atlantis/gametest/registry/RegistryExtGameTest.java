@@ -26,7 +26,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
 
 /**
- * The registry helpers resolve through ServerUtils.registry, which needs a running server.
+ * The registry helpers resolve through ServerUtils.registry. That method needs a running server.
  */
 public final class RegistryExtGameTest {
 

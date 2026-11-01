@@ -21,8 +21,8 @@ public class AtlantisThreadPool {
     private boolean keepAlive = true;
     private boolean catchErrors = true;
 
-    private AtlantisThreadPool(String modid, int size, boolean daemon) {
-        this.pool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(size, new Factory(modid, daemon));
+    private AtlantisThreadPool(String modId, int size, boolean daemon) {
+        this.pool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(size, new Factory(modId, daemon));
     }
 
     public static AtlantisThreadPool createNewThreadPool(String name, int size, boolean daemon) {

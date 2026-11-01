@@ -20,8 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Occasions and their moments on a live server. Occasions are ticked by the server and live in a global manager, so
- * each test builds its own.
+ * Occasions and their moments on a live server. The server ticks occasions, and occasions live in a global manager.
+ * Thus, each test builds its own occasions.
  */
 public final class OccasionGameTest {
 

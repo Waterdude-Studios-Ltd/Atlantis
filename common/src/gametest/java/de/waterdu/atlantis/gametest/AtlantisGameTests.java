@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Builds the {@link TestFunction}s for every {@link AtlantisGameTest} in {@link #TEST_CLASSES}. Each loader's test
- * mod returns these from a {@code @GameTestGenerator} method.
+ * Builds the {@link TestFunction}s for every {@link AtlantisGameTest} in {@link #TEST_CLASSES}. The test mod of each
+ * loader returns these from a {@code @GameTestGenerator} method.
  */
 public final class AtlantisGameTests {
 

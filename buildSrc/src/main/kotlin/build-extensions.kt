@@ -28,9 +28,9 @@ val Project.loader: String? get() = prop("loader")
 
 /**
  * Publishes [jar] as `<group>.atlantis:<artifact>:<version>+<mc>` to the staging repository in the root build
- * directory, from which the root `publishToMavenRemote` task uploads to the Waterdude maven.
- * Loom strips jar-in-jar from mods it remaps for development, so the dependencies of [bundled] are declared in the POM
- * as runtime dependencies.
+ * directory. The root `publishToMavenRemote` task uploads it from there to the Waterdude maven.
+ * Loom removes jar-in-jar from mods that it remaps for development. Thus, the POM declares the dependencies of
+ * [bundled] as runtime dependencies.
  */
 fun Project.publishAtlantis(artifact: String, jar: String = "remapJar", sources: String? = null, bundled: String? = null) {
     pluginManager.apply("maven-publish")

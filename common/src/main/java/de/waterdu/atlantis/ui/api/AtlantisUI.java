@@ -73,7 +73,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Updates a UI page. Retains page and group positioning while updating button contents.
+     * Updates a UI page. Keeps the page and group positions and updates the button contents.
      *
      * @param       player      The user to display the page to.
      * @param       page        The page to display. null closes any currently open page.
@@ -84,7 +84,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Updates a UI page. Retains page and group positioning while updating button contents.
+     * Updates a UI page. Keeps the page and group positions and updates the button contents.
      *
      * @param       player      The user to display the page to.
      * @param       page        The page to display. null closes any currently open page.
@@ -96,7 +96,7 @@ public final class AtlantisUI {
 
     /**
      * Opens a UI page. All UI pages must be instances of a class implementing {@link Page}.
-     * Can provide a {@link Buttons} to override what is being shown on this page.
+     * You can supply a {@link Buttons} object to override the contents of this page.
      *
      * @param       player      The user to display the page to.
      * @param       page        The page to display. null closes any currently open page.
@@ -109,7 +109,7 @@ public final class AtlantisUI {
 
     /**
      * Opens a UI page. All UI pages must be instances of a class implementing {@link Page}.
-     * Can provide a {@link Buttons} to override what is being shown on this page.
+     * You can supply a {@link Buttons} object to override the contents of this page.
      *
      * @param       player      The user to display the page to.
      * @param       page        The page to display. null closes any currently open page.
@@ -122,11 +122,11 @@ public final class AtlantisUI {
 
     /**
      * Opens a UI page. All UI pages must be instances of a class implementing {@link Page}.
-     * Can make the page wait for the player to close their current page before showing itself.
+     * The page can wait until the player closes their current page. Then it opens.
      *
      * @param       player          The user to display the page to.
      * @param       page            The page to display. null closes any currently open page.
-     * @param       waitForScreen   Whether to wait for the player to close their current page.
+     * @param       waitForScreen   Whether to wait until the player closes their current page.
      * @return                      Whether this action was successful.
      */
     public static boolean open(PlayerReference player, @Nullable Page page, boolean waitForScreen) {
@@ -135,11 +135,11 @@ public final class AtlantisUI {
 
     /**
      * Opens a UI page. All UI pages must be instances of a class implementing {@link Page}.
-     * Can make the page wait for the player to close their current page before showing itself.
+     * The page can wait until the player closes their current page. Then it opens.
      *
      * @param       player          The user to display the page to.
      * @param       page            The page to display. null closes any currently open page.
-     * @param       waitForScreen   Whether to wait for the player to close their current page.
+     * @param       waitForScreen   Whether to wait until the player closes their current page.
      * @return                      Whether this action was successful.
      */
     public static boolean open(Player player, @Nullable Page page, boolean waitForScreen) {
@@ -152,7 +152,7 @@ public final class AtlantisUI {
      * @param       player          The user to display the page to.
      * @param       page            The page to display. null closes any currently open page.
      * @param       buttons         A {@link Buttons} object to apply to this page.
-     * @param       waitForScreen   Whether to wait for the player to close their current page.
+     * @param       waitForScreen   Whether to wait until the player closes their current page.
      * @return                      Whether this action was successful.
      */
     public static boolean open(PlayerReference player, @Nullable Page page, @Nullable Buttons buttons,
@@ -166,7 +166,7 @@ public final class AtlantisUI {
      * @param       player          The user to display the page to.
      * @param       page            The page to display. null closes any currently open page.
      * @param       buttons         A {@link Buttons} object to apply to this page.
-     * @param       waitForScreen   Whether to wait for the player to close their current page.
+     * @param       waitForScreen   Whether to wait until the player closes their current page.
      * @return                      Whether this action was successful.
      */
     public static boolean open(Player player, @Nullable Page page, @Nullable Buttons buttons,
@@ -180,8 +180,8 @@ public final class AtlantisUI {
      * @param       player          The user to display the page to.
      * @param       page            The page to display. null closes any currently open page.
      * @param       buttons         A {@link Buttons} object to apply to this page.
-     * @param       waitForScreen   Whether to wait for the player to close their current page.
-     * @param       persistence     Whether to copy current page placements and update task states over.
+     * @param       waitForScreen   Whether to wait until the player closes their current page.
+     * @param       persistence     Whether to copy the current page placements and update task states to the new page.
      * @return                      Whether this action was successful.
      */
     public static boolean open(Player player, @Nullable Page page, @Nullable Buttons buttons,
@@ -228,7 +228,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Closes a currently open UI page.
+     * Closes the UI page that is currently open.
      *
      * @param       player          The user to display the page to.
      * @return                      Whether this action was successful.
@@ -238,7 +238,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Closes a currently open UI page.
+     * Closes the UI page that is currently open.
      *
      * @param       player          The user to display the page to.
      * @return                      Whether this action was successful.
@@ -248,202 +248,202 @@ public final class AtlantisUI {
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(PlayerReference player) {
         return AtlantisUI.changePage(player, 0, 1, true);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(Player player) {
         return AtlantisUI.changePage(player, 0, 1, true);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(PlayerReference player) {
         return AtlantisUI.changePage(player, 0, -1, true);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(Player player) {
         return AtlantisUI.changePage(player, 0, -1, true);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(PlayerReference player, boolean looped) {
         return AtlantisUI.nextPage(player.entityDirect(), 0, looped);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(Player player, boolean looped) {
         return AtlantisUI.changePage(player, 0, 1, looped);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(PlayerReference player, boolean looped) {
         return AtlantisUI.prevPage(player.entityDirect(), 0, looped);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(Player player, boolean looped) {
         return AtlantisUI.changePage(player, 0, -1, looped);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(PlayerReference player, int groupID) {
         return AtlantisUI.changePage(player, groupID, 1, true);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(Player player, int groupID) {
         return AtlantisUI.changePage(player, groupID, 1, true);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(PlayerReference player, int groupID) {
         return AtlantisUI.changePage(player, groupID, -1, true);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(Player player, int groupID) {
         return AtlantisUI.changePage(player, groupID, -1, true);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(PlayerReference player, int groupID, boolean looped) {
         return AtlantisUI.nextPage(player.entityDirect(), groupID, looped);
     }
 
     /**
-     * Attempts to go to the next page via the pagination system.
+     * Attempts to go to the next page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean nextPage(Player player, int groupID, boolean looped) {
         return AtlantisUI.changePage(player, groupID, 1, looped);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(PlayerReference player, int groupID, boolean looped) {
         return AtlantisUI.prevPage(player.entityDirect(), groupID, looped);
     }
 
     /**
-     * Attempts to go to the previous page via the pagination system.
+     * Attempts to go to the previous page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean prevPage(Player player, int groupID, boolean looped) {
         return AtlantisUI.changePage(player, groupID, -1, looped);
     }
 
     /**
-     * Attempts to change page via the pagination system.
+     * Attempts to change the page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
      * @param       change          The number of pages to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean changePage(PlayerReference player, int groupID, int change, boolean looped) {
         return AtlantisUI.changePage(player.entityDirect(), groupID, change, looped);
     }
 
     /**
-     * Attempts to change page via the pagination system.
+     * Attempts to change the page with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to change.
      * @param       change          The number of pages to change.
-     * @param       looped          Whether to attempt to loop around or not.
-     * @return                      Whether this action succeeded or not.
+     * @param       looped          Whether to try to loop around.
+     * @return                      Whether this action succeeded.
      */
     public static boolean changePage(Player player, int groupID, int change, boolean looped) {
         var optional = AtlantisUI.currentContainer(player);
@@ -461,46 +461,46 @@ public final class AtlantisUI {
     }
 
     /**
-     * Attempts to directly set page via the pagination system.
+     * Attempts to set the page directly with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       pageID          The page to switch to.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean setPage(PlayerReference player, int pageID) {
         return AtlantisUI.setPage(player.entityDirect(), 0, pageID);
     }
 
     /**
-     * Attempts to directly set page via the pagination system.
+     * Attempts to set the page directly with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       pageID          The page to switch to.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean setPage(Player player, int pageID) {
         return AtlantisUI.setPage(player, 0, pageID);
     }
 
     /**
-     * Attempts to directly set page via the pagination system.
+     * Attempts to set the page directly with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to switch in.
      * @param       pageID          The page to switch to.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean setPage(PlayerReference player, int groupID, int pageID) {
         return AtlantisUI.setPage(player.entityDirect(), groupID, pageID);
     }
 
     /**
-     * Attempts to directly set page via the pagination system.
+     * Attempts to set the page directly with the pagination system.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to switch in.
      * @param       pageID          The page to switch to.
-     * @return                      Whether this action succeeded or not.
+     * @return                      Whether this action succeeded.
      */
     public static boolean setPage(Player player, int groupID, int pageID) {
         var optional = AtlantisUI.currentContainer(player);
@@ -518,7 +518,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Returns whether a next page is present or not.
+     * Returns whether a next page exists.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to check.
@@ -529,7 +529,7 @@ public final class AtlantisUI {
     }
 
     /**
-     * Returns whether a next page is present or not.
+     * Returns whether a next page exists.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to check.
@@ -546,22 +546,22 @@ public final class AtlantisUI {
     }
 
     /**
-     * Returns whether a prev page is present or not.
+     * Returns whether a previous page exists.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to check.
-     * @return                      Whether a prev page exists.
+     * @return                      Whether a previous page exists.
      */
     public static boolean hasPrevPage(PlayerReference player, int groupID) {
         return AtlantisUI.hasPrevPage(player.entityDirect(), groupID);
     }
 
     /**
-     * Returns whether a prev page is present or not.
+     * Returns whether a previous page exists.
      *
      * @param       player          The user with a page open.
      * @param       groupID         The pagination group to check.
-     * @return                      Whether a prev page exists.
+     * @return                      Whether a previous page exists.
      */
     public static boolean hasPrevPage(Player player, int groupID) {
         var optional = AtlantisUI.currentContainer(player);
@@ -614,9 +614,9 @@ public final class AtlantisUI {
     }
 
     /**
-     * Attempts to update a property of a page. This is for things such as progress bars, etc.
+     * Attempts to update a property of a page, for example a progress bar.
      *
-     * @param       player          The user who is being shown a page.
+     * @param       player          The user who sees the page.
      * @param       element         The ID of the property to update.
      * @param       value           The value to set the property to.
      */
@@ -625,9 +625,9 @@ public final class AtlantisUI {
     }
 
     /**
-     * Attempts to update a property of a page. This is for things such as progress bars, etc.
+     * Attempts to update a property of a page, for example a progress bar.
      *
-     * @param       player          The user who is being shown a page.
+     * @param       player          The user who sees the page.
      * @param       element         The ID of the property to update.
      * @param       value           The value to set the property to.
      */
@@ -638,10 +638,10 @@ public final class AtlantisUI {
     }
 
     /**
-     * Create an anonymous page.
+     * Creates an anonymous page.
      *
      * @param       options         The options of the page.
-     * @param       buttons         The buttons to be added to the page.
+     * @param       buttons         The buttons to add to the page.
      * @return The page.
      */
     public static Page createPage(final PageOptions options, final Button... buttons) {

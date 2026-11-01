@@ -4,8 +4,8 @@ import de.waterdu.atlantis.AtlantisLogger;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
 /**
- * {@link AtlantisLogger} with every message prefixed by {@value #PREFIX}, so that output from Trident and Tines stands
- * out in the log. Tines should log through this.
+ * {@link AtlantisLogger} that puts {@value #PREFIX} before every message. This makes the output from Trident and Tines
+ * easy to see in the log. Tines should use this logger.
  */
 public final class TridentLogger {
 

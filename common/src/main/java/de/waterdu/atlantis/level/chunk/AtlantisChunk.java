@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public final class AtlantisChunk {
 
-    private String modid;
+    private String modId;
     private UUID owner;
     private ConfigurableLevel level;
     private int x;
@@ -20,16 +20,16 @@ public final class AtlantisChunk {
         this(Atlantis.ID, UUIDUtils.fromHashCode(Atlantis.ID), ConfigurableLevel.of("minecraft:overworld"), 0, 0);
     }
 
-    public AtlantisChunk(String modid, ConfigurableLevel level, int x, int z) {
-        this(modid, UUIDUtils.fromHashCode(modid), level, x, z);
+    public AtlantisChunk(String modId, ConfigurableLevel level, int x, int z) {
+        this(modId, UUIDUtils.fromHashCode(modId), level, x, z);
     }
 
-    public AtlantisChunk(String modid, Object owner, ConfigurableLevel level, int x, int z) {
-        this(modid, UUIDUtils.fromHashCode(owner), level, x, z);
+    public AtlantisChunk(String modId, Object owner, ConfigurableLevel level, int x, int z) {
+        this(modId, UUIDUtils.fromHashCode(owner), level, x, z);
     }
 
-    public AtlantisChunk(String modid, UUID owner, ConfigurableLevel level, int x, int z) {
-        this.modid = modid;
+    public AtlantisChunk(String modId, UUID owner, ConfigurableLevel level, int x, int z) {
+        this.modId = modId;
         this.owner = owner;
         this.level = level;
         this.x = x;
@@ -64,11 +64,11 @@ public final class AtlantisChunk {
     }
 
     public String modID() {
-        return this.modid;
+        return this.modId;
     }
 
-    public void setModID(String modid) {
-        this.update(() -> this.modid = modid);
+    public void setModID(String modId) {
+        this.update(() -> this.modId = modId);
     }
 
     public UUID owner() {
@@ -109,7 +109,7 @@ public final class AtlantisChunk {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.modid, this.owner, this.level, this.x, this.z);
+        return Objects.hash(this.modId, this.owner, this.level, this.x, this.z);
     }
 
     @Override
@@ -120,11 +120,11 @@ public final class AtlantisChunk {
         if (!(obj instanceof AtlantisChunk other)) {
             return false;
         }
-        return this.modid.equals(other.modid) && this.owner.equals(other.owner) &&  this.level.equals(other.level) && this.x == other.x && this.z == other.z;
+        return this.modId.equals(other.modId) && this.owner.equals(other.owner) &&  this.level.equals(other.level) && this.x == other.x && this.z == other.z;
     }
 
     @Override
     public String toString() {
-        return "AtlantisChunk{" + this.modid + "," + this.owner + "," + this.level.key().location() + "@(" + this.x + "," + this.z + ")}";
+        return "AtlantisChunk{" + this.modId + "," + this.owner + "," + this.level.key().location() + "@(" + this.x + "," + this.z + ")}";
     }
 }

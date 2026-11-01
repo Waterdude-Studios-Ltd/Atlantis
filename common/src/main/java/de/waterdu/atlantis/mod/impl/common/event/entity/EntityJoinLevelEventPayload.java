@@ -8,8 +8,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 
 /**
- * Fires when an entity is added to a server level, whether it is new or loaded from disk. Cancelling it keeps the
- * entity out of the level; an entity loaded from disk is then dropped when its chunk is saved.
+ * Fires when an entity is added to a server level. The entity can be new or loaded from disk. If you cancel the event,
+ * the entity stays out of the level. If the entity was loaded from disk, it is then dropped when its chunk is saved.
  */
 public class EntityJoinLevelEventPayload implements EventPayload, Cancellable {
 

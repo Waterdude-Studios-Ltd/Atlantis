@@ -23,7 +23,7 @@ public abstract class UMove<T> extends ModWrapper<T> {
     public abstract int maxPP();
 
     /**
-     * How many PP Ups have been applied, from 0 to 3.
+     * The number of applied PP Ups, from 0 to 3.
      */
     public abstract int ppUps();
 

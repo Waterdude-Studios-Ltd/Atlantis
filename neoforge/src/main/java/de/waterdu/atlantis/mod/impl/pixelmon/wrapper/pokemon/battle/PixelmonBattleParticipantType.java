@@ -6,7 +6,7 @@ import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.battle.UBattleParticipantType;
 
 /**
- * Pixelmon has no participant type of its own, so this wraps the participant it describes.
+ * Pixelmon has no participant type of its own. Thus, this class wraps the participant that it describes.
  */
 public class PixelmonBattleParticipantType extends UBattleParticipantType<BattleParticipant> {
 

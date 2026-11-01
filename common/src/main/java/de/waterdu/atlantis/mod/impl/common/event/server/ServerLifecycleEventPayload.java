@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Server lifecycle events. On NeoForge, {@link Starting} fires during dedicated server setup, before the server
- * exists, so {@link #server()} is null there. Configs are loaded by the time {@link Started} fires.
+ * exists. Thus, {@link #server()} is null there. The configs are loaded before {@link Started} fires.
  */
 public abstract class ServerLifecycleEventPayload implements EventPayload {
 

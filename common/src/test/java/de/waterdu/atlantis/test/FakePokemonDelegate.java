@@ -51,15 +51,16 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * A minimal {@link PokemonDelegate} for JUnit tests. A spec is a space-separated list of requirements whose first
- * word is the species; the requirement "shiny" makes created Pokémon shiny. Anything beyond specs, species and
- * serialisation throws {@link UnsupportedOperationException}. Use with {@link MinecraftBootstrapped}.
+ * A minimal {@link PokemonDelegate} for JUnit tests. A spec is a space-separated list of requirements. The first
+ * word of a spec is the species. The requirement "shiny" makes created Pokémon shiny. All functions other than
+ * specs, species and serialization throw {@link UnsupportedOperationException}. Use it with
+ * {@link MinecraftBootstrapped}.
  */
 public final class FakePokemonDelegate implements PokemonDelegate {
 
     private static final ModObjectKey TYPE = new ModObjectKey("atlantis_test", "pokemon");
 
-    /** How often {@link #spec(String...)} was called. */
+    /** The number of calls to {@link #spec(String...)}. */
     public final AtomicInteger specCalls = new AtomicInteger();
 
     /** Creates the delegate and activates it as {@code Mods.pokemon()}. Requires {@link AtlantisTestEnvironment}. */

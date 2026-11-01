@@ -19,12 +19,13 @@ public abstract class UBattleClause<T> extends ModWrapper<T> {
     public abstract Component displayName();
 
     /**
-     * Checks a team against the clause, returning a reason for each way it breaks it. An empty list means it passes.
+     * Checks a team against the clause. Returns one reason for each way that the team breaks the clause. An empty list
+     * means that the team passes.
      */
     public abstract List<Component> validate(List<? extends UPokemon<?>> team);
 
     /**
-     * Whether the clause is also enforced during the battle, such as a sleep clause, rather than only on the team.
+     * Whether the clause also applies during the battle, and not only to the team. A sleep clause is an example.
      */
     public abstract boolean isEnforcedInBattle();
 }

@@ -9,7 +9,7 @@ import de.waterdu.atlantis.util.server.ServerUtils;
 import net.minecraft.world.entity.player.Player;
 
 /**
- * Util class for methods relating to running tasks on specific threads.
+ * Utility class with methods that run tasks on specific threads.
  */
 public final class Concurrency {
 
@@ -18,16 +18,16 @@ public final class Concurrency {
     }
 
     /**
-     * Runs task on an off-thread.
+     * Runs a task on a thread other than the main thread.
      *
-     * @param task Task to be run asynchronously.
+     * @param task Task to run asynchronously.
      */
     public static void async(Runnable task) {
         Atlantis.THREAD_POOL.submit(task);
     }
 
     /**
-     * Runs task on main thread.
+     * Runs a task on the main thread.
      *
      * @param task Task to be run synchronously.
      */
@@ -44,10 +44,10 @@ public final class Concurrency {
     }
 
     /**
-     * Runs task on main thread, with fallback support for internal use.
+     * Runs a task on the main thread, with fallback support. For internal use.
      *
-     * @param player Player this task is associated with.
-     * @param fallback Page to show if this task failed.
+     * @param player Player that this task is associated with.
+     * @param fallback Page to show if this task fails.
      * @param task Task to be run synchronously.
      */
     public static void sync(Player player, Page fallback, Runnable task) {

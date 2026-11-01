@@ -33,7 +33,7 @@ public final class AtlantisLogger {
      * Logs at the given severity with a stack trace. {@link Severity#NONE} logs nothing.
      *
      * @param       severity    The level to log at.
-     * @param       message     The message. Placeholders are not filled in.
+     * @param       message     The message. This method does not replace placeholders.
      * @param       err         The error whose stack trace to log.
      */
     public static void log(Severity severity, String message, Throwable err) {
@@ -78,7 +78,7 @@ public final class AtlantisLogger {
     }
 
     /**
-     * Returns a no-op builder when debug logging is disabled, so nothing passed to it is formatted.
+     * Returns a no-op builder when debug logging is disabled. This builder formats nothing that is passed to it.
      *
      * @return                  A debug-level {@link LogBuilder}.
      */
