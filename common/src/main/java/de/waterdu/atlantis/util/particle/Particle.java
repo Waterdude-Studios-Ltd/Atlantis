@@ -40,6 +40,10 @@ public class Particle {
         this.particle = particle;
     }
 
+    /**
+     * @param       particle    A particle in the format of the {@code /particle} command,
+     *                          for example {@code dust{color:[1.0,0.0,0.0],scale:1.0}}.
+     */
     public static Particle of(String particle) {
         return new Particle(particle);
     }
@@ -54,6 +58,11 @@ public class Particle {
         return this;
     }
 
+    /**
+     * Parses the particle on the first call and caches the result. Parsing fails if no server is running.
+     *
+     * @return                  null if parsing fails.
+     */
     public ParticleOptions data() {
         return this.data.get();
     }
