@@ -27,6 +27,9 @@ public final class NetworkUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Atlantis calls this when a player logs in. The entries stay after the player logs out.
+     */
     public static void addAddress(ServerPlayer player) {
         var reference = PlayerReference.get(player);
         var address = ((MixinServerCommonPacketListenerImpl) (Object) player.connection).atlantis$getConnection().getRemoteAddress();
@@ -48,10 +51,16 @@ public final class NetworkUtils {
         return NetworkUtils.IP_MAP.getOrDefault(reference, Optional.empty());
     }
 
+    /**
+     * @return                  All players that logged in from this address since the server started. Do not change the set.
+     */
     public static Set<PlayerReference> player(SocketAddress address) {
         return NetworkUtils.INVERSE_ADDRESS_MAP.getOrDefault(address, EMPTY_SET);
     }
 
+    /**
+     * @return                  All players that logged in from this IP since the server started. Do not change the set.
+     */
     public static Set<PlayerReference> player(String ip) {
         return NetworkUtils.INVERSE_IP_MAP.getOrDefault(ip, EMPTY_SET);
     }
