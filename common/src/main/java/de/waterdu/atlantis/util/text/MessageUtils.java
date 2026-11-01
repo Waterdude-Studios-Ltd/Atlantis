@@ -19,6 +19,9 @@ public final class MessageUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     */
     @SafeVarargs
     public static <T> void send(T message, CommandContext<CommandSourceStack>... recipients) {
         if (message != null) {
@@ -29,6 +32,9 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     */
     public static <T> void send(T message, CommandSourceStack... recipients) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -38,6 +44,9 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     */
     public static <T> void send(T message, CommandSource... recipients) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -47,10 +56,19 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #send(Object, boolean, PlayerData...)} without force.
+     */
     public static <T> void send(T message, PlayerData... recipients) {
         MessageUtils.send(message, false, recipients);
     }
 
+    /**
+     * Sends to the recipients that are online.
+     *
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     */
     public static <T> void send(T message, boolean force, PlayerData... recipients) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -60,10 +78,19 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #send(Object, boolean, PlayerReference...)} without force.
+     */
     public static <T> void send(T message, PlayerReference... recipients) {
         MessageUtils.send(message, false, recipients);
     }
 
+    /**
+     * Sends to the recipients that are online.
+     *
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     */
     public static <T> void send(T message, boolean force, PlayerReference... recipients) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -73,10 +100,19 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #send(Object, boolean, Collection)} without force.
+     */
     public static <T> void send(T message, Collection<PlayerReference> recipients) {
         MessageUtils.send(message, false, recipients);
     }
 
+    /**
+     * Sends to the recipients that are online.
+     *
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     */
     public static <T> void send(T message, boolean force, Collection<PlayerReference> recipients) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -86,10 +122,18 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #sendToAllWithPerm(Object, boolean, String)} without force.
+     */
     public static <T> void sendToAllWithPerm(T message, String permission) {
         MessageUtils.sendToAllWithPerm(message, false, permission);
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param       permission  Checked with {@link Permissions#hasPermission}.
+     */
     public static <T> void sendToAllWithPerm(T message, boolean force, String permission) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -101,10 +145,17 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #sendToAll(Object, boolean)} without force.
+     */
     public static <T> void sendToAll(T message) {
         MessageUtils.sendToAll(message, false);
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     */
     public static <T> void sendToAll(T message, boolean force) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -112,10 +163,18 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #sendToAllExcept(Object, boolean, Predicate)} without force.
+     */
     public static <T> void sendToAllExcept(T message, Predicate<ServerPlayer> predicate) {
         MessageUtils.sendToAllExcept(message, false, predicate);
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param       predicate   Players it matches are skipped.
+     */
     public static <T> void sendToAllExcept(T message, boolean force, Predicate<ServerPlayer> predicate) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
@@ -127,10 +186,18 @@ public final class MessageUtils {
         }
     }
 
+    /**
+     * {@link #sendToMatching(Object, boolean, Predicate)} without force.
+     */
     public static <T> void sendToMatching(T message, Predicate<ServerPlayer> predicate) {
         MessageUtils.sendToMatching(message, false, predicate);
     }
 
+    /**
+     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param       predicate   Only players it matches receive the message.
+     */
     public static <T> void sendToMatching(T message, boolean force, Predicate<ServerPlayer> predicate) {
         if (message != null) {
             var component = TextUtils.asComponent(message);
