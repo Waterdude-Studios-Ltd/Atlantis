@@ -13,7 +13,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public final class LevelUtils {
 
@@ -21,10 +20,22 @@ public final class LevelUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Throws an exception when no server runs.
+     */
     public static @NonNull ServerLevel overworld() {
-        return ServerUtils.server().overworld();
+        var server = ServerUtils.server();
+        if (server == null) {
+            throw new NullPointerException("Server is null");
+        }
+
+        return server.overworld();
     }
 
+    /**
+     * @param       dimension   A level id. The namespace defaults to {@code minecraft}.
+     * @return                  null when the id is empty.
+     */
     public static @Nullable ResourceKey<Level> dimension(String dimension) {
         if (dimension.isEmpty()) {
             return null;
@@ -37,25 +48,40 @@ public final class LevelUtils {
         return ResourceKey.create(Registries.DIMENSION, key);
     }
 
-    public static Optional<ServerLevel> level(ResourceKey<Level> key) {
-        return Optional.ofNullable(ServerUtils.server().getLevel(key));
+    public static @Nullable ServerLevel level(ResourceKey<Level> key) {
+        var server = ServerUtils.server();
+        if (server == null) {
+            return null;
+        }
+
+        return server.getLevel(key);
     }
 
-    public static Optional<ServerLevel> level(String key) {
+    public static @Nullable ServerLevel level(String key) {
         return LevelUtils.level(LevelUtils.dimension(key));
     }
 
     public static List<ServerLevel> levels() {
+        var server = ServerUtils.server();
+        if (server == null) {
+            return Lists.newArrayList();
+        }
+
         var levels = Lists.<ServerLevel>newArrayList();
-        for (var level : ServerUtils.server().getAllLevels()) {
+        for (var level : server.getAllLevels()) {
             levels.add(level);
         }
         return levels;
     }
 
-    public static List<String> levelIDs() {
+    public static List<String> levelIds() {
+        var server = ServerUtils.server();
+        if (server == null) {
+            return Lists.newArrayList();
+        }
+
         var levels = new ArrayList<String>();
-        for (var level : LevelUtils.levels()) {
+        for (var level : server.getAllLevels()) {
             levels.add(level.dimension().location().toString());
         }
         return levels;
