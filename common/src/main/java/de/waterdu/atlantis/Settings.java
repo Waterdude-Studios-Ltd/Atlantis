@@ -249,6 +249,9 @@ public class Settings implements Configuration {
         this.remappedParsedItemStacks.put("christmas_ball", "#pokeball christmas_ball #end");
     }
 
+    /**
+     * @return                  The configured thread count. A value of zero or less means that Atlantis chooses the count.
+     */
     public int getThreads() {
         return this.threads;
     }
@@ -281,6 +284,9 @@ public class Settings implements Configuration {
         this.asyncSaveDelaySeconds = asyncSaveDelaySeconds;
     }
 
+    /**
+     * @return                  The delay in milliseconds.
+     */
     public long getDataSaveDelay() {
         return this.dataSaveDelay;
     }
@@ -289,6 +295,9 @@ public class Settings implements Configuration {
         this.dataSaveDelay = dataSaveDelay;
     }
 
+    /**
+     * @return                  The delay in milliseconds.
+     */
     public long getScheduledTaskDelay() {
         return this.scheduledTaskDelay;
     }
@@ -297,6 +306,9 @@ public class Settings implements Configuration {
         this.scheduledTaskDelay = scheduledTaskDelay;
     }
 
+    /**
+     * @return                  The delay in milliseconds.
+     */
     public long getDoubleClickDelay() {
         return this.doubleClickDelay;
     }
@@ -305,6 +317,9 @@ public class Settings implements Configuration {
         this.doubleClickDelay = doubleClickDelay;
     }
 
+    /**
+     * @return                  The delay in milliseconds.
+     */
     public long getDuplicateSaveDelay() {
         return this.duplicateSaveDelay;
     }
@@ -525,6 +540,10 @@ public class Settings implements Configuration {
         return this.remappedDatabaseNames;
     }
 
+    /**
+     * @param       value       The default database name, normally a mod ID.
+     * @return                  The global schema override if one is set, otherwise the remapped name or the value itself.
+     */
     public String getDatabaseName(String value) {
         return this.globalDatabaseSchemaOverride.isEmpty() ? this.remappedDatabaseNames.getOrDefault(value, value) : this.globalDatabaseSchemaOverride;
     }
@@ -537,6 +556,9 @@ public class Settings implements Configuration {
         return this.remappedParsedItemStacks;
     }
 
+    /**
+     * @return                  The remapped item string, or the item itself if it has no remapping.
+     */
     public String getParsedItemStack(String item) {
         return this.remappedParsedItemStacks.getOrDefault(item, item);
     }
@@ -549,6 +571,9 @@ public class Settings implements Configuration {
         return this.pinnedDecorations;
     }
 
+    /**
+     * Parses the pinned decorations once and caches the result until the next {@link #save()}.
+     */
     public List<Item> getParsedPinnedDecorations() {
         if (this.parsedPinnedDecorations == null) {
             this.parsedPinnedDecorations = new ArrayList<>();
@@ -566,6 +591,9 @@ public class Settings implements Configuration {
         Configuration.super.save();
     }
 
+    /**
+     * @return                  The loaded settings, or the defaults if the config is not loaded yet.
+     */
     public static Settings get() {
         return Atlantis.CONFIG.orElse(Settings.class, Settings.DEFAULTS);
     }
@@ -577,6 +605,9 @@ public class Settings implements Configuration {
         ALWAYS,
         ;
 
+        /**
+         * @return                  {@code true} if the config's cached player data is evicted when players join and leave.
+         */
         public boolean passes(Config<?> config) {
             return switch (this) {
                 case ALWAYS -> true;
