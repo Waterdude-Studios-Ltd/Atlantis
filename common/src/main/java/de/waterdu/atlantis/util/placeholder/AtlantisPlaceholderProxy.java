@@ -47,14 +47,25 @@ public final class AtlantisPlaceholderProxy {
         AtlantisPlaceholderProxy.PROVIDERS.clear();
     }
 
+    /**
+     * Atlantis uses only the first provider. It selects the provider at bootstrap, so add providers before that.
+     */
     public static void addPlaceholderProvider(PlaceholderProvider provider) {
         AtlantisPlaceholderProxy.PROVIDERS.add(provider);
     }
 
+    /**
+     * Listeners of the placeholder provider event can replace the provider.
+     * Extensions that are registered with the old provider are not moved.
+     */
     public static void setProvider(PlaceholderProvider provider) {
         AtlantisPlaceholderProxy.PROVIDER.set(Mods.events().emitSetPlaceholderProvider(provider).provider());
     }
 
+    /**
+     * Registers the extension with the current provider. Without a placeholder mod, this does nothing.
+     * Register extensions after bootstrap, because Atlantis selects the provider then.
+     */
     public static <T> void register(String id, String name, AtlantisPlaceholderExtension<T> extension, Class<T> type) {
         AtlantisPlaceholderProxy.PROVIDER.get().register(id, name, extension, type);
     }
