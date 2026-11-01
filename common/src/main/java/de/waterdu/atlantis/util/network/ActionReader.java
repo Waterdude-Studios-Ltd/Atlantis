@@ -4,6 +4,7 @@ import de.waterdu.atlantis.mod.impl.common.event.entity.InteractEntityEventPaylo
 import net.minecraft.network.protocol.game.ServerboundInteractPacket;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 public final class ActionReader implements ServerboundInteractPacket.Handler {
@@ -15,18 +16,21 @@ public final class ActionReader implements ServerboundInteractPacket.Handler {
         return this.action;
     }
 
+    /**
+     * @return                  null for attacks.
+     */
     public @Nullable InteractionHand hand() {
         return this.hand;
     }
 
     @Override
-    public void onInteraction(InteractionHand hand) {
+    public void onInteraction(@NonNull InteractionHand hand) {
         this.action = InteractEntityEventPayload.Action.INTERACT;
         this.hand = hand;
     }
 
     @Override
-    public void onInteraction(InteractionHand hand, Vec3 location) {
+    public void onInteraction(@NonNull InteractionHand hand, @NonNull Vec3 location) {
         this.action = InteractEntityEventPayload.Action.INTERACT_AT;
         this.hand = hand;
     }
