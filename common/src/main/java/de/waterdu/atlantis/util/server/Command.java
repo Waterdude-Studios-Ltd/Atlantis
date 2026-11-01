@@ -62,10 +62,16 @@ public record Command(String value) {
             this.command = command;
         }
 
+        /**
+         * A context without a command. Use {@link #execute(Command)} or {@link #defer(Command)} with it.
+         */
         public static CommandContext empty() {
             return new CommandContext(null);
         }
 
+        /**
+         * Fills {@code %p%} and {@code %player%} with the name of the player. Does nothing when the player is not found.
+         */
         public CommandContext player(Object player) {
             PlayerReference.getSafely(player).ifPresent(reference -> this.player = reference.name());
             return this;
@@ -80,6 +86,11 @@ public record Command(String value) {
             return this.source(null);
         }
 
+        /**
+         * Only the entity selectors in the command use this source. The command always runs as the server.
+         *
+         * @param       player      The player to use as the source. null uses the server.
+         */
         public CommandContext source(ServerPlayer player) {
             this.source = player == null ? ServerUtils.server().createCommandSourceStack() : player.createCommandSourceStack();
             return this;
@@ -89,16 +100,26 @@ public record Command(String value) {
             return this.position(LevelPosition.of(entity));
         }
 
+        /**
+         * Fills {@code %x%}, {@code %y%} and {@code %z%} with the coordinates truncated to integers,
+         * and {@code %dim%} with the level id.
+         */
         public CommandContext position(LevelPosition position) {
             this.position = position;
             return this;
         }
 
+        /**
+         * Fills {@code %key%} with the name of the player. Does nothing when the player is not found.
+         */
         public CommandContext extraPlayer(String key, Object player) {
             PlayerReference.getSafely(player).ifPresent(reference -> this.placeholders.put(key, reference.name()));
             return this;
         }
 
+        /**
+         * @param       key         The placeholder name without the {@code %} characters.
+         */
         public CommandContext placeholder(String key, Object value) {
             this.placeholders.put(key, String.valueOf(value));
             return this;
@@ -108,6 +129,11 @@ public record Command(String value) {
             this.execute(this.command);
         }
 
+        /**
+         * Fills the placeholders, then runs the command as the server. Errors are logged.
+         * If a word after a space starts with {@code @}, it is an entity selector. Then the command runs once for each
+         * entity that matches, with the player name or entity UUID in place of the selector.
+         */
         public void execute(Command command) {
             if (command != null) {
                 this.compile(command).execute();
@@ -118,6 +144,9 @@ public record Command(String value) {
             return this.defer(this.command);
         }
 
+        /**
+         * {@link #execute(Command)}, but returns the commands to run later. The placeholders and selectors are resolved now.
+         */
         public Executable defer(Command command) {
             if (command != null) {
                 return this.compile(command);
@@ -196,12 +225,20 @@ public record Command(String value) {
             this.commands.add(command);
         }
 
+        /**
+         * {@link #execute(Object...)}, but stops and throws at the first command that fails.
+         */
         public void executeUnsafe(Object... args) throws CommandSyntaxException {
             for (var command : this.commands) {
                 ServerUtils.performCommand(command, args);
             }
         }
 
+        /**
+         * Runs each command as the server. Logs the commands that fail.
+         *
+         * @param       args        The values for {@code %1}, {@code %2} and so on in each command.
+         */
         public void execute(Object... args) {
             for (var command : this.commands) {
                 try {
