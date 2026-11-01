@@ -14,6 +14,9 @@ public final class BrigadierUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Suggests the {@link String#valueOf(Object)} of each value. Does not filter the values by the typed text.
+     */
     public static <S> SuggestionProvider<S> suggest(Object... suggestions) {
         return (context, builder) -> {
             for (var suggestion : suggestions) {
