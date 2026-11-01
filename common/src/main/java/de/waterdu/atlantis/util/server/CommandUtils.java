@@ -28,6 +28,9 @@ public final class CommandUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * @return                  {@code true} if {@code region} starts with {@code original}, ignoring case.
+     */
     public static boolean doesStringStartWith(String original, String region) {
         return region.regionMatches(true, 0, original, 0, original.length());
     }
@@ -36,6 +39,11 @@ public final class CommandUtils {
         return CommandUtils.getListOfStringsMatchingLastWord(args, Lists.newArrayList(possibilities));
     }
 
+    /**
+     * @param       inputArgs   The typed arguments. Must not be empty.
+     * @return                  The completions that start with the last argument, ignoring case. If there are none,
+     *                          the {@link ResourceLocation} completions whose path starts with it.
+     */
     public static List<String> getListOfStringsMatchingLastWord(String[] inputArgs, Collection<?> possibleCompletions) {
         var s = inputArgs[inputArgs.length - 1];
         var list = new ArrayList<String>();
