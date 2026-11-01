@@ -69,10 +69,18 @@ public abstract class ArgumentCommand {
         return List.of();
     }
 
+    /**
+     * @return                  The test that a source must pass to use the command. The default lets every source use it.
+     */
     public Predicate<CommandSourceStack> requirement() {
         return source -> true;
     }
 
+    /**
+     * Exceptions are logged and do not reach the source.
+     *
+     * @param       args        The words after the command name, split at whitespace. Empty when there are none.
+     */
     public abstract void execute(CommandContext<CommandSourceStack> context, String... args);
 
     /**
