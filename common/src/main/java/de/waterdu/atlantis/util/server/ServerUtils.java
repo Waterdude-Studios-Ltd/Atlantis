@@ -63,10 +63,16 @@ public final class ServerUtils {
         return result;
     }
 
+    /**
+     * @return                  {@link RegistryAccess#EMPTY} when no server runs.
+     */
     public static @NonNull RegistryAccess registryAccess() {
         return ServerUtils.fromServer(MinecraftServer::registryAccess, RegistryAccess.EMPTY);
     }
 
+    /**
+     * Throws an exception when no server runs or the registry does not exist.
+     */
     public static <T> Registry<T> registry(ResourceKey<Registry<T>> key) {
         return ServerUtils.registryAccess().registryOrThrow(key);
     }
@@ -109,6 +115,11 @@ public final class ServerUtils {
         return Optional.ofNullable(list.getPlayerByName(name));
     }
 
+    /**
+     * @param       getterString An entity selector if it contains {@code @}. Otherwise, the name of an online player.
+     * @param       success     Gets the players if at least one matches.
+     * @param       failure     Runs if no player matches.
+     */
     public static void parsePlayersOrElse(CommandSourceStack source, String getterString, Consumer<List<ServerPlayer>> success, Runnable failure) throws CommandSyntaxException {
         List<ServerPlayer> players;
         if (getterString.contains("@")) {
@@ -134,6 +145,13 @@ public final class ServerUtils {
         return Lists.newArrayList(ServerUtils.fromServer(MinecraftServer::getPlayerNames, NO_NAMES));
     }
 
+    /**
+     * Runs the command as the server.
+     *
+     * @param       command     The command without a leading slash. It can have the placeholders {@code %1}, {@code %2} and so on.
+     * @param       args        The values for the placeholders.
+     * @return                  The result of the command. 0 when no server runs.
+     */
     public static int performCommand(String command, Object... args) throws CommandSyntaxException {
         var server = ServerUtils.server();
         if (server == null) {
@@ -143,6 +161,9 @@ public final class ServerUtils {
         return dispatcher.execute(dispatcher.parse(TextUtils.format(command, args).get(), server.createCommandSourceStack()));
     }
 
+    /**
+     * @return                  The spawn point of the overworld. 0, 64, 0 in the overworld when no server runs.
+     */
     public static LevelPosition spawnPoint() {
         var overworld = ServerUtils.fromServer(MinecraftServer::overworld);
         if (overworld == null) {
