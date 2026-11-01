@@ -16,6 +16,9 @@ public final class CommandRegistry {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * The loaders run the registrant for each dispatcher that they build, so it can run more than once.
+     */
     public static void register(Consumer<CommandDispatcher<CommandSourceStack>> registrant) {
         REGISTRANTS.add(registrant);
     }
