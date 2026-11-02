@@ -28,11 +28,11 @@ public final class ParticleUtils {
     /**
      * Sends each particle separately to the players near the position.
      *
-     * @param       count       The number of particles. If it is negative, the client moves each particle with the velocity
-     *                          {@code motion} times {@code speed}. Otherwise, the client uses {@code motion} as a random spread
-     *                          around the position, and {@code speed} as a random velocity.
-     * @param       positionRandomization The maximum random offset from the position on each axis.
-     * @param       motionRandomization The maximum random offset added to {@code motion} on each axis.
+     * @param count the number of particles. If it is negative, the client moves each particle with the velocity
+     *     {@code motion} times {@code speed}. Otherwise, the client uses {@code motion} as a random spread around the
+     *     position, and {@code speed} as a random velocity.
+     * @param positionRandomization the maximum random offset from the position on each axis
+     * @param motionRandomization the maximum random offset added to {@code motion} on each axis
      */
     public static void spawnParticle(ServerLevel world, ParticleOptions particle, int count, LocalPosition position,
                                      LocalPosition positionRandomization, LocalPosition motion, LocalPosition motionRandomization,
