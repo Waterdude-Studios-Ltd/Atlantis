@@ -41,8 +41,8 @@ public class Particle {
     }
 
     /**
-     * @param       particle    A particle in the format of the {@code /particle} command,
-     *                          for example {@code dust{color:[1.0,0.0,0.0],scale:1.0}}.
+     * @param particle a particle in the format of the {@code /particle} command, for example
+     *     {@code dust{color:[1.0,0.0,0.0],scale:1.0}}
      */
     public static Particle of(String particle) {
         return new Particle(particle);
@@ -61,7 +61,7 @@ public class Particle {
     /**
      * Parses the particle on the first call and caches the result. Parsing fails if no server is running.
      *
-     * @return                  null if parsing fails.
+     * @return null if parsing fails
      */
     public ParticleOptions data() {
         return this.data.get();
