@@ -1,6 +1,7 @@
 package de.waterdu.atlantis.util.java;
 
 import com.google.gson.reflect.TypeToken;
+import de.waterdu.atlantis.AtlantisLogger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -26,20 +27,28 @@ public final class ReflectionUtils {
         }
     }
 
+    /**
+     * Also initializes the class if it exists.
+     */
     public static boolean doesClassExist(String classpath) {
         try {
             Class.forName(classpath);
             return true;
         } catch (ClassNotFoundException e) {
+            AtlantisLogger.warn("Class not found: " + classpath, e);
             return false;
         }
     }
 
+    /**
+     * @return the result, or {@code null} if the method is not accessible or throws
+     */
     @SuppressWarnings("unchecked")
     public static <T> T invokeSafely(Method method, Object object, Object... args) {
         try {
             return (T) method.invoke(object, args);
         } catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+            AtlantisLogger.warn("Failed to invoke method " + method.getName() + " on " + object.getClass().getSimpleName(), e);
             return null;
         }
     }
