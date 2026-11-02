@@ -89,7 +89,7 @@ public record Command(String value) {
         /**
          * Only the entity selectors in the command use this source. The command always runs as the server.
          *
-         * @param       player      The player to use as the source. null uses the server.
+         * @param player the player to use as the source. null uses the server.
          */
         public CommandContext source(ServerPlayer player) {
             this.source = player == null ? ServerUtils.server().createCommandSourceStack() : player.createCommandSourceStack();
@@ -118,7 +118,7 @@ public record Command(String value) {
         }
 
         /**
-         * @param       key         The placeholder name without the {@code %} characters.
+         * @param key the placeholder name without the {@code %} characters
          */
         public CommandContext placeholder(String key, Object value) {
             this.placeholders.put(key, String.valueOf(value));
@@ -237,7 +237,7 @@ public record Command(String value) {
         /**
          * Runs each command as the server. Logs the commands that fail.
          *
-         * @param       args        The values for {@code %1}, {@code %2} and so on in each command.
+         * @param args the values for {@code %1}, {@code %2} and so on in each command
          */
         public void execute(Object... args) {
             for (var command : this.commands) {
