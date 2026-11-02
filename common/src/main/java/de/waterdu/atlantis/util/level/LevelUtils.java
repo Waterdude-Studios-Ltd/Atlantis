@@ -33,8 +33,8 @@ public final class LevelUtils {
     }
 
     /**
-     * @param       dimension   A level id. The namespace defaults to {@code minecraft}.
-     * @return                  null when the id is empty.
+     * @param dimension a level id. The namespace defaults to {@code minecraft}.
+     * @return null when the id is empty
      */
     public static @Nullable ResourceKey<Level> dimension(String dimension) {
         if (dimension.isEmpty()) {
