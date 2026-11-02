@@ -67,6 +67,7 @@ import java.util.function.Supplier;
  * <p>
  * ---
  * <p>
+ *
  * @author Copyright (C) 2019-2026 Atlantis Development (Waterdude Studios Ltd), sam@waterdu.de
  * @version 1.0
  * @since 02/03/2019
@@ -115,15 +116,15 @@ public class Atlantis {
      * The first call creates the listeners and registers them through {@code Mods.modLoader()}.
      * Do not call this before {@code Mods} has bootstrapped.
      *
-     * @return                  Atlantis' own event listeners.
+     * @return Atlantis' own event listeners
      */
     public static AtlantisListeners listeners() {
         return LISTENERS.get();
     }
 
     /**
-     * @param       player      The player to check. May be null.
-     * @return                  Whether the player's username is {@link #WATER_NAME}, ignoring case.
+     * @param player the player to check. May be null.
+     * @return whether the player's username is {@link #WATER_NAME}, ignoring case
      */
     public static boolean isPlayerWater(Player player) {
         if (player == null) {
@@ -134,8 +135,8 @@ public class Atlantis {
     }
 
     /**
-     * @param       player      The player to check. May be null.
-     * @return                  Whether the player's username is {@link #WATER_NAME}, ignoring case.
+     * @param player the player to check. May be null.
+     * @return whether the player's username is {@link #WATER_NAME}, ignoring case
      */
     public static boolean isPlayerWater(ServerPlayer player) {
         return isPlayerWater((Player) player);
@@ -144,16 +145,16 @@ public class Atlantis {
     /**
      * Always false, because no UUID is registered for the author account. Use a name-based overload instead.
      *
-     * @param       uuid        The UUID to check.
-     * @return                  false.
+     * @param uuid the UUID to check
+     * @return false
      */
     public static boolean isPlayerWater(UUID uuid) {
         return false;
     }
 
     /**
-     * @param       name        The username to check. May be null.
-     * @return                  Whether the username is {@link #WATER_NAME}, ignoring case.
+     * @param name the username to check. May be null.
+     * @return whether the username is {@link #WATER_NAME}, ignoring case
      */
     public static boolean isPlayerWater(String name) {
         return name != null && name.toLowerCase(Locale.ROOT).equals(WATER_NAME.toLowerCase(Locale.ROOT));
