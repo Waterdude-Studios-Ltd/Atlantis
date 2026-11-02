@@ -64,9 +64,9 @@ public final class TextUtils {
     /**
      * Replaces {@code %1}, {@code %2} and so on with the matching argument.
      *
-     * @param       in          The text that contains the placeholders.
-     * @param       args        The values for each placeholder, starting at {@code %1}. Components lose their styling.
-     * @return                  A new {@link Text}.
+     * @param in the text that contains the placeholders
+     * @param args the values for each placeholder, starting at {@code %1}. Components lose their styling.
+     * @return a new {@link Text}
      */
     public static Text format(Text in, Object... args) {
         return TextUtils.format(in.get(), args);
@@ -75,9 +75,9 @@ public final class TextUtils {
     /**
      * Replaces {@code %1}, {@code %2} and so on with the matching argument.
      *
-     * @param       in          The text that contains the placeholders.
-     * @param       args        The values for each placeholder, starting at {@code %1}. Components lose their styling.
-     * @return                  A new {@link Text}.
+     * @param in the text that contains the placeholders
+     * @param args the values for each placeholder, starting at {@code %1}. Components lose their styling.
+     * @return a new {@link Text}
      */
     public static Text format(String in, Object... args) {
         for (var i = args.length; i > 0; --i) {
@@ -100,8 +100,8 @@ public final class TextUtils {
      *     <li>Each hex form can have style codes in brackets after it, for example {@code &#FF0000[lo]}. See {@link #getStyleArray(String)}.</li>
      * </ul>
      *
-     * @param       in          The string to colorize.
-     * @return                  The colorized component, or an empty component if there is no text.
+     * @param in the string to colorize
+     * @return the colorized component, or an empty component if there is no text
      */
     public static MutableComponent colorize(String in) {
         in = in.replace(TextUtils.COLOR_CHAR, TextUtils.TRUE_COLOR_CHAR);
@@ -223,8 +223,8 @@ public final class TextUtils {
     }
 
     /**
-     * @param       components  Components to append as-is, or other objects to append as their {@link String#valueOf(Object)}.
-     * @return                  A new component with every argument appended in order.
+     * @param components components to append as-is, or other objects to append as their {@link String#valueOf(Object)}
+     * @return a new component with every argument appended in order
      */
     public static MutableComponent combine(Object... components) {
         var combined = Component.literal("");
@@ -246,28 +246,28 @@ public final class TextUtils {
     }
 
     /**
-     * @return                  The strings joined with spaces.
+     * @return the strings joined with spaces
      */
     public static String concat(String... strings) {
         return TextUtils.concat(0, " ", strings);
     }
 
     /**
-     * @param       start       The index of the first string to include.
-     * @param       delimiter   The separator between strings.
-     * @param       strings     The strings to join.
-     * @return                  The strings from {@code start} onwards, joined with the delimiter.
+     * @param start the index of the first string to include
+     * @param delimiter the separator between strings
+     * @param strings the strings to join
+     * @return the strings from {@code start} onwards, joined with the delimiter
      */
     public static String concat(int start, String delimiter, String... strings) {
         return TextUtils.concat(start, strings.length, delimiter, strings);
     }
 
     /**
-     * @param       start       The index of the first string to include.
-     * @param       end         The index after the last string to include.
-     * @param       delimiter   The separator between strings.
-     * @param       strings     The strings to join.
-     * @return                  The strings from {@code start} to {@code end}, joined with the delimiter.
+     * @param start the index of the first string to include
+     * @param end the index after the last string to include
+     * @param delimiter the separator between strings
+     * @param strings the strings to join
+     * @return the strings from {@code start} to {@code end}, joined with the delimiter
      */
     public static String concat(int start, int end, String delimiter, String... strings) {
         var builder = new StringBuilder();
@@ -286,11 +286,11 @@ public final class TextUtils {
     /**
      * Joins all strings, but replaces the string at {@code exceptIndex} with {@code exceptString}.
      *
-     * @param       exceptIndex     The index of the string to replace.
-     * @param       exceptString    The string to put in its place.
-     * @param       delimiter       The separator between strings.
-     * @param       strings         The strings to join.
-     * @return                      The joined string.
+     * @param exceptIndex the index of the string to replace
+     * @param exceptString the string to put in its place
+     * @param delimiter the separator between strings
+     * @param strings the strings to join
+     * @return the joined string
      */
     public static String concatExcept(int exceptIndex, String exceptString, String delimiter, String... strings) {
         var builder = new StringBuilder();
@@ -317,8 +317,9 @@ public final class TextUtils {
     /**
      * Reads vanilla style codes into an array of obfuscated, bold, strikethrough, underlined and italic flags.
      *
-     * @param       codes       Any of {@code k}, {@code l}, {@code m}, {@code n} and {@code o}, in either case. {@code r} turns every style off.
-     * @return                  The style array, or {@link #NO_STYLE}.
+     * @param codes any of {@code k}, {@code l}, {@code m}, {@code n} and {@code o}, in either case. {@code r} turns
+     *     every style off.
+     * @return the style array, or {@link #NO_STYLE}
      */
     public static boolean[] getStyleArray(String codes) {
         var chars = new HashSet<Character>();
@@ -341,8 +342,8 @@ public final class TextUtils {
      * Applies a style array to the component and all of its siblings.
      * This turns off any style that the array does not set.
      *
-     * @param       text        The component to style.
-     * @param       style       An array from {@link #getStyleArray(String)}.
+     * @param text the component to style
+     * @param style an array from {@link #getStyleArray(String)}
      */
     public static void applyStyleArray(MutableComponent text, boolean[] style) {
         for (var sibling : text.getSiblings()) {
@@ -354,7 +355,7 @@ public final class TextUtils {
     }
 
     /**
-     * @return                  A component holding a single space, not an empty one.
+     * @return a component holding a single space, not an empty one
      */
     public static MutableComponent empty() {
         return Component.literal(" ");
@@ -364,9 +365,9 @@ public final class TextUtils {
      * Converts the object to {@link Text} as {@link #asText(Object)} does. Then replaces the placeholders for each
      * context in order. If no placeholder provider is installed, the placeholders do not change.
      *
-     * @param       textLike    The text to convert.
-     * @param       contexts    The objects to resolve placeholders against, such as a player.
-     * @return                  The text with the placeholders replaced.
+     * @param textLike the text to convert
+     * @param contexts the objects to resolve placeholders against, such as a player
+     * @return the text with the placeholders replaced
      */
     public static Text asTextWithPlaceholders(Object textLike, Object... contexts) {
         var text = TextUtils.asText(textLike);
@@ -380,9 +381,9 @@ public final class TextUtils {
      * Converts the object to {@link Text} as {@link #asText(Object)} does. Then replaces the placeholders for each
      * context in order. If no placeholder provider is installed, the placeholders do not change.
      *
-     * @param       textLike    The text to convert.
-     * @param       contexts    The objects to resolve placeholders against, such as a player.
-     * @return                  The text with the placeholders replaced.
+     * @param textLike the text to convert
+     * @param contexts the objects to resolve placeholders against, such as a player
+     * @return the text with the placeholders replaced
      */
     public static Text asTextWithPlaceholders(Object textLike, Collection<Object> contexts) {
         var text = TextUtils.asText(textLike);
@@ -393,9 +394,9 @@ public final class TextUtils {
     }
 
     /**
-     * @param       textLike    A {@link Text}, which is returned as-is, a component, which loses its styling,
-     *                          null, which gives empty text, or any other object, which is converted with toString.
-     * @return                  The object as {@link Text}.
+     * @param textLike a {@link Text}, which is returned as-is, a component, which loses its styling, null, which gives
+     *     empty text, or any other object, which is converted with toString
+     * @return the object as {@link Text}
      */
     public static Text asText(Object textLike) {
         return switch (textLike) {
@@ -421,9 +422,9 @@ public final class TextUtils {
     }
 
     /**
-     * @param       textLike    A component, which is returned as-is, a {@link Text}, which is compiled,
-     *                          or any other object, which is converted with toString and colorized. Must not be null.
-     * @return                  The object as a component.
+     * @param textLike a component, which is returned as-is, a {@link Text}, which is compiled, or any other object,
+     *     which is converted with toString and colorized. Must not be null.
+     * @return the object as a component
      */
     public static MutableComponent asComponent(Object textLike) {
         if (textLike instanceof MutableComponent component) {
@@ -436,9 +437,9 @@ public final class TextUtils {
     }
 
     /**
-     * @param       textLike    A component, a {@link Text}, or any other object. Must not be null.
-     * @return                  The component's plain text, the {@link Text}'s uncompiled string with its color codes,
-     *                          or the object's toString.
+     * @param textLike a component, a {@link Text}, or any other object. Must not be null.
+     * @return the component's plain text, the {@link Text}'s uncompiled string with its color codes, or the object's
+     *     toString
      */
     public static String asString(Object textLike) {
         if (textLike instanceof MutableComponent component) {
@@ -493,7 +494,7 @@ public final class TextUtils {
     /**
      * Use this to check that brackets are balanced.
      *
-     * @return                  The number of {@code add} characters minus the number of {@code subtract} characters.
+     * @return the number of {@code add} characters minus the number of {@code subtract} characters
      */
     public static int countCharOccurrenceDifference(String string, char add, char subtract) {
         var count = 0;
@@ -510,7 +511,7 @@ public final class TextUtils {
     /**
      * Adds a word that {@link #capitalizeEachWord(String)} leaves in lower case. This applies to every mod.
      *
-     * @param       word        The word, in lower case.
+     * @param word the word, in lower case
      */
     public static void setNonCapitalizedWord(String word) {
         TextUtils.DO_NOT_CAPITALIZE.add(word);
@@ -543,9 +544,9 @@ public final class TextUtils {
      * Converts the string to lower case, then capitalizes each word separated by a space.
      * The first word is always capitalized.
      *
-     * @param       in                  The string to capitalize.
-     * @param       doNotCapitalize     Lower case words to leave as they are after the first word.
-     * @return                          The capitalized string.
+     * @param in the string to capitalize
+     * @param doNotCapitalize lower case words to leave as they are after the first word
+     * @return the capitalized string
      */
     public static String capitalizeEachWord(String in, Set<String> doNotCapitalize) {
         var builder = new StringBuilder();
@@ -565,7 +566,7 @@ public final class TextUtils {
     /**
      * Sets the click event on the component and its direct siblings, but not on their own siblings.
      *
-     * @return                  The same component.
+     * @return the same component
      */
     public static MutableComponent applyClickEvent(MutableComponent text, ClickEvent event) {
         text.setStyle(text.getStyle().withClickEvent(event));
@@ -580,7 +581,7 @@ public final class TextUtils {
     /**
      * Sets the hover event on the component and its direct siblings, but not on their own siblings.
      *
-     * @return                  The same component.
+     * @return the same component
      */
     public static MutableComponent applyHoverEvent(MutableComponent text, HoverEvent event) {
         text.setStyle(text.getStyle().withHoverEvent(event));
@@ -593,8 +594,8 @@ public final class TextUtils {
     }
 
     /**
-     * @return                  Whether {@link Double#parseDouble(String)} accepts the string, which includes
-     *                          signs, decimals, exponents and "NaN".
+     * @return whether {@link Double#parseDouble(String)} accepts the string, which includes signs, decimals, exponents
+     *     and "NaN"
      */
     public static boolean isNumberParsable(String string) {
         try {
@@ -606,7 +607,7 @@ public final class TextUtils {
     }
 
     /**
-     * @return                  Whether every character is a digit from 0 to 9. True for an empty string.
+     * @return whether every character is a digit from 0 to 9. True for an empty string.
      */
     public static boolean isNumber(String string) {
         for (var ch : string.toCharArray()) {
