@@ -17,7 +17,7 @@ public final class ActionReader implements ServerboundInteractPacket.Handler {
     }
 
     /**
-     * @return                  null for attacks.
+     * @return null for attacks
      */
     public @Nullable InteractionHand hand() {
         return this.hand;
