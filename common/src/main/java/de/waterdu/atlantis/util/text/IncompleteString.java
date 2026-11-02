@@ -44,8 +44,8 @@ public class IncompleteString {
     /**
      * Inserts {@code replacement} in place of {@code target}. A segment changes only if it contains {@code target} exactly once.
      *
-     * @param       target      A regular expression.
-     * @return                  A new instance. This instance does not change.
+     * @param target a regular expression
+     * @return a new instance. This instance does not change.
      */
     public IncompleteString replace(String target, IncompleteString replacement) {
         var builder = IncompleteString.builder();
