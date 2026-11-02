@@ -20,7 +20,7 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
      */
     @SafeVarargs
     public static <T> void send(T message, CommandContext<CommandSourceStack>... recipients) {
@@ -33,7 +33,7 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
      */
     public static <T> void send(T message, CommandSourceStack... recipients) {
         if (message != null) {
@@ -45,7 +45,7 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
      */
     public static <T> void send(T message, CommandSource... recipients) {
         if (message != null) {
@@ -66,8 +66,8 @@ public final class MessageUtils {
     /**
      * Sends to the recipients that are online.
      *
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
      */
     public static <T> void send(T message, boolean force, PlayerData... recipients) {
         if (message != null) {
@@ -88,8 +88,8 @@ public final class MessageUtils {
     /**
      * Sends to the recipients that are online.
      *
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
      */
     public static <T> void send(T message, boolean force, PlayerReference... recipients) {
         if (message != null) {
@@ -110,8 +110,8 @@ public final class MessageUtils {
     /**
      * Sends to the recipients that are online.
      *
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
      */
     public static <T> void send(T message, boolean force, Collection<PlayerReference> recipients) {
         if (message != null) {
@@ -130,9 +130,9 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
-     * @param       permission  Checked with {@link Permissions#hasPermission}.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
+     * @param permission checked with {@link Permissions#hasPermission}
      */
     public static <T> void sendToAllWithPerm(T message, boolean force, String permission) {
         if (message != null) {
@@ -153,8 +153,8 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
      */
     public static <T> void sendToAll(T message, boolean force) {
         if (message != null) {
@@ -171,9 +171,9 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
-     * @param       predicate   Players it matches are skipped.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
+     * @param predicate players it matches are skipped
      */
     public static <T> void sendToAllExcept(T message, boolean force, Predicate<ServerPlayer> predicate) {
         if (message != null) {
@@ -194,9 +194,9 @@ public final class MessageUtils {
     }
 
     /**
-     * @param       message     Converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
-     * @param       force       Shows the message on the action bar instead of in chat, even to players who have chat hidden.
-     * @param       predicate   Only players it matches receive the message.
+     * @param message converted with {@link TextUtils#asComponent(Object)}. Nothing is sent if null.
+     * @param force shows the message on the action bar instead of in chat, even to players who have chat hidden
+     * @param predicate only players it matches receive the message
      */
     public static <T> void sendToMatching(T message, boolean force, Predicate<ServerPlayer> predicate) {
         if (message != null) {
