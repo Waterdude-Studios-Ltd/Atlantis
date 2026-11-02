@@ -73,35 +73,35 @@ public class LocalPosition extends Vec3 {
     }
 
     /**
-     * @return                  A copy with the new value. This position does not change.
+     * @return a copy with the new value. This position does not change.
      */
     public LocalPosition setX(double x) {
         return new LocalPosition(x, this.y, this.z, this.rotation);
     }
 
     /**
-     * @return                  A copy with the new value. This position does not change.
+     * @return a copy with the new value. This position does not change.
      */
     public LocalPosition setY(double y) {
         return new LocalPosition(this.x, y, this.z, this.rotation);
     }
 
     /**
-     * @return                  A copy with the new value. This position does not change.
+     * @return a copy with the new value. This position does not change.
      */
     public LocalPosition setZ(double z) {
         return new LocalPosition(this.x, this.y, z, this.rotation);
     }
 
     /**
-     * @return                  A copy with the new value. This position does not change.
+     * @return a copy with the new value. This position does not change.
      */
     public LocalPosition setXRot(float xRot) {
         return new LocalPosition(this.x, this.y, this.z, xRot, this.rotation[1]);
     }
 
     /**
-     * @return                  A copy with the new value. This position does not change.
+     * @return a copy with the new value. This position does not change.
      */
     public LocalPosition setYRot(float yRot) {
         return new LocalPosition(this.x, this.y, this.z, this.rotation[0], yRot);
@@ -116,8 +116,8 @@ public class LocalPosition extends Vec3 {
     }
 
     /**
-     * @return                  A new position. Each axis is a random value from {@code -factor} to {@code factor} times this axis.
-     *                          The rotation stays the same.
+     * @return a new position. Each axis is a random value from {@code -factor} to {@code factor} times this axis. The
+     *     rotation stays the same.
      */
     public LocalPosition randomize(double factor) {
         double doubleFactor = factor + factor;
@@ -156,7 +156,7 @@ public class LocalPosition extends Vec3 {
     /**
      * Does nothing when the entity is null or the level is not a server level.
      *
-     * @param       ignoreRotation Keeps the current rotation of the entity.
+     * @param ignoreRotation keeps the current rotation of the entity
      */
     public void teleport(Entity entity, Level level, boolean ignoreRotation) {
         if (entity == null) {
@@ -185,7 +185,7 @@ public class LocalPosition extends Vec3 {
     }
 
     /**
-     * @return                  A copy with the angles added to the rotation.
+     * @return a copy with the angles added to the rotation
      */
     public LocalPosition rotate(float xRot, float yRot) {
         return new LocalPosition(this.x, this.y, this.z, this.rotation[0] + xRot, this.rotation[1] + yRot);
@@ -206,7 +206,7 @@ public class LocalPosition extends Vec3 {
     /**
      * Compares only the coordinates, not the rotation.
      *
-     * @param       object      A JOML vector, a {@link Position}, or a numeric array with three values. Other objects never match.
+     * @param object a JOML vector, a {@link Position}, or a numeric array with three values. Other objects never match.
      */
     public boolean matches(Object object) {
         return switch (object) {
