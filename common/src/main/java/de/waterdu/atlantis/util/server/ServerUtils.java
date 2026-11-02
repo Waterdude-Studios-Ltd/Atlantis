@@ -64,7 +64,7 @@ public final class ServerUtils {
     }
 
     /**
-     * @return                  {@link RegistryAccess#EMPTY} when no server runs.
+     * @return {@link RegistryAccess#EMPTY} when no server runs
      */
     public static @NonNull RegistryAccess registryAccess() {
         return ServerUtils.fromServer(MinecraftServer::registryAccess, RegistryAccess.EMPTY);
@@ -116,9 +116,9 @@ public final class ServerUtils {
     }
 
     /**
-     * @param       getterString An entity selector if it contains {@code @}. Otherwise, the name of an online player.
-     * @param       success     Gets the players if at least one matches.
-     * @param       failure     Runs if no player matches.
+     * @param getterString an entity selector if it contains {@code @}. Otherwise, the name of an online player.
+     * @param success gets the players if at least one matches
+     * @param failure runs if no player matches
      */
     public static void parsePlayersOrElse(CommandSourceStack source, String getterString, Consumer<List<ServerPlayer>> success, Runnable failure) throws CommandSyntaxException {
         List<ServerPlayer> players;
@@ -148,9 +148,10 @@ public final class ServerUtils {
     /**
      * Runs the command as the server.
      *
-     * @param       command     The command without a leading slash. It can have the placeholders {@code %1}, {@code %2} and so on.
-     * @param       args        The values for the placeholders.
-     * @return                  The result of the command. 0 when no server runs.
+     * @param command the command without a leading slash. It can have the placeholders {@code %1}, {@code %2} and so
+     *     on.
+     * @param args the values for the placeholders
+     * @return the result of the command. 0 when no server runs.
      */
     public static int performCommand(String command, Object... args) throws CommandSyntaxException {
         var server = ServerUtils.server();
@@ -162,7 +163,7 @@ public final class ServerUtils {
     }
 
     /**
-     * @return                  The spawn point of the overworld. 0, 64, 0 in the overworld when no server runs.
+     * @return the spawn point of the overworld. 0, 64, 0 in the overworld when no server runs.
      */
     public static LevelPosition spawnPoint() {
         var overworld = ServerUtils.fromServer(MinecraftServer::overworld);
