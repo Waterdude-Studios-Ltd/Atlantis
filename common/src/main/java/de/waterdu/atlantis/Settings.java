@@ -95,7 +95,7 @@ public class Settings implements Configuration {
     private int schematicHistoryDepth = 10;
 
     @AonComment({"Whether the mod ID of a data type is prefixed to database table names.", "Default: true"})
-    private boolean modIDPrefixOnTableNames = true;
+    private boolean modIdPrefixOnTableNames = true;
 
     @AonComment({"Database schema to use instead of each mod's mod ID.", "Default: N/A"})
     private String globalDatabaseSchemaOverride = "";
@@ -250,7 +250,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The configured thread count. A value of zero or less means that Atlantis chooses the count.
+     * @return the configured thread count. A value of zero or less means that Atlantis chooses the count.
      */
     public int getThreads() {
         return this.threads;
@@ -285,7 +285,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The delay in milliseconds.
+     * @return the delay in milliseconds
      */
     public long getDataSaveDelay() {
         return this.dataSaveDelay;
@@ -296,7 +296,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The delay in milliseconds.
+     * @return the delay in milliseconds
      */
     public long getScheduledTaskDelay() {
         return this.scheduledTaskDelay;
@@ -307,7 +307,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The delay in milliseconds.
+     * @return the delay in milliseconds
      */
     public long getDoubleClickDelay() {
         return this.doubleClickDelay;
@@ -318,7 +318,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The delay in milliseconds.
+     * @return the delay in milliseconds
      */
     public long getDuplicateSaveDelay() {
         return this.duplicateSaveDelay;
@@ -464,12 +464,12 @@ public class Settings implements Configuration {
         return this.createDefaultAtlantisLevel;
     }
 
-    public void setModIDPrefixOnTableNames(boolean modIDPrefixOnTableNames) {
-        this.modIDPrefixOnTableNames = modIDPrefixOnTableNames;
+    public void setModIdPrefixOnTableNames(boolean modIdPrefixOnTableNames) {
+        this.modIdPrefixOnTableNames = modIdPrefixOnTableNames;
     }
 
-    public boolean isModIDPrefixOnTableNames() {
-        return this.modIDPrefixOnTableNames;
+    public boolean isModIdPrefixOnTableNames() {
+        return this.modIdPrefixOnTableNames;
     }
 
     public void setGlobalDatabaseSchemaOverride(String globalDatabaseSchemaOverride) {
@@ -541,8 +541,8 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @param       value       The default database name, normally a mod ID.
-     * @return                  The global schema override if one is set, otherwise the remapped name or the value itself.
+     * @param value the default database name, normally a mod ID
+     * @return the global schema override if one is set, otherwise the remapped name or the value itself
      */
     public String getDatabaseName(String value) {
         return this.globalDatabaseSchemaOverride.isEmpty() ? this.remappedDatabaseNames.getOrDefault(value, value) : this.globalDatabaseSchemaOverride;
@@ -557,7 +557,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The remapped item string, or the item itself if it has no remapping.
+     * @return the remapped item string, or the item itself if it has no remapping
      */
     public String getParsedItemStack(String item) {
         return this.remappedParsedItemStacks.getOrDefault(item, item);
@@ -592,7 +592,7 @@ public class Settings implements Configuration {
     }
 
     /**
-     * @return                  The loaded settings, or the defaults if the config is not loaded yet.
+     * @return the loaded settings, or the defaults if the config is not loaded yet
      */
     public static Settings get() {
         return Atlantis.CONFIG.orElse(Settings.class, Settings.DEFAULTS);
@@ -606,7 +606,7 @@ public class Settings implements Configuration {
         ;
 
         /**
-         * @return                  {@code true} if the config's cached player data is evicted when players join and leave.
+         * @return {@code true} if the config's cached player data is evicted when players join and leave
          */
         public boolean passes(Config<?> config) {
             return switch (this) {
