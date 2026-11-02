@@ -75,6 +75,9 @@ public class Range<N extends Number> {
         return this.max;
     }
 
+    /**
+     * The bounds are inclusive. An integer range truncates the value first, so the range 1 to 5 contains 5.5.
+     */
     public boolean contains(Number value) {
         return this.contains(value.doubleValue());
     }
@@ -91,10 +94,16 @@ public class Range<N extends Number> {
         return this.contains((double) value);
     }
 
+    /**
+     * The bounds are inclusive. An integer range truncates the value first, so the range 1 to 5 contains 5.5.
+     */
     public boolean contains(double value) {
         return this.lessThanOrEqualToFunction.apply(value, this.min) && this.greaterThanOrEqualToFunction.apply(value, this.max);
     }
 
+    /**
+     * Steps by 1 from {@code min} to {@code max}, both inclusive. Decimal bounds are truncated first.
+     */
     public void forEach(Consumer<N> forEach) {
         var min = this.min.longValue();
         var max = this.max.longValue();
@@ -103,6 +112,9 @@ public class Range<N extends Number> {
         }
     }
 
+    /**
+     * Caches the list for each type. Later calls with the same type ignore the mapper.
+     */
     @SuppressWarnings("unchecked")
     public <M extends Number> List<M> toList(Class<M> type, Function<N, M> mapper) {
         return (List<M>) this.lists.computeIfAbsent(type, ___ -> {
