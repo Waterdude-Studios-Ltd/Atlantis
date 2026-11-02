@@ -16,9 +16,9 @@ public final class AtlantisLogger {
     /**
      * Logs at the given severity. {@link Severity#NONE} logs nothing.
      *
-     * @param       severity    The level to log at.
-     * @param       message     The message, with {@code {}} placeholders for args.
-     * @param       args        Values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     * @param severity the level to log at
+     * @param message the message, with {@code {}} placeholders for args
+     * @param args values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
      */
     public static void log(Severity severity, String message, Object... args) {
         switch (severity) {
@@ -32,9 +32,9 @@ public final class AtlantisLogger {
     /**
      * Logs at the given severity with a stack trace. {@link Severity#NONE} logs nothing.
      *
-     * @param       severity    The level to log at.
-     * @param       message     The message. This method does not replace placeholders.
-     * @param       err         The error whose stack trace to log.
+     * @param severity the level to log at
+     * @param message the message. This method does not replace placeholders.
+     * @param err the error whose stack trace to log
      */
     public static void log(Severity severity, String message, Throwable err) {
         switch (severity) {
@@ -80,7 +80,7 @@ public final class AtlantisLogger {
     /**
      * Returns a no-op builder when debug logging is disabled. This builder formats nothing that is passed to it.
      *
-     * @return                  A debug-level {@link LogBuilder}.
+     * @return a debug-level {@link LogBuilder}
      */
     public static LogBuilder debugBuilder() {
         return LOGGER.atDebug();
