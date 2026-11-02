@@ -49,36 +49,36 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @param       component   The component to read. Its styling is lost.
-     * @return                  A new mutable {@link Text} with the component's plain text.
+     * @param component the component to read. Its styling is lost.
+     * @return a new mutable {@link Text} with the component's plain text
      */
     public static Text of(Component component) {
         return Text.of(component.getString());
     }
 
     /**
-     * @return                  An immutable copy, without the raw and translatable flags.
+     * @return an immutable copy, without the raw and translatable flags
      */
     public static Text of(Text text) {
         return text.immutable();
     }
 
     /**
-     * @return                  A new, empty {@link Immutable}.
+     * @return a new, empty {@link Immutable}
      */
     public static Text empty() {
         return new Immutable("");
     }
 
     /**
-     * @return                  A mutable copy, without the raw and translatable flags.
+     * @return a mutable copy, without the raw and translatable flags
      */
     public Text mutable() {
         return Text.of(this.get());
     }
 
     /**
-     * @return                  An immutable copy, without the raw and translatable flags.
+     * @return an immutable copy, without the raw and translatable flags
      */
     public Immutable immutable() {
         return Immutable.of(this.get());
@@ -192,7 +192,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     /**
      * Unlike {@link #append(Object)}, never changes this text.
      *
-     * @return                  A new mutable {@link Text}, without the raw and translatable flags.
+     * @return a new mutable {@link Text}, without the raw and translatable flags
      */
     public Text replace(CharSequence target, CharSequence replacement) {
         return Text.of(this.value.replace(target, replacement));
@@ -201,7 +201,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     /**
      * Uses the default locale. Unlike {@link #append(Object)}, never changes this text.
      *
-     * @return                  A new mutable {@link Text}, without the raw and translatable flags.
+     * @return a new mutable {@link Text}, without the raw and translatable flags
      */
     public Text toLowerCase() {
         return Text.of(this.value.toLowerCase());
@@ -210,7 +210,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     /**
      * Uses the default locale. Unlike {@link #append(Object)}, never changes this text.
      *
-     * @return                  A new mutable {@link Text}, without the raw and translatable flags.
+     * @return a new mutable {@link Text}, without the raw and translatable flags
      */
     public Text toUpperCase() {
         return Text.of(this.value.toUpperCase());
@@ -219,7 +219,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     /**
      * Unlike {@link #append(Object)}, never changes this text.
      *
-     * @return                  A new mutable {@link Text}, without the raw and translatable flags.
+     * @return a new mutable {@link Text}, without the raw and translatable flags
      */
     public Text trim() {
         return Text.of(this.value.trim());
@@ -250,15 +250,15 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @return                  The uncompiled value, including color codes.
+     * @return the uncompiled value, including color codes
      */
     public String get() {
         return this.value;
     }
 
     /**
-     * @return                  A new {@link Text} with {@code %1}, {@code %2} and so on replaced.
-     * @see                     TextUtils#format(String, Object...)
+     * @return a new {@link Text} with {@code %1}, {@code %2} and so on replaced
+     * @see TextUtils#format(String, Object...)
      */
     public Text format(Object... args) {
         return TextUtils.format(this.value, args);
@@ -312,8 +312,8 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
      * Compiles to a component. The component is translatable if {@link #translatable()} was called. It is literal if
      * {@link #raw()} was called. Otherwise, {@link TextUtils#colorize(String)} applies the color codes.
      *
-     * @param       ifEmptyAddSpace     Whether empty text becomes a single space. Ignored for translatable text.
-     * @return                          A new component.
+     * @param ifEmptyAddSpace whether empty text becomes a single space. Ignored for translatable text.
+     * @return a new component
      */
     public MutableComponent compile(boolean ifEmptyAddSpace) {
         String value = this.value;
@@ -352,7 +352,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @return                  A mutable copy, without the raw and translatable flags.
+     * @return a mutable copy, without the raw and translatable flags
      */
     public Text copy() {
         return Text.of(this.value);
@@ -532,7 +532,7 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
     }
 
     /**
-     * @return                  A builder for text with color codes.
+     * @return a builder for text with color codes
      */
     public static Builder builder() {
         return new Builder();
@@ -548,8 +548,8 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * @param       text        Anything {@link TextUtils#asText(Object)} accepts. Components lose their styling.
-         * @return                  This builder.
+         * @param text anything {@link TextUtils#asText(Object)} accepts. Components lose their styling.
+         * @return this builder
          */
         public <T> Builder append(T text) {
             this.text.append(TextUtils.asText(text).get());
@@ -569,9 +569,9 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         /**
          * Appends a hex color code. The code applies until the next code.
          *
-         * @param       color       The color.
-         * @param       styles      Styles to apply with the color.
-         * @return                  This builder.
+         * @param color the color
+         * @param styles styles to apply with the color
+         * @return this builder
          */
         public Builder color(Color color, ChatFormatting... styles) {
             return this.append(TextUtils.COLOR_CHAR)
@@ -583,10 +583,10 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         /**
          * Appends a gradient code. The gradient spreads over the text until the next code.
          *
-         * @param       from        The color of the first character.
-         * @param       to          The color of the last character.
-         * @param       styles      Styles to apply with the gradient.
-         * @return                  This builder.
+         * @param from the color of the first character
+         * @param to the color of the last character
+         * @param styles styles to apply with the gradient
+         * @return this builder
          */
         public Builder gradient(Color from, Color to, ChatFormatting... styles) {
             return this.append(TextUtils.COLOR_CHAR)
@@ -610,15 +610,15 @@ public class Text implements Serializable, Comparable<Text>, CharSequence {
         }
 
         /**
-         * @return                  A new mutable {@link Text}.
+         * @return a new mutable {@link Text}
          */
         public Text build() {
             return this.build(false);
         }
 
         /**
-         * @param       immutable   Whether to build an {@link Immutable}.
-         * @return                  A new {@link Text}.
+         * @param immutable whether to build an {@link Immutable}
+         * @return a new {@link Text}
          */
         public Text build(boolean immutable) {
             return immutable ? new Immutable(this.text.toString()) : new Text(this.text.toString());
