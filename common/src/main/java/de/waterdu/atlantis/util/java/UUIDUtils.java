@@ -11,6 +11,9 @@ public final class UUIDUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Also accepts a UUID without dashes.
+     */
     public static UUID fromString(String uuid) {
         if (uuid.length() == 32) {
             return UUID.fromString(
@@ -29,6 +32,9 @@ public final class UUIDUtils {
         return UUIDUtils.fromSeed(object.hashCode());
     }
 
+    /**
+     * @return a version 4 UUID. The same seed always gives the same UUID.
+     */
     public static UUID fromSeed(long seed) {
         var ng = new Random(seed);
         var randomBytes = new byte[16];
