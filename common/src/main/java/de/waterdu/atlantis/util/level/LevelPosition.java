@@ -15,6 +15,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Type;
 import java.util.Objects;
@@ -50,6 +51,9 @@ public class LevelPosition {
         return LevelPosition.of(ConfigurableLevel.of(level), new LocalPosition(x, y, z, xRot, yRot));
     }
 
+    /**
+     * @return null when the level does not exist
+     */
     public ServerLevel level() {
         return this.level.get();
     }
@@ -82,13 +86,16 @@ public class LevelPosition {
         return this.position.yRot();
     }
 
-    public <E extends Entity> Optional<E> createEntity(EntityType<E> type) {
+    /**
+     * Creates the entity at this position, but does not add it to the level.
+     */
+    public <E extends Entity> @Nullable E createEntity(EntityType<E> type) {
         E entity = type.create(this.level());
         if (entity == null) {
-            return Optional.empty();
+            return null;
         }
         entity.absMoveTo(this.x(), this.y(), this.z(), this.yRot(), this.xRot());
-        return Optional.of(entity);
+        return entity;
     }
 
     public void sound(SoundEvent sound) {
@@ -103,10 +110,16 @@ public class LevelPosition {
         this.sound(sound, category, 1F, 1F);
     }
 
+    /**
+     * All players near the position hear the sound.
+     */
     public void sound(SoundEvent sound, SoundSource category, float volume, float pitch) {
         this.level().playSound(null, this.position().x(), this.position().y(), this.position().z(), sound, category, volume, pitch);
     }
 
+    /**
+     * Does nothing when the player is offline.
+     */
     public void teleport(PlayerReference reference) {
         if (reference == null) {
             return;
