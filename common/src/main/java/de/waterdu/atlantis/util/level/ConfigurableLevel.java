@@ -7,6 +7,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import de.waterdu.atlantis.util.java.interfaces.Lazy;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -18,7 +19,7 @@ import java.lang.reflect.Type;
 public class ConfigurableLevel {
 
     private final ResourceKey<Level> key;
-    private ServerLevel level = null;
+    private final Lazy<ServerLevel> level = Lazy.of(() -> LevelUtils.level(this.key()));
 
     public ConfigurableLevel(String key) {
         this.key = LevelUtils.dimension(key);
@@ -48,17 +49,23 @@ public class ConfigurableLevel {
         return this.key;
     }
 
+    /**
+     * After the first lookup that finds the level, the level is cached.
+     *
+     * @return null when the level does not exist
+     */
     public ServerLevel get() {
-        if (this.level == null) {
-            this.level = LevelUtils.level(this.key).orElse(null);
-        }
-        return this.level;
+        return this.level.get();
     }
 
     public boolean contains(Entity entity) {
         return this.matches(entity.level());
     }
 
+    /**
+     * @param level a {@link Level}, a {@link ResourceKey}, a {@link ResourceLocation}, a level id string or a
+     *     {@link ConfigurableLevel}. Other objects never match.
+     */
     public boolean matches(Object level) {
         if (level instanceof Level other) {
             return other.dimension().equals(this.key);
