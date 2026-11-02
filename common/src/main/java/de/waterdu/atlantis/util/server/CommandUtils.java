@@ -29,7 +29,7 @@ public final class CommandUtils {
     }
 
     /**
-     * @return                  {@code true} if {@code region} starts with {@code original}, ignoring case.
+     * @return {@code true} if {@code region} starts with {@code original}, ignoring case
      */
     public static boolean doesStringStartWith(String original, String region) {
         return region.regionMatches(true, 0, original, 0, original.length());
@@ -40,9 +40,9 @@ public final class CommandUtils {
     }
 
     /**
-     * @param       inputArgs   The typed arguments. Must not be empty.
-     * @return                  The completions that start with the last argument, ignoring case. If there are none,
-     *                          the {@link ResourceLocation} completions whose path starts with it.
+     * @param inputArgs the typed arguments. Must not be empty.
+     * @return the completions that start with the last argument, ignoring case. If there are none, the
+     *     {@link ResourceLocation} completions whose path starts with it.
      */
     public static List<String> getListOfStringsMatchingLastWord(String[] inputArgs, Collection<?> possibleCompletions) {
         var s = inputArgs[inputArgs.length - 1];
