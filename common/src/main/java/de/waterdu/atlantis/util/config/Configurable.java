@@ -38,28 +38,72 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
+/**
+ * Holds a lazy config value that is computed on the first {@link #get()} and can be reset.
+ *
+ * @param <T> the type of the value
+ * @param value the lazy value
+ */
 public record Configurable<T>(ResettableLazy<T> value) {
 
+    /**
+     * Creates a configurable with a fixed value.
+     *
+     * @param value the value
+     */
     private Configurable(T value) {
         this(ResettableLazy.of(() -> value));
     }
 
+    /**
+     * Creates a configurable that computes its value with the supplier.
+     *
+     * @param value the supplier of the value
+     */
     private Configurable(Supplier<T> value) {
         this(ResettableLazy.of(value));
     }
 
+    /**
+     * Creates a configurable with a fixed value.
+     *
+     * @param <T> the type of the value
+     * @param value the value
+     * @return the configurable
+     */
     public static <T> Configurable<T> of(T value) {
         return new Configurable<>(value);
     }
 
+    /**
+     * Creates a configurable that computes its value with the supplier.
+     *
+     * @param <T> the type of the value
+     * @param value the supplier of the value
+     * @return the configurable
+     */
     public static <T> Configurable<T> of(Supplier<T> value) {
         return new Configurable<>(value);
     }
 
+    /**
+     * Creates a configurable from a lazy value.
+     *
+     * @param <T> the type of the value
+     * @param value the lazy value
+     * @return the configurable
+     */
     public static <T> Configurable<T> of(ResettableLazy<T> value) {
         return new Configurable<>(value);
     }
 
+    /**
+     * Creates a mutable list of configurables with fixed values.
+     *
+     * @param <T> the type of the values
+     * @param values the values
+     * @return the list of configurables
+     */
     @SafeVarargs
     public static <T> List<Configurable<T>> ofList(T... values) {
         var configurables = new ArrayList<Configurable<T>>();
@@ -69,6 +113,13 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return configurables;
     }
 
+    /**
+     * Creates a mutable list of configurables that compute their values with the suppliers.
+     *
+     * @param <T> the type of the values
+     * @param values the suppliers of the values
+     * @return the list of configurables
+     */
     @SafeVarargs
     public static <T> List<Configurable<T>> ofList(Supplier<T>... values) {
         var configurables = new ArrayList<Configurable<T>>();
@@ -78,6 +129,13 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return configurables;
     }
 
+    /**
+     * Creates a mutable list of configurables from lazy values.
+     *
+     * @param <T> the type of the values
+     * @param values the lazy values
+     * @return the list of configurables
+     */
     @SafeVarargs
     public static <T> List<Configurable<T>> ofList(ResettableLazy<T>... values) {
         var configurables = new ArrayList<Configurable<T>>();
@@ -87,6 +145,13 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return configurables;
     }
 
+    /**
+     * Registers an adapter for {@code Configurable<T>} that uses the Gson context to read and write the value.
+     *
+     * @param <T> the type of the value
+     * @param gson the Gson builder to register the adapter on
+     * @param type the type of the value
+     */
     public static <T> void registerContext(GsonBuilder gson, Class<T> type) {
         Configurable.registerContext(
                 gson,
@@ -96,6 +161,10 @@ public record Configurable<T>(ResettableLazy<T> value) {
         );
     }
 
+    /**
+     * Registers an adapter for {@code Configurable<T>}. The adapter deserializes the value on the first {@link #get()},
+     * not when Gson reads the JSON.
+     */
     public static <T> void registerContext(GsonBuilder gson,
                                            Class<T> type,
                                            BiFunction<JsonElement, JsonDeserializationContext, T> deserializer,
@@ -103,10 +172,20 @@ public record Configurable<T>(ResettableLazy<T> value) {
         gson.registerTypeAdapter(Configurable.typeOf(type), new TypeAdapter<>(deserializer, serializer));
     }
 
+    /**
+     * Gets the parameterized type {@code Configurable<T>}.
+     *
+     * @param <T> the type of the value
+     * @param type the type of the value
+     * @return the parameterized type
+     */
     private static <T> Type typeOf(Class<T> type) {
         return TypeToken.getParameterized(Configurable.class, type).getType();
     }
 
+    /**
+     * Also calls {@code registerConfigurableContexts} on every mod proxy.
+     */
     public static void registerDefaultContexts(GsonBuilder gson) {
         Configurable.registerContext(gson, SoundEvent.class,
                 (json, context) -> Registries.SOUND_EVENT.registryFromRegistryKey().get(ResourceLocation.parse(json.getAsString())),
@@ -241,10 +320,27 @@ public record Configurable<T>(ResettableLazy<T> value) {
         Mods.forEachProxy(proxy -> proxy.registerConfigurableContexts(gson));
     }
 
+    /**
+     * Checks if the object equals one of the values, with {@link Object#equals(Object)}.
+     *
+     * @param <T> the type of the values
+     * @param object the object to find
+     * @param configurables the configurables to search
+     * @return {@code true} if the object equals one of the values
+     */
     public static <T> boolean contains(T object, Collection<Configurable<T>> configurables) {
         return Configurable.contains(object, Object::equals, configurables);
     }
 
+    /**
+     * Checks if the object matches one of the values.
+     *
+     * @param <T> the type of the values
+     * @param object the object to find
+     * @param equality the test that compares the object with a value
+     * @param configurables the configurables to search
+     * @return {@code true} if the object matches one of the values
+     */
     public static <T> boolean contains(T object, EqualityTest<T> equality, Collection<Configurable<T>> configurables) {
         for (Configurable<T> configurable : configurables) {
             if (equality.equals(object, configurable.get())) {
@@ -254,6 +350,9 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return false;
     }
 
+    /**
+     * @return {@code true} if one of the two objects matches one of the values
+     */
     public static <T> boolean contains(T object1, T object2, EqualityTest<T> equality, Collection<Configurable<T>> configurables) {
         for (Configurable<T> configurable : configurables) {
             if (equality.equals(object1, configurable.get()) || equality.equals(object2, configurable.get())) {
@@ -263,11 +362,28 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return false;
     }
 
+    /**
+     * Checks if the object equals one of the values, with {@link Object#equals(Object)}.
+     *
+     * @param <T> the type of the values
+     * @param object the object to find
+     * @param configurables the configurables to search
+     * @return {@code true} if the object equals one of the values
+     */
     @SafeVarargs
     public static <T> boolean contains(T object, Configurable<T>... configurables) {
         return Configurable.contains(object, Object::equals, configurables);
     }
 
+    /**
+     * Checks if the object matches one of the values.
+     *
+     * @param <T> the type of the values
+     * @param object the object to find
+     * @param equality the test that compares the object with a value
+     * @param configurables the configurables to search
+     * @return {@code true} if the object matches one of the values
+     */
     @SafeVarargs
     public static <T> boolean contains(T object, EqualityTest<T> equality, Configurable<T>... configurables) {
         for (Configurable<T> configurable : configurables) {
@@ -278,6 +394,9 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return false;
     }
 
+    /**
+     * @return {@code true} if one of the two objects matches one of the values
+     */
     @SafeVarargs
     public static <T> boolean contains(T object1, T object2, EqualityTest<T> equality, Configurable<T>... configurables) {
         for (Configurable<T> configurable : configurables) {
@@ -288,24 +407,56 @@ public record Configurable<T>(ResettableLazy<T> value) {
         return false;
     }
 
+    /**
+     * Gets the value. The first call computes it, and later calls return the cached value until {@link #reset()}.
+     *
+     * @return the value
+     */
     public T get() {
         return this.value.get();
     }
 
+    /**
+     * Clears the cached value, so the next {@link #get()} computes it again. A deserialized value is read again from
+     * its JSON.
+     */
     public void reset() {
         this.value.reset();
     }
 
+    /**
+     * Converts a {@link Configurable} to and from JSON. It reads the value only on the first {@link Configurable#get()}.
+     *
+     * @param <T> the type of the value
+     * @param deserializer reads the value from JSON
+     * @param serializer writes the value to JSON
+     */
     public record TypeAdapter<T>(
             BiFunction<JsonElement, JsonDeserializationContext, T> deserializer,
             BiFunction<T, JsonSerializationContext, JsonElement> serializer
     ) implements JsonSerializer<Configurable<T>>, JsonDeserializer<Configurable<T>> {
 
+        /**
+         * Creates a configurable that deserializes the JSON when its value is first read.
+         *
+         * @param json the JSON of the value
+         * @param typeOfT the type to deserialize to
+         * @param context the deserialization context
+         * @return the configurable
+         */
         @Override
         public Configurable<T> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             return Configurable.of(() -> this.deserializer.apply(json, context));
         }
 
+        /**
+         * Writes the current value of the configurable. This computes the value if it is not cached.
+         *
+         * @param src the configurable to serialize
+         * @param typeOfSrc the type of the configurable
+         * @param context the serialization context
+         * @return the value as JSON
+         */
         @Override
         public JsonElement serialize(Configurable<T> src, Type typeOfSrc, JsonSerializationContext context) {
             return this.serializer.apply(src.get(), context);
