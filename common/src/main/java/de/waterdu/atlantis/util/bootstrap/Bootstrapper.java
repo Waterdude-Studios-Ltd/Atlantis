@@ -22,6 +22,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+/**
+ * Finds annotated classes at startup and calls the {@link Entrypoint} methods of {@link Bootstrapped} classes.
+ */
 public final class Bootstrapper {
 
     private static final AtomicBoolean BOOTSTRAPPED = new AtomicBoolean(false);
@@ -40,6 +43,9 @@ public final class Bootstrapper {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Clears the found classes and resets Trident, so that {@link #bootstrap(ModLoaderDelegate)} can run again.
+     */
     @VisibleForTesting
     public static void resetForTesting() {
         ANNOTATED_CLASSES.clear();
@@ -47,10 +53,16 @@ public final class Bootstrapper {
         Trident.resetForTesting();
     }
 
+    /**
+     * Finds no classes before {@link #bootstrap(ModLoaderDelegate)} runs.
+     */
     public static void forEachAnnotatedClass(Class<? extends Annotation> annotation, Consumer<AnnotatedClass> forEach) {
         ANNOTATED_CLASSES.getOrDefault(annotation, NO_ANNOTATED_CLASSES).forEach(forEach);
     }
 
+    /**
+     * Scans for annotated classes and calls every {@link Entrypoint} method. Only the first call has an effect.
+     */
     public static void bootstrap(ModLoaderDelegate loader) {
         if (BOOTSTRAPPED.getAndSet(true)) {
             return;
@@ -84,16 +96,23 @@ public final class Bootstrapper {
         }
         var bootstrapped = ANNOTATED_CLASSES.get(Bootstrapped.class);
         if (bootstrapped != null) {
-            bootstrapped.sort(Comparator.comparingInt(annotated -> ((Bootstrapped) annotated.annotation()).order()));
+            bootstrapped.sort(Comparator.comparingInt(annotated -> Bootstrapped.Priority.values().length - ((Bootstrapped) annotated.annotation()).priority().ordinal()));
         }
 
         Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> Bootstrapper.invokeStatic(annotated.clazz(), Entrypoint.class));
     }
 
+    /**
+     * Only the first call discovers Tines. Later calls return the same result.
+     */
     public static Trident.Discovery discoverTines(TridentHost host) {
         return Trident.discover(host, ANNOTATIONS);
     }
 
+    /**
+     * Calls every static method of the class that has the annotation and takes no parameters. It logs and skips other
+     * annotated methods. It logs exceptions and continues with the next method.
+     */
     public static void invokeStatic(Class<?> clazz, Class<? extends Annotation> annotation) {
         for (var method : clazz.getDeclaredMethods()) {
             if (!method.isAnnotationPresent(annotation)) {
