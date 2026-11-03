@@ -14,8 +14,14 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Finds levels and level keys on the running server.
+ */
 public final class LevelUtils {
 
+    /**
+     * Throws an exception, because this class only has static methods.
+     */
     private LevelUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -44,10 +50,22 @@ public final class LevelUtils {
         }
     }
 
+    /**
+     * Creates the dimension key for a level id.
+     *
+     * @param key the level id
+     * @return the dimension key
+     */
     public static @NonNull ResourceKey<Level> dimension(ResourceLocation key) {
         return ResourceKey.create(Registries.DIMENSION, key);
     }
 
+    /**
+     * Gets the level with the given key from the running server.
+     *
+     * @param key the dimension key
+     * @return the level, or {@code null} when no server runs or the level does not exist
+     */
     public static @Nullable ServerLevel level(ResourceKey<Level> key) {
         var server = ServerUtils.server();
         if (server == null) {
@@ -57,10 +75,21 @@ public final class LevelUtils {
         return server.getLevel(key);
     }
 
+    /**
+     * Gets the level with the given id from the running server.
+     *
+     * @param key the level id. The namespace defaults to {@code minecraft}.
+     * @return the level, or {@code null} when no server runs or the level does not exist
+     */
     public static @Nullable ServerLevel level(String key) {
         return LevelUtils.level(LevelUtils.dimension(key));
     }
 
+    /**
+     * Gets all levels of the running server.
+     *
+     * @return a new mutable list of the levels, which is empty when no server runs
+     */
     public static List<ServerLevel> levels() {
         var server = ServerUtils.server();
         if (server == null) {
@@ -74,6 +103,11 @@ public final class LevelUtils {
         return levels;
     }
 
+    /**
+     * Gets the ids of all levels of the running server.
+     *
+     * @return a new mutable list of the level ids, which is empty when no server runs
+     */
     public static List<String> levelIds() {
         var server = ServerUtils.server();
         if (server == null) {
