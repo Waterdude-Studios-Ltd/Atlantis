@@ -7,5 +7,8 @@ import net.minecraft.nbt.CompoundTag;
  */
 public interface PersistentDataHolder {
 
+    /**
+     * @return the mutable persistent tag of the entity
+     */
     CompoundTag atlantis$persistentData();
 }
