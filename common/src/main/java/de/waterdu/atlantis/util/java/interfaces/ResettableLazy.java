@@ -1,7 +1,7 @@
 package de.waterdu.atlantis.util.java.interfaces;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -19,7 +19,7 @@ public sealed interface ResettableLazy<T> extends Supplier<T> permits Resettable
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> ResettableLazy<T> of(@Nonnull Supplier<T> supplier) {
+    static <T> ResettableLazy<T> of(@NonNull Supplier<T> supplier) {
         return new Fast<>(supplier);
     }
 
@@ -30,7 +30,7 @@ public sealed interface ResettableLazy<T> extends Supplier<T> permits Resettable
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> ResettableLazy<T> concurrentOf(@Nonnull Supplier<T> supplier) {
+    static <T> ResettableLazy<T> concurrentOf(@NonNull Supplier<T> supplier) {
         return new Concurrent<>(supplier);
     }
 

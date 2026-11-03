@@ -1,7 +1,7 @@
 package de.waterdu.atlantis.util.java.interfaces;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -19,7 +19,7 @@ public sealed interface Lazy<T> extends Supplier<T> {
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> Fast<T> of(@Nonnull Supplier<T> supplier) {
+    static <T> Fast<T> of(@NonNull Supplier<T> supplier) {
         return new Fast<>(supplier);
     }
 
@@ -30,7 +30,7 @@ public sealed interface Lazy<T> extends Supplier<T> {
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> Throwing<T> throwingOf(@Nonnull ThrowingSupplier<T> supplier) {
+    static <T> Throwing<T> throwingOf(@NonNull ThrowingSupplier<T> supplier) {
         return new Throwing<>(supplier);
     }
 
@@ -41,7 +41,7 @@ public sealed interface Lazy<T> extends Supplier<T> {
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> Concurrent<T> concurrentOf(@Nonnull Supplier<T> supplier) {
+    static <T> Concurrent<T> concurrentOf(@NonNull Supplier<T> supplier) {
         return new Concurrent<>(supplier);
     }
 
@@ -52,7 +52,7 @@ public sealed interface Lazy<T> extends Supplier<T> {
      * @param <T> the type of the value
      * @return the new lazy value
      */
-    static <T> ConcurrentThrowing<T> concurrentThrowingOf(@Nonnull ThrowingSupplier<T> supplier) {
+    static <T> ConcurrentThrowing<T> concurrentThrowingOf(@NonNull ThrowingSupplier<T> supplier) {
         return new ConcurrentThrowing<>(supplier);
     }
 
