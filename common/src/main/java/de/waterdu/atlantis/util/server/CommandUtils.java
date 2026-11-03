@@ -14,6 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+/**
+ * Holds command requirements and finds tab completions.
+ */
 public final class CommandUtils {
 
     public static final Predicate<CommandSourceStack> ANY_USER_PREDICATE = stack -> Permissions.hasPermission(stack, Permissions.USER);
@@ -24,6 +27,9 @@ public final class CommandUtils {
     public static final Predicate<CommandSourceStack> ANY_ENTITY_PREDICATE = stack -> stack.getEntity() != null;
     public static final Predicate<CommandSourceStack> ENTITY_ADMIN_PREDICATE = ANY_ADMIN_PREDICATE.and(ANY_ENTITY_PREDICATE);
 
+    /**
+     * Always throws, because this class only has static members.
+     */
     private CommandUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -35,6 +41,13 @@ public final class CommandUtils {
         return region.regionMatches(true, 0, original, 0, original.length());
     }
 
+    /**
+     * Gets the possibilities that start with the last argument, ignoring case.
+     *
+     * @param args the typed arguments. Must not be empty.
+     * @param possibilities the possible completions
+     * @return the matching completions
+     */
     public static List<String> getListOfStringsMatchingLastWord(String[] args, String... possibilities) {
         return CommandUtils.getListOfStringsMatchingLastWord(args, Lists.newArrayList(possibilities));
     }
