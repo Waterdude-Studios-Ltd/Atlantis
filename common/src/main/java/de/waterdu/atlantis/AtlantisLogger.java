@@ -5,10 +5,16 @@ import org.apache.logging.log4j.LogBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Logs messages through the {@code Atlantis} Log4j logger.
+ */
 public final class AtlantisLogger {
 
     private static final Logger LOGGER = LogManager.getLogger("Atlantis");
 
+    /**
+     * Always throws, because this class only has static methods.
+     */
     private AtlantisLogger() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -45,34 +51,82 @@ public final class AtlantisLogger {
         }
     }
 
+    /**
+     * Logs at the info level.
+     *
+     * @param message the message, with {@code {}} placeholders for args
+     * @param args values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     */
     public static void info(String message, Object... args) {
         AtlantisLogger.LOGGER.info(message, args);
     }
 
+    /**
+     * Logs at the info level with a stack trace.
+     *
+     * @param message the message. This method does not replace placeholders.
+     * @param err the error whose stack trace to log
+     */
     public static void info(String message, Throwable err) {
         AtlantisLogger.LOGGER.info(message, err);
     }
 
+    /**
+     * Logs at the warn level.
+     *
+     * @param message the message, with {@code {}} placeholders for args
+     * @param args values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     */
     public static void warn(String message, Object... args) {
         AtlantisLogger.LOGGER.warn(message, args);
     }
 
+    /**
+     * Logs at the warn level with a stack trace.
+     *
+     * @param message the message. This method does not replace placeholders.
+     * @param err the error whose stack trace to log
+     */
     public static void warn(String message, Throwable err) {
         AtlantisLogger.LOGGER.warn(message, err);
     }
 
+    /**
+     * Logs at the error level.
+     *
+     * @param message the message, with {@code {}} placeholders for args
+     * @param args values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     */
     public static void error(String message, Object... args) {
         AtlantisLogger.LOGGER.error(message, args);
     }
 
+    /**
+     * Logs at the error level with a stack trace.
+     *
+     * @param message the message. This method does not replace placeholders.
+     * @param err the error whose stack trace to log
+     */
     public static void error(String message, Throwable err) {
         AtlantisLogger.LOGGER.error(message, err);
     }
 
+    /**
+     * Logs at the debug level.
+     *
+     * @param message the message, with {@code {}} placeholders for args
+     * @param args values for the placeholders. A trailing {@link Throwable} is logged with its stack trace.
+     */
     public static void debug(String message, Object... args) {
         AtlantisLogger.LOGGER.debug(message, args);
     }
 
+    /**
+     * Logs at the debug level with a stack trace.
+     *
+     * @param message the message. This method does not replace placeholders.
+     * @param err the error whose stack trace to log
+     */
     public static void debug(String message, Throwable err) {
         AtlantisLogger.LOGGER.debug(message, err);
     }
@@ -86,6 +140,9 @@ public final class AtlantisLogger {
         return LOGGER.atDebug();
     }
 
+    /**
+     * Names a log level for {@link #log(Severity, String, Object...)}.
+     */
     public enum Severity {
         ERROR,
         WARN,
