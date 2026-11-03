@@ -5,6 +5,11 @@ import de.waterdu.atlantis.level.level.InvalidAtlantisLevelException;
 import de.waterdu.atlantis.util.java.collection.Pair;
 import net.minecraft.resources.ResourceKey;
 
+/**
+ * Creates a registry value for an {@link AtlantisLevel}, such as its dimension type, together with its key.
+ *
+ * @param <R> the type of the value
+ */
 @FunctionalInterface
 public interface LevelElementFunction<R> {
 
