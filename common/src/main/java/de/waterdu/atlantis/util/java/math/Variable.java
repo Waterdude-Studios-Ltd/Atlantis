@@ -5,12 +5,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * Holds the parsed expression of one {@link Formula} line, as a list of operations or as a comparison.
+ */
 public class Variable {
 
     private double startingValue = 0.0;
     private List<Operation> operators = new ArrayList<>();
     private Comparator comparator = null;
 
+    /**
+     * Parses an expression. A function such as {@code SQRT(x)} or a comparison such as {@code a>b?c:d} takes the
+     * whole expression. Otherwise the expression is a chain of values and operators, and {@code RAND} adds a random
+     * value.
+     *
+     * @param formula the expression, without spaces
+     */
     public Variable(String formula) {
         var modified = false;
         while (!formula.isEmpty()) {
@@ -70,30 +80,61 @@ public class Variable {
         }
     }
 
+    /**
+     * @return the starting value. {@link #calculate} does not use it.
+     */
     public double startingValue() {
         return this.startingValue;
     }
 
+    /**
+     * Sets the starting value. {@link #calculate} does not use it.
+     *
+     * @param startingValue the new starting value
+     */
     public void setStartingValue(double startingValue) {
         this.startingValue = startingValue;
     }
 
+    /**
+     * @return the operations that apply in order
+     */
     public List<Operation> operators() {
         return this.operators;
     }
 
+    /**
+     * Sets the operations that apply in order.
+     *
+     * @param operators the new operations
+     */
     public void setOperators(List<Operation> operators) {
         this.operators = operators;
     }
 
+    /**
+     * @return the comparison of the expression, or {@code null} if it has none
+     */
     public Comparator comparator() {
         return this.comparator;
     }
 
+    /**
+     * Sets the comparison. If it is not {@code null}, it replaces the operations in {@link #calculate}.
+     *
+     * @param comparator the new comparison, or {@code null}
+     */
     public void setComparator(Comparator comparator) {
         this.comparator = comparator;
     }
 
+    /**
+     * Calculates the value of the expression. If there is a comparison, it gives the result. Otherwise the
+     * operations apply in order to a value that starts at 0.
+     *
+     * @param variables the known variables, by name
+     * @return the value
+     */
     public double calculate(Map<String, Double> variables) {
         var value = 0.0;
         if (this.comparator != null) {

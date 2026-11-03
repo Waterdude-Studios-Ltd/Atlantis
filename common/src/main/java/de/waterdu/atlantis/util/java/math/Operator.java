@@ -2,6 +2,9 @@ package de.waterdu.atlantis.util.java.math;
 
 import de.waterdu.atlantis.util.java.RandomUtils;
 
+/**
+ * Lists the arithmetic operators and functions that a {@link Formula} can use.
+ */
 public enum Operator {
 
     ADD("+", false),
@@ -29,19 +32,39 @@ public enum Operator {
     private final String representation;
     private final boolean bracketed;
 
+    /**
+     * Creates an operator.
+     *
+     * @param representation the symbol or name of the operator in a formula
+     * @param bracketed {@code true} if the operator is written as {@code NAME(value)}
+     */
     Operator(String representation, boolean bracketed) {
         this.representation = representation;
         this.bracketed = bracketed;
     }
 
+    /**
+     * Checks if the text is the symbol or name of this operator, in any case.
+     *
+     * @param representation the text to check
+     * @return {@code true} if the text matches
+     */
     public boolean matches(String representation) {
         return this.representation.equalsIgnoreCase(representation);
     }
 
+    /**
+     * @return {@code true} if the operator is a function that is written as {@code NAME(value)}
+     */
     public boolean isBracketed() {
         return this.bracketed;
     }
 
+    /**
+     * Bracketed operators ignore {@code currentValue}. {@link #RAND} ignores both values and gives a value from 0 to 1.
+     * {@link #LOG} gives the logarithm of {@code currentValue} to the base {@code operatorValue}. {@link #SPHERE} maps
+     * 0 to 0, 0.5 to 1 and 1 to 0.
+     */
     public double calculate(double currentValue, double operatorValue) {
         return switch (this) {
             case ADD -> currentValue + operatorValue;
@@ -77,6 +100,10 @@ public enum Operator {
         };
     }
 
+    /**
+     * @param name the enum name or the symbol, in any case
+     * @return {@code null} if no operator matches
+     */
     public static Operator get(String name) {
         for (Operator operator : Operator.values()) {
             if (operator.name().equalsIgnoreCase(name)) {

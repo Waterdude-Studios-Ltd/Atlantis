@@ -1,5 +1,8 @@
 package de.waterdu.atlantis.util.java.math;
 
+/**
+ * Lists mathematical and physical constants, each with the names that refer to it in a formula.
+ */
 public enum Constant {
 
     PI(Math.PI, "pi", "π"),
@@ -17,19 +20,35 @@ public enum Constant {
     private final double value;
     private final String[] representations;
 
+    /**
+     * Creates a constant with its value and names.
+     *
+     * @param value the value of the constant
+     * @param representations the names that refer to the constant
+     */
     Constant(double value, String... representations) {
         this.value = value;
         this.representations = representations;
     }
 
+    /**
+     * @return the value of the constant
+     */
     public double value() {
         return this.value;
     }
 
+    /**
+     * @return the names that refer to the constant
+     */
     public String[] representations() {
         return this.representations;
     }
 
+    /**
+     * @param name one of the representations, in any case
+     * @return {@code null} if no constant matches
+     */
     public static Constant get(String name) {
         for (var constant : Constant.values()) {
             for (var representation : constant.representations) {
