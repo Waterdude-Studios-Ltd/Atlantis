@@ -8,10 +8,16 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+/**
+ * Holds the command registrants that the loaders run on each command dispatcher.
+ */
 public final class CommandRegistry {
 
     private static final List<Consumer<CommandDispatcher<CommandSourceStack>>> REGISTRANTS = new CopyOnWriteArrayList<>();
 
+    /**
+     * Always throws, because this class only has static methods.
+     */
     private CommandRegistry() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -23,6 +29,11 @@ public final class CommandRegistry {
         REGISTRANTS.add(registrant);
     }
 
+    /**
+     * Runs every registrant on the dispatcher, in the order they were registered.
+     *
+     * @param dispatcher the dispatcher to register the commands with
+     */
     public static void registerAll(CommandDispatcher<CommandSourceStack> dispatcher) {
         for (var registrant : REGISTRANTS) {
             registrant.accept(dispatcher);
