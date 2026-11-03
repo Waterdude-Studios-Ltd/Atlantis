@@ -12,9 +12,6 @@ public final class AtlantisLogger {
 
     private static final Logger LOGGER = LogManager.getLogger("Atlantis");
 
-    /**
-     * Always throws, because this class only has static methods.
-     */
     private AtlantisLogger() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

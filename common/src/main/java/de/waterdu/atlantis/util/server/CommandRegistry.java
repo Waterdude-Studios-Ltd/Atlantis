@@ -15,9 +15,6 @@ public final class CommandRegistry {
 
     private static final List<Consumer<CommandDispatcher<CommandSourceStack>>> REGISTRANTS = new CopyOnWriteArrayList<>();
 
-    /**
-     * Always throws, because this class only has static methods.
-     */
     private CommandRegistry() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

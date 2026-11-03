@@ -32,9 +32,6 @@ public final class AtlantisPlaceholderProxy {
         }
     }
 
-    /**
-     * Always throws, because this class only has static members.
-     */
     private AtlantisPlaceholderProxy() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

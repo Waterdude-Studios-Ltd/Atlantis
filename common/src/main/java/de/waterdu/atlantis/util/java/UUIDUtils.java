@@ -10,9 +10,6 @@ public final class UUIDUtils {
 
     public static final UUID ZEROED_UUID = new UUID(0L, 0L);
 
-    /**
-     * Always throws, because this class only has static members.
-     */
     private UUIDUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

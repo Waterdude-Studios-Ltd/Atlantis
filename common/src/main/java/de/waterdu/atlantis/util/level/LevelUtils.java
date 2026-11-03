@@ -19,9 +19,6 @@ import java.util.List;
  */
 public final class LevelUtils {
 
-    /**
-     * Throws an exception, because this class only has static methods.
-     */
     private LevelUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

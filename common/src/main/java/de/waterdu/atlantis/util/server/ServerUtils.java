@@ -37,9 +37,6 @@ public final class ServerUtils {
     private static final String[] NO_NAMES = new String[0];
     private static final LevelPosition BEST_GUESS_SPAWN_POINT = LevelPosition.of("minecraft:overworld", 0, 64, 0);
 
-    /**
-     * Always throws, because this class only has static methods.
-     */
     private ServerUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

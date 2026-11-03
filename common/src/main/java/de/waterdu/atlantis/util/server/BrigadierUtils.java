@@ -13,9 +13,6 @@ import java.util.function.BiConsumer;
  */
 public final class BrigadierUtils {
 
-    /**
-     * Always throws, because this class only has static methods.
-     */
     private BrigadierUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

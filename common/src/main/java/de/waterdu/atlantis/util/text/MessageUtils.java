@@ -18,9 +18,6 @@ import java.util.function.Predicate;
  */
 public final class MessageUtils {
 
-    /**
-     * Always throws, because this class only has static methods.
-     */
     private MessageUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

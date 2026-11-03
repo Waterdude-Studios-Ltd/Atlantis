@@ -26,9 +26,6 @@ public final class NetworkUtils {
     private static final Map<SocketAddress, Set<PlayerReference>> INVERSE_ADDRESS_MAP = new HashMap<>();
     private static final Map<String, Set<PlayerReference>> INVERSE_IP_MAP = new HashMap<>();
 
-    /**
-     * Throws an exception, because this class only has static methods.
-     */
     private NetworkUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

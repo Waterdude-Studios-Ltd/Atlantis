@@ -60,9 +60,6 @@ public final class TextUtils {
     public static final boolean[] NO_STYLE = new boolean[]{false, false, false, false, false};
     private static final Set<String> DO_NOT_CAPITALIZE = Sets.newHashSet("the", "a", "of", "and", "for", "nor", "but", "or", "yet", "so");
 
-    /**
-     * Always throws, because this class has only static members.
-     */
     private TextUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

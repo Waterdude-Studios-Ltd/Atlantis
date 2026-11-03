@@ -27,9 +27,6 @@ public final class CommandUtils {
     public static final Predicate<CommandSourceStack> ANY_ENTITY_PREDICATE = stack -> stack.getEntity() != null;
     public static final Predicate<CommandSourceStack> ENTITY_ADMIN_PREDICATE = ANY_ADMIN_PREDICATE.and(ANY_ENTITY_PREDICATE);
 
-    /**
-     * Always throws, because this class only has static members.
-     */
     private CommandUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

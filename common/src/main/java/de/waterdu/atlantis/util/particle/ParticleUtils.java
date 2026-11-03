@@ -10,9 +10,6 @@ import net.minecraft.server.level.ServerLevel;
  */
 public final class ParticleUtils {
 
-    /**
-     * Throws an exception, because this class only has static methods.
-     */
     private ParticleUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }

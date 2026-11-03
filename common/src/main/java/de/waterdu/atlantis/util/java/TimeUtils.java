@@ -37,9 +37,6 @@ public final class TimeUtils {
      */
     public static long GLOBAL_SECOND_TICK = 0;
 
-    /**
-     * Always throws, because this class only has static members.
-     */
     private TimeUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
