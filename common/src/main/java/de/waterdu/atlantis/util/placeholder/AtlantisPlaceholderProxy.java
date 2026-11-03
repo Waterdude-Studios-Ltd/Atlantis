@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Replaces placeholders in text through the selected {@link PlaceholderProvider}. If FPAPI is present, it is added as
+ * a provider.
+ */
 @Bootstrapped
 public final class AtlantisPlaceholderProxy {
 
@@ -28,10 +32,17 @@ public final class AtlantisPlaceholderProxy {
         }
     }
 
+    /**
+     * Always throws, because this class only has static members.
+     */
     private AtlantisPlaceholderProxy() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Sets the first added provider as the current provider. If no provider was added, the current provider does not
+     * change.
+     */
     @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
@@ -41,6 +52,9 @@ public final class AtlantisPlaceholderProxy {
         }
     }
 
+    /**
+     * Sets the current provider back to {@link NoProvider} and removes all added providers.
+     */
     @VisibleForTesting
     public static void resetForTesting() {
         AtlantisPlaceholderProxy.PROVIDER.set(NoProvider.INSTANCE);
@@ -70,10 +84,25 @@ public final class AtlantisPlaceholderProxy {
         AtlantisPlaceholderProxy.PROVIDER.get().register(id, name, extension, type);
     }
 
+    /**
+     * Replaces the placeholders in the text with the current provider.
+     *
+     * @param <T> the type of the context object
+     * @param context the context object that the placeholders read from
+     * @param text the text that contains the placeholders
+     * @return the text with the placeholders replaced
+     */
     public static <T> Text replace(T context, Text text) {
         return AtlantisPlaceholderProxy.PROVIDER.get().replace(context, text);
     }
 
+    /**
+     * Replaces the placeholders in the text for a player with the current provider.
+     *
+     * @param uuid the UUID of the player
+     * @param text the text that contains the placeholders
+     * @return the text with the placeholders replaced
+     */
     public static Text replace(UUID uuid, Text text) {
         return AtlantisPlaceholderProxy.PROVIDER.get().replace(uuid, text);
     }
