@@ -5,12 +5,29 @@ import de.waterdu.atlantis.util.level.LocalPosition;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerLevel;
 
+/**
+ * Spawns particles in a level.
+ */
 public final class ParticleUtils {
 
+    /**
+     * Throws an exception, because this class only has static methods.
+     */
     private ParticleUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Sends each particle separately to the players near the position, with zero motion.
+     *
+     * @param level the level to spawn the particles in
+     * @param particle the particle to spawn
+     * @param count the number of particles. If it is negative, the particles do not move. Otherwise, the client uses
+     *     {@code speed} as a random velocity.
+     * @param position the position of the particles
+     * @param positionRandomization the maximum random offset from the position on each axis
+     * @param speed the speed of the particles
+     */
     public static void spawnParticle(ServerLevel level, ParticleOptions particle, int count, LocalPosition position,
                                      LocalPosition positionRandomization, double speed) {
         ParticleUtils.spawnParticle(

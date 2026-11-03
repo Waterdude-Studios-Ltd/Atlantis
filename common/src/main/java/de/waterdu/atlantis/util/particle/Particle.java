@@ -14,6 +14,9 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Holds a particle as text in the format of the {@code /particle} command, together with named number parameters.
+ */
 public class Particle {
 
     public static final Type PARAMETERS_MAP_TYPE = TypeToken.getParameterized(Map.class, String.class, Double.class).getType();
@@ -36,6 +39,11 @@ public class Particle {
         }
     });
 
+    /**
+     * Creates a particle with no parameters.
+     *
+     * @param particle a particle in the format of the {@code /particle} command
+     */
     private Particle(String particle) {
         this.particle = particle;
     }
@@ -48,11 +56,24 @@ public class Particle {
         return new Particle(particle);
     }
 
+    /**
+     * Sets a parameter, for example {@link #SPEED}.
+     *
+     * @param key the name of the parameter
+     * @param value the value of the parameter
+     * @return this particle
+     */
     public Particle withParameter(String key, double value) {
         this.parameters.put(key, value);
         return this;
     }
 
+    /**
+     * Sets all the given parameters. Other parameters stay.
+     *
+     * @param parameters the parameters, by name
+     * @return this particle
+     */
     public Particle withParameters(Map<String, Double> parameters) {
         this.parameters.putAll(parameters);
         return this;
@@ -67,22 +88,46 @@ public class Particle {
         return this.data.get();
     }
 
+    /**
+     * Gets the type of the parsed particle. Throws a {@link NullPointerException} if parsing fails.
+     *
+     * @return the particle type
+     */
     public ParticleType<?> type() {
         return this.data().getType();
     }
 
+    /**
+     * @return the particle in the format of the {@code /particle} command
+     */
     public String particle() {
         return this.particle;
     }
 
+    /**
+     * Gets a parameter.
+     *
+     * @param key the name of the parameter
+     * @return the value, or 0 if the parameter is not set
+     */
     public double parameter(String key) {
         return this.parameter(key, 0D);
     }
 
+    /**
+     * Gets a parameter.
+     *
+     * @param key the name of the parameter
+     * @param defaultValue the value to give if the parameter is not set
+     * @return the value, or {@code defaultValue} if the parameter is not set
+     */
     public double parameter(String key, double defaultValue) {
         return this.parameters.getOrDefault(key, defaultValue);
     }
 
+    /**
+     * @return the mutable map of the parameters, by name
+     */
     public Map<String, Double> parameters() {
         return this.parameters;
     }
