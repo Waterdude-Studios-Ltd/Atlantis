@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Records the network addresses and IPs of the players that log in, and finds players by address or IP.
+ */
 public final class NetworkUtils {
 
     private static final Set<PlayerReference> EMPTY_SET = new HashSet<>();
@@ -23,6 +26,9 @@ public final class NetworkUtils {
     private static final Map<SocketAddress, Set<PlayerReference>> INVERSE_ADDRESS_MAP = new HashMap<>();
     private static final Map<String, Set<PlayerReference>> INVERSE_IP_MAP = new HashMap<>();
 
+    /**
+     * Throws an exception, because this class only has static methods.
+     */
     private NetworkUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -42,11 +48,24 @@ public final class NetworkUtils {
         NetworkUtils.INVERSE_IP_MAP.computeIfAbsent(ip, k -> new HashSet<>()).add(reference);
     }
 
+    /**
+     * Gets the last address that the player logged in from. The cast to {@code T} is not checked.
+     *
+     * @param reference the player
+     * @param <T> the type of the address
+     * @return the address, or an empty {@link Optional} if the player did not log in since the server started
+     */
     @SuppressWarnings("unchecked")
     public static <T extends SocketAddress> Optional<T> address(PlayerReference reference) {
         return (Optional<T>) NetworkUtils.ADDRESS_MAP.getOrDefault(reference, Optional.empty());
     }
 
+    /**
+     * Gets the last IP that the player logged in from.
+     *
+     * @param reference the player
+     * @return the IP, or an empty {@link Optional} if the player did not log in since the server started
+     */
     public static Optional<String> ip(PlayerReference reference) {
         return NetworkUtils.IP_MAP.getOrDefault(reference, Optional.empty());
     }
@@ -65,6 +84,13 @@ public final class NetworkUtils {
         return NetworkUtils.INVERSE_IP_MAP.getOrDefault(ip, EMPTY_SET);
     }
 
+    /**
+     * Gets the IP of an address. For an {@link InetSocketAddress} this is the host address, or the host name if it
+     * is not resolved. For other addresses it is {@link SocketAddress#toString()}.
+     *
+     * @param address the address
+     * @return the IP as text
+     */
     public static String addressToIP(SocketAddress address) {
         if (address instanceof InetSocketAddress inet) {
             return inet.getAddress() != null ? inet.getAddress().getHostAddress() : inet.getHostString();
