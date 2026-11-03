@@ -28,7 +28,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,38 +59,91 @@ public class ConfigurableItemStack {
     private Item item = null;
     private Block block = null;
 
+    /**
+     * Creates a stack from its string. The string is parsed on the first call to {@link #stack()}.
+     *
+     * @param string the item string
+     */
     protected ConfigurableItemStack(String string) {
         this.string = string;
     }
 
+    /**
+     * Creates a stack of air.
+     *
+     * @return the new stack
+     */
     public static ConfigurableItemStack empty() {
         return ConfigurableItemStack.of(Items.AIR);
     }
 
+    /**
+     * Creates a stack from an item string.
+     *
+     * @param string the item string, in the format that the class description shows
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(String string) {
         return new ConfigurableItemStack(string);
     }
 
+    /**
+     * Creates a stack of the item with the ID.
+     *
+     * @param resourceLocation the ID of the item
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(ResourceLocation resourceLocation) {
         return new ConfigurableItemStack(resourceLocation.toString());
     }
 
+    /**
+     * Creates a stack of the item of the block of the block state.
+     *
+     * @param blockState the block state
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(BlockState blockState) {
         return ConfigurableItemStack.of(blockState.getBlock());
     }
 
+    /**
+     * Creates a stack of the item of the block.
+     *
+     * @param block the block
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(Block block) {
         return ConfigurableItemStack.of(block.asItem());
     }
 
+    /**
+     * Creates a stack of the item.
+     *
+     * @param item the item
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(Item item) {
         return ConfigurableItemStack.of(item.id().toString());
     }
 
+    /**
+     * Creates a stack of the item of {@code like}.
+     *
+     * @param like the item or block
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(ItemLike like) {
         return ConfigurableItemStack.of(like.asItem());
     }
 
+    /**
+     * Creates a stack from an item stack. The string holds the item ID, the count if it is more than 1, the damage
+     * if the stack is damaged, and the components as a tag.
+     *
+     * @param stack the item stack
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(ItemStack stack) {
         StringBuilder builder = new StringBuilder();
         builder.append(stack.getItem().id());
@@ -106,18 +159,37 @@ public class ConfigurableItemStack {
         return ConfigurableItemStack.of(builder.toString());
     }
 
+    /**
+     * Creates a stack with the same string as {@code stack}. The new stack parses the string again.
+     *
+     * @param stack the stack to copy
+     * @return the new stack
+     */
     public static ConfigurableItemStack of(ConfigurableItemStack stack) {
         return ConfigurableItemStack.of(stack.string);
     }
 
+    /**
+     * @return the string that this stack was created from
+     */
     public String originalString() {
         return this.string;
     }
 
+    /**
+     * Creates a stack with the same string as this stack.
+     *
+     * @return the new stack
+     */
     public ConfigurableItemStack copy() {
         return ConfigurableItemStack.of(this);
     }
 
+    /**
+     * Parses the string on the first call and caches the result. Unknown items become air.
+     *
+     * @return the cached stack. Do not change it. Use {@link #newStack()} to get a copy.
+     */
     public ItemStack stack() {
         if (this.stack == null) {
             try {
@@ -143,6 +215,13 @@ public class ConfigurableItemStack {
         return this.stack;
     }
 
+    /**
+     * Splits the string into words at each space. A space is put before the first opening brace, so the
+     * components always start a new word.
+     *
+     * @param string the string to split
+     * @return the words
+     */
     private String[] prepareArgs(String string) {
         var brace = string.indexOf('{');
         if (brace < 0) {
@@ -151,6 +230,14 @@ public class ConfigurableItemStack {
         return (string.substring(0, brace) + " " + string.substring(brace)).split(" ");
     }
 
+    /**
+     * Applies the words to the cached stack. Words between braces are joined and applied as components. All other
+     * words go to {@link #parseProcessor(String)}.
+     *
+     * @param start the index of the first word to apply
+     * @param args the words
+     * @throws CommandSyntaxException if the components are not a valid tag
+     */
     private void parse(int start, String... args) throws CommandSyntaxException {
         var curlyCount = 0;
         var tag = new StringBuilder();
@@ -179,6 +266,12 @@ public class ConfigurableItemStack {
         }
     }
 
+    /**
+     * Applies one word to the cached stack. {@code x3} and {@code 3} set the count, {@code #1} sets the damage, and
+     * all other words go to the {@link Processor} with the key before the first colon.
+     *
+     * @param arg the word
+     */
     private void parseProcessor(String arg) {
         if (arg.startsWith("x")) {
             Processor.COUNT.execute(new String[]{Processor.COUNT_IDENTIFIER, arg.substring(1)}, this.stack);
@@ -191,6 +284,11 @@ public class ConfigurableItemStack {
         }
     }
 
+    /**
+     * Gets the item of the stack and caches it.
+     *
+     * @return the item
+     */
     public Item item() {
         if (this.item == null) {
             this.item = this.stack().getItem();
@@ -198,6 +296,11 @@ public class ConfigurableItemStack {
         return this.item;
     }
 
+    /**
+     * Gets the block of the item and caches it.
+     *
+     * @return the block, or air if the item is not a block item
+     */
     public Block block() {
         if (this.block == null) {
             this.block = Block.byItem(this.item());
@@ -205,36 +308,93 @@ public class ConfigurableItemStack {
         return this.block;
     }
 
+    /**
+     * Creates a copy of the cached stack.
+     *
+     * @return the copy
+     */
     public ItemStack newStack() {
         return this.stack().copy();
     }
 
+    /**
+     * Creates a copy of the cached stack with a different count.
+     *
+     * @param count the count of the copy
+     * @return the copy
+     */
     public ItemStack newStack(int count) {
         ItemStack newStack = this.stack().copy();
         newStack.setCount(count);
         return newStack;
     }
 
+    /**
+     * Adds a new stack to the inventory of the player.
+     * See {@link ItemUtils#giveOrElse(Player, ItemStack, Consumer)}.
+     *
+     * @param player the player that gets the stack
+     * @param orElse gets the part of the stack that does not fit
+     * @return {@code true} if the inventory takes the full stack
+     */
     public boolean giveOrElse(Player player, Consumer<ItemStack> orElse) {
         return ItemUtils.giveOrElse(player, this, orElse);
     }
 
-    public Optional<ItemEntity> drop(LevelPosition position, Consumer<ItemEntity> modifier) {
+    /**
+     * Drops a new stack at the position, with no owner.
+     * See {@link ItemUtils#drop(ItemStack, LevelPosition, Player, Consumer)}.
+     *
+     * @param position the position to drop the stack at
+     * @param modifier runs before the entity spawns
+     * @return the item entity
+     */
+    public @Nullable ItemEntity drop(LevelPosition position, Consumer<ItemEntity> modifier) {
         return ItemUtils.drop(this, position, modifier);
     }
 
-    public Optional<ItemEntity> drop(LevelPosition position, @Nullable Player owner, Consumer<ItemEntity> modifier) {
+    /**
+     * Drops a new stack at the position.
+     * See {@link ItemUtils#drop(ItemStack, LevelPosition, Player, Consumer)}.
+     *
+     * @param position the position to drop the stack at
+     * @param owner the thrower of the item, or {@code null} for no owner
+     * @param modifier runs before the entity spawns
+     * @return the item entity
+     */
+    public @Nullable ItemEntity drop(LevelPosition position, @Nullable Player owner, Consumer<ItemEntity> modifier) {
         return ItemUtils.drop(this, position, owner, modifier);
     }
 
+    /**
+     * Adds a new stack to the inventory of the player and drops the part that does not fit.
+     * See {@link ItemUtils#giveOrDrop(Player, ItemStack, Consumer, Consumer)}.
+     *
+     * @param player the player that gets the stack
+     * @return {@code true} if the inventory takes the full stack
+     */
     public boolean giveOrDrop(Player player) {
         return ItemUtils.giveOrDrop(player, this);
     }
 
+    /**
+     * Adds a new stack to the inventory of the player and drops the part that does not fit.
+     * See {@link ItemUtils#giveOrDrop(Player, ItemStack, Consumer, Consumer)}.
+     *
+     * @param player the player that gets the stack
+     * @param onGive runs if the inventory takes the full stack
+     * @param onDrop runs if an item entity is dropped
+     * @return {@code true} if the inventory takes the full stack
+     */
     public boolean giveOrDrop(Player player, Consumer<ItemStack> onGive, Consumer<ItemEntity> onDrop) {
         return ItemUtils.giveOrDrop(player, this, onGive, onDrop);
     }
 
+    /**
+     * @param obj a {@link ConfigurableItemStack}, an {@link Item}, an {@link ItemStack} or a {@link String}. A stack
+     *     matches by item, count and components. A string matches the original string, ignoring case.
+     * @return {@code false} for all other types
+     */
     public boolean matches(Object obj) {
         if (this.equals(obj)) {
             return true;
@@ -249,11 +409,22 @@ public class ConfigurableItemStack {
         }
     }
 
+    /**
+     * Gets the hash code of the original string.
+     *
+     * @return the hash code
+     */
     @Override
     public int hashCode() {
         return this.string.hashCode();
     }
 
+    /**
+     * Checks if {@code obj} is a {@link ConfigurableItemStack} with the same original string, ignoring case.
+     *
+     * @param obj the object to compare
+     * @return {@code true} if the strings match
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -265,11 +436,21 @@ public class ConfigurableItemStack {
         return this.string.equalsIgnoreCase(((ConfigurableItemStack) obj).string);
     }
 
+    /**
+     * @return the original string in the format {@code ConfigurableItemStack(string)}
+     */
     @Override
     public String toString() {
         return "ConfigurableItemStack(" + this.string + ")";
     }
 
+    /**
+     * Creates the stack for a string that starts with a directive, such as {@code #sprite}. The Pokémon delegate
+     * supplies the built-in preprocessors.
+     *
+     * @param process gets the full string and its words. Returns the stack and the words that remain for the
+     *     processors.
+     */
     public record Preprocessor(BiFunction<String, String[], Pair<ItemStack, String[]>> process) {
 
         private static final Map<String, Preprocessor> PREPROCESSORS = new HashMap<>();
@@ -292,15 +473,30 @@ public class ConfigurableItemStack {
             POKEBALL_LID = preprocessors.length > 2 ? register(POKEBALL_LID_DIRECTIVE, preprocessors[2]) : null;
         }
 
+        /**
+         * Registers the preprocessor for the directive. A preprocessor already registered for it is replaced.
+         *
+         * @param directive the directive, with the {@code #} prefix, in lower case
+         * @param preprocessor the preprocessor
+         * @return the preprocessor
+         */
         private static Preprocessor register(String directive, Preprocessor preprocessor) {
             PREPROCESSORS.put(directive, preprocessor);
             return preprocessor;
         }
 
+        /**
+         * @param directive the first word of the string, with the {@code #} prefix, in lower case
+         * @param process gets the full string and its words. Returns the stack and the words that remain for the
+         *     processors.
+         */
         public static Preprocessor register(String directive, BiFunction<String, String[], Pair<ItemStack, String[]>> process) {
             return register(directive, new Preprocessor(process));
         }
 
+        /**
+         * The factory gets the word after the directive. An {@code #end} after that word is optional.
+         */
         public static Preprocessor single(Function<String, ItemStack> factory) {
             return new Preprocessor((full, args) -> Pair.of(
                     factory.apply(args[1]),
@@ -308,6 +504,9 @@ public class ConfigurableItemStack {
             ));
         }
 
+        /**
+         * The factory gets all words between the directive and {@code #end}. If there is no {@code #end}, it gets all words.
+         */
         public static Preprocessor untilEnd(Function<String, ItemStack> factory) {
             return new Preprocessor((full, args) -> {
                 var valueBuilder = new StringBuilder();
@@ -328,18 +527,44 @@ public class ConfigurableItemStack {
             });
         }
 
+        /**
+         * Runs the preprocessor.
+         *
+         * @param full the full string
+         * @param args the words of the string
+         * @return the stack and the words that remain for the processors
+         */
         private Pair<ItemStack, String[]> execute(String full, String[] args) {
             return this.process.apply(full, args);
         }
 
+        /**
+         * Gets the preprocessor for the first word, ignoring case.
+         *
+         * @param args the words of the string
+         * @return the preprocessor, or {@code null} if none is registered for the first word
+         */
         private static Preprocessor get(String[] args) {
             return PREPROCESSORS.get(args[0].toLowerCase(Locale.ROOT));
         }
 
+        /**
+         * Checks if the word is a built-in directive, ignoring case. {@code #end} is not one.
+         *
+         * @param arg the word
+         * @return {@code true} if the word is a built-in directive
+         */
         private static boolean isDirective(String arg) {
             return DIRECTIVES.contains(arg.toLowerCase(Locale.ROOT));
         }
 
+        /**
+         * Finds the index of the first word after the directive and its value.
+         *
+         * @param args the words of the string
+         * @return the index after the first {@code #end}. If there is no {@code #end}, the index after the first
+         *     word after the directive.
+         */
         private static int directiveEnd(String[] args) {
             for (var i = 1; i < args.length; i++) {
                 if (args[i].equalsIgnoreCase(END_DIRECTIVE)) {
@@ -350,6 +575,12 @@ public class ConfigurableItemStack {
         }
     }
 
+    /**
+     * Changes the stack for a word in the format {@code key:value}, such as {@code count:3}. The UI processors come
+     * from the Pokémon delegate. They are {@code null} if no delegate supplies them.
+     *
+     * @param process gets the word split at each colon, and the stack to change
+     */
     public record Processor(BiConsumer<String[], ItemStack> process) {
 
         private static final Map<String, Processor> PROCESSORS = new HashMap<>();
@@ -536,19 +767,43 @@ public class ConfigurableItemStack {
             }
         }
 
+        /**
+         * Registers the processor for the identifier. A processor already registered for it is replaced.
+         *
+         * @param identifier the key before the first colon, in lower case
+         * @param processor the processor
+         * @return the processor
+         */
         private static Processor register(String identifier, Processor processor) {
             PROCESSORS.put(identifier, processor);
             return processor;
         }
 
+        /**
+         * @param identifier the key before the first colon, in lower case
+         * @param process gets the argument split at each colon, and the stack to change. The value is at index 1. It is
+         *     empty if the argument has no colon.
+         */
         public static Processor register(String identifier, BiConsumer<String[], ItemStack> process) {
             return register(identifier, new Processor(process));
         }
 
+        /**
+         * Runs the processor on the stack.
+         *
+         * @param kv the word split at each colon
+         * @param stack the stack to change
+         */
         private void execute(String[] kv, ItemStack stack) {
             this.process.accept(kv, stack);
         }
 
+        /**
+         * Runs the processor for the key on the stack. If no processor is registered for the key, nothing happens.
+         *
+         * @param kv the word split at each colon. If it has only the key, an empty value is added.
+         * @param stack the stack to change
+         */
         private static void getAndExecute(String[] kv, ItemStack stack) {
             if (kv.length == 1) {
                 kv = new String[]{kv[0], ""};
@@ -559,18 +814,44 @@ public class ConfigurableItemStack {
             }
         }
 
+        /**
+         * Gets the processor for the key, ignoring case.
+         *
+         * @param kv the word split at each colon
+         * @return the processor, or {@code null} if none is registered for the key
+         */
         private static Processor get(String[] kv) {
             return PROCESSORS.get(kv[0].toLowerCase(Locale.ROOT));
         }
     }
 
+    /**
+     * Serializes a {@link ConfigurableItemStack} to and from its original string in JSON.
+     */
     public static class TypeAdapter implements JsonSerializer<ConfigurableItemStack>, JsonDeserializer<ConfigurableItemStack> {
 
+        /**
+         * Creates a stack from the JSON string.
+         *
+         * @param json the JSON string
+         * @param typeOfT the type to deserialize to
+         * @param context the deserialization context
+         * @return the new stack
+         * @throws JsonParseException if the JSON element is not a string
+         */
         @Override
         public ConfigurableItemStack deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             return ConfigurableItemStack.of(json.getAsString());
         }
 
+        /**
+         * Writes the original string of the stack as a JSON string.
+         *
+         * @param src the stack
+         * @param typeOfSrc the type of the stack
+         * @param context the serialization context
+         * @return the JSON string
+         */
         @Override
         public JsonElement serialize(ConfigurableItemStack src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(src.originalString());
