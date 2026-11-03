@@ -10,12 +10,22 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+/**
+ * Reads types, finds classes and invokes methods with reflection.
+ */
 public final class ReflectionUtils {
 
     private ReflectionUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Gets the generic type of the field as a Gson type. It keeps the type arguments of parameterized and generic
+     * array types.
+     *
+     * @param field the field
+     * @return the type of the field
+     */
     public static Type getTypeForField(Field field) {
         var type = field.getGenericType();
         if (type instanceof ParameterizedType pType) {
