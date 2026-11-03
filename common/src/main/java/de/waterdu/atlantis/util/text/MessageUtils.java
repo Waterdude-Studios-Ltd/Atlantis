@@ -13,8 +13,14 @@ import net.minecraft.server.level.ServerPlayer;
 import java.util.Collection;
 import java.util.function.Predicate;
 
+/**
+ * Sends messages to players and command sources.
+ */
 public final class MessageUtils {
 
+    /**
+     * Always throws, because this class only has static methods.
+     */
     private MessageUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
