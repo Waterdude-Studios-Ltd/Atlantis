@@ -34,6 +34,13 @@ public final class PlayerSkins {
         return CompletableFuture.supplyAsync(() -> lookup(name), Atlantis.THREAD_POOL.getPool());
     }
 
+    /**
+     * Gets the skin from the cache, or looks it up on this thread and caches it. The cache key is the name in lower
+     * case. Failed lookups are not cached.
+     *
+     * @param name the name of the player
+     * @return the skin, or {@code null} if no such player exists or the lookup fails
+     */
     private static @Nullable Skin lookup(String name) {
         var cached = CACHE.get(name.toLowerCase());
         if (cached != null) {
@@ -65,6 +72,12 @@ public final class PlayerSkins {
         return result[0];
     }
 
+    /**
+     * Holds the texture URL and the model of a player skin.
+     *
+     * @param url the URL of the skin texture
+     * @param slim {@code true} if the skin uses the slim model
+     */
     public record Skin(String url, boolean slim) {
 
         /**
