@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
+/**
+ * Maps a Java type name to the {@link CompoundTag} methods that read and write values of that type.
+ */
 @SuppressWarnings("unchecked")
 public enum CompoundTagType {
 
@@ -49,24 +52,51 @@ public enum CompoundTagType {
     private final BiFunction<CompoundTag, String, Object> read;
     private final TriConsumer<CompoundTag, String, Object> write;
 
+    /**
+     * Creates a tag type.
+     *
+     * @param typeName the name of the Java type, from {@link Type#getTypeName()}
+     * @param read reads a value from a tag by its key
+     * @param write writes a value to a tag under a key
+     */
     CompoundTagType(String typeName, BiFunction<CompoundTag, String, Object> read, TriConsumer<CompoundTag, String, Object> write) {
         this.typeName = typeName;
         this.read = read;
         this.write = write;
     }
 
+    /**
+     * Gets the tag type for a Java type.
+     *
+     * @param type the Java type
+     * @return the tag type, or an empty optional if no tag type supports the type
+     */
     public static Optional<CompoundTagType> get(Type type) {
         return CompoundTagType.get(type.getTypeName());
     }
 
+    /**
+     * @param typeName a name from {@link Type#getTypeName()}, for example {@code java.util.List<java.lang.Integer>}
+     */
     public static Optional<CompoundTagType> get(String typeName) {
         return MAPPED_TYPES.getOrDefault(typeName, Optional.empty());
     }
 
+    /**
+     * If the key is missing, this returns the default value of the tag type. For {@link #UUID}, it throws an exception.
+     */
     public <T> T read(CompoundTag tag, String key) {
         return (T) this.read.apply(tag, key);
     }
 
+    /**
+     * Writes a value to the tag under the key.
+     *
+     * @param <T> the type of the value
+     * @param tag the tag to write to
+     * @param key the key of the value
+     * @param value the value. It must be of the Java type of this tag type.
+     */
     public <T> void write(CompoundTag tag, String key, T value) {
         this.write.accept(tag, key, value);
     }
