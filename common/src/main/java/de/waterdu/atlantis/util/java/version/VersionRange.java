@@ -13,10 +13,19 @@ public record VersionRange(List<List<Constraint>> alternatives) {
 
     public static final VersionRange ANY = new VersionRange(List.of(List.of()));
 
+    /**
+     * Creates a range with immutable copies of the alternatives.
+     *
+     * @param alternatives the alternatives, each a list of constraints that must all match
+     */
     public VersionRange {
         alternatives = alternatives.stream().map(List::copyOf).toList();
     }
 
+    /**
+     * An empty range matches any version. Throws {@link IllegalArgumentException} if a version in the range is not
+     * valid.
+     */
     public static VersionRange parse(String range) {
         var alternatives = new ArrayList<List<Constraint>>();
         for (var alternative : range.split("\\|\\|")) {
@@ -31,6 +40,14 @@ public record VersionRange(List<List<Constraint>> alternatives) {
         return new VersionRange(alternatives);
     }
 
+    /**
+     * Parses one constraint and adds the result to the list. {@code *} and {@code x} add nothing. {@code ~} and
+     * {@code ^} add a lower and an upper bound.
+     *
+     * @param part the constraint text, without spaces
+     * @param constraints the list that gets the parsed constraints
+     * @throws IllegalArgumentException if the version in the constraint is not valid
+     */
     private static void parseConstraint(String part, List<Constraint> constraints) {
         if (part.equals("*") || part.equalsIgnoreCase("x")) {
             return;
@@ -66,20 +83,44 @@ public record VersionRange(List<List<Constraint>> alternatives) {
         }
     }
 
+    /**
+     * @return {@code true} if an alternative has no constraints, so that every version matches
+     */
     public boolean isAny() {
         return this.alternatives.stream().anyMatch(List::isEmpty);
     }
 
+    /**
+     * Checks if the version matches all constraints of at least one alternative.
+     *
+     * @param version the version to check
+     * @return {@code true} if the version is in the range
+     */
     public boolean test(Version version) {
         return this.alternatives.stream().anyMatch(constraints -> constraints.stream().allMatch(constraint -> constraint.test(version)));
     }
 
+    /**
+     * @return {@code false} if the text is not a valid version, unless the range matches any version
+     */
     public boolean test(String version) {
         return this.isAny() || Version.parse(version).map(this::test).orElse(false);
     }
 
+    /**
+     * Compares a version with a fixed version.
+     *
+     * @param comparison the comparison to use
+     * @param version the version to compare with
+     */
     public record Constraint(Comparison comparison, Version version) {
 
+        /**
+         * Checks if the candidate compares to {@link #version()} as {@link #comparison()} requires.
+         *
+         * @param candidate the version to check
+         * @return {@code true} if the candidate matches the constraint
+         */
         public boolean test(Version candidate) {
             var result = candidate.compareTo(this.version);
             return switch (this.comparison) {
@@ -92,6 +133,9 @@ public record VersionRange(List<List<Constraint>> alternatives) {
         }
     }
 
+    /**
+     * Lists the comparisons that a {@link Constraint} can use.
+     */
     public enum Comparison {
 
         EQUAL,
