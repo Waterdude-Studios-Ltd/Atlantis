@@ -27,12 +27,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * Has utility methods for entities: persistent data, effects, sounds, areas, teleports, rotation, velocity and
+ * creation.
+ */
 public final class EntityUtils {
 
     private EntityUtils() {
@@ -46,34 +50,83 @@ public final class EntityUtils {
         return ((PersistentDataHolder) entity).atlantis$persistentData();
     }
 
+    /**
+     * {@link #addEffect(LivingEntity, Holder, int, int, boolean, boolean)} as an ambient effect without particles.
+     */
     public static void addEffect(LivingEntity entity, Holder<MobEffect> potion, int duration, int amplifier) {
         EntityUtils.addEffect(entity, potion, duration, amplifier, true, false);
     }
 
+    /**
+     * Adds the effect on the server thread. If this is called from another thread, the effect is added later.
+     *
+     * @param duration the duration in ticks
+     * @param amplifier the level of the effect minus 1, so 0 is level I
+     */
     public static void addEffect(LivingEntity entity, Holder<MobEffect> potion, int duration, int amplifier, boolean ambient, boolean particles) {
         Concurrency.sync(() -> entity.addEffect(new MobEffectInstance(potion, duration, amplifier, ambient, particles)));
     }
 
+    /**
+     * Plays the sound to only this player, in the {@link SoundSource#MASTER} source at full volume and normal pitch.
+     *
+     * @param entity the player who hears the sound
+     * @param sound the sound to play
+     */
     public static void playSound(Player entity, SoundEvent sound) {
         EntityUtils.playSound(entity, sound, SoundSource.MASTER);
     }
 
+    /**
+     * Plays the sound to only this player, in the {@link SoundSource#MASTER} source.
+     *
+     * @param entity the player who hears the sound
+     * @param sound the sound to play
+     * @param volume the volume of the sound
+     * @param pitch the pitch of the sound
+     */
     public static void playSound(Player entity, SoundEvent sound, float volume, float pitch) {
         EntityUtils.playSound(entity, sound, SoundSource.MASTER, volume, pitch);
     }
 
+    /**
+     * Plays the sound to only this player, at full volume and normal pitch.
+     *
+     * @param entity the player who hears the sound
+     * @param sound the sound to play
+     * @param source the sound source
+     */
     public static void playSound(Player entity, SoundEvent sound, SoundSource source) {
         EntityUtils.playSound(entity, sound, source, 1F, 1F);
     }
 
+    /**
+     * Only this player hears the sound.
+     */
     public static void playSound(Player entity, SoundEvent sound, SoundSource source, float volume, float pitch) {
         entity.playNotifySound(sound, source, volume, pitch);
     }
 
+    /**
+     * Creates a box that extends the radius in each direction from the position of the entity.
+     *
+     * @param entity the entity at the center
+     * @param radius the distance from the center to each side
+     * @return the box
+     */
     public static AABB getAreaAround(Entity entity, double radius) {
         return EntityUtils.getAreaAround(entity.getX(), entity.getY(), entity.getZ(), radius);
     }
 
+    /**
+     * Creates a box that extends the radius in each direction from the position.
+     *
+     * @param x the X coordinate of the center
+     * @param y the Y coordinate of the center
+     * @param z the Z coordinate of the center
+     * @param radius the distance from the center to each side
+     * @return the box
+     */
     public static AABB getAreaAround(double x, double y, double z, double radius) {
         return new AABB(
                 x - radius, y - radius, z - radius,
@@ -81,6 +134,12 @@ public final class EntityUtils {
         );
     }
 
+    /**
+     * Finds the nearest position within 16 blocks on the X and Z axes that has solid ground and free space above it.
+     * Then teleports the entity there.
+     *
+     * @return {@code false} when there is no such position. Then the entity does not move.
+     */
     public static boolean moveToSafeLocation(Entity entity) {
         var level = entity.level();
         var d0 = -1.0D;
@@ -209,6 +268,11 @@ public final class EntityUtils {
         return true;
     }
 
+    /**
+     * Turns the entity to face the target. For a server player, also sends the rotation to the client.
+     *
+     * @return the new yaw in degrees
+     */
     public static float lookAt(LocalPosition target, LivingEntity entity) {
         var dx = entity.getX() - target.x();
         var dy = entity.getY() - target.y();
@@ -237,36 +301,68 @@ public final class EntityUtils {
         return (float) yaw;
     }
 
+    /**
+     * Adds the values to the velocity of the entity and marks that the velocity changed.
+     *
+     * @param entity the entity to push
+     * @param x the value to add on the X axis
+     * @param y the value to add on the Y axis
+     * @param z the value to add on the Z axis
+     */
     public static void addVelocity(Entity entity, double x, double y, double z) {
         entity.setDeltaMovement(entity.getDeltaMovement().add(x, y, z));
         entity.hasImpulse = true;
     }
 
+    /**
+     * Sets the velocity of the entity and marks that the velocity changed. Each value is converted to a finite
+     * {@code float} with {@link NumberUtils#boundFloat(double)}.
+     *
+     * @param entity the entity to move
+     * @param x the velocity on the X axis
+     * @param y the velocity on the Y axis
+     * @param z the velocity on the Z axis
+     */
     public static void setVelocity(Entity entity, double x, double y, double z) {
         entity.setDeltaMovement(NumberUtils.boundFloat(x), NumberUtils.boundFloat(y), NumberUtils.boundFloat(z));
         entity.hasImpulse = true;
     }
 
-    public static <E extends Entity> Optional<E> createEntity(EntityType<E> type, LevelPosition position, boolean noop, boolean spawn, Consumer<E> modifier) {
-        return position.createEntity(type).map(entity -> {
-            if (noop) {
-                if (type.equals(EntityType.ARMOR_STAND)) {
-                    entity.getEntityData().set(ArmorStand.DATA_CLIENT_FLAGS, NumberUtils.setBit(entity.getEntityData().get(ArmorStand.DATA_CLIENT_FLAGS), ArmorStand.CLIENT_FLAG_MARKER, true));
-                }
-                entity.setInvulnerable(true);
-                entity.setSilent(true);
-                entity.setNoGravity(true);
-                entity.setInvisible(true);
-                entity.noPhysics = true;
+    /**
+     * @param noop makes the entity invisible, silent, invulnerable, without gravity and without collision. An armor
+     *     stand also becomes a marker.
+     * @param spawn adds the entity to the level on the server thread
+     * @param modifier runs before the entity is added to the level
+     */
+    public static <E extends Entity> @Nullable E createEntity(EntityType<E> type, LevelPosition position, boolean noop, boolean spawn, Consumer<E> modifier) {
+        var entity = position.createEntity(type);
+        if (entity == null) {
+            return null;
+        }
+
+        if (noop) {
+            if (type.equals(EntityType.ARMOR_STAND)) {
+                entity.getEntityData().set(ArmorStand.DATA_CLIENT_FLAGS, NumberUtils.setBit(entity.getEntityData().get(ArmorStand.DATA_CLIENT_FLAGS), ArmorStand.CLIENT_FLAG_MARKER, true));
             }
-            modifier.accept(entity);
-            if (spawn) {
-                Concurrency.sync(() -> position.level().addFreshEntity(entity));
-            }
-            return entity;
-        });
+            entity.setInvulnerable(true);
+            entity.setSilent(true);
+            entity.setNoGravity(true);
+            entity.setInvisible(true);
+            entity.noPhysics = true;
+        }
+        modifier.accept(entity);
+        if (spawn) {
+            Concurrency.sync(() -> position.level().addFreshEntity(entity));
+        }
+
+        return entity;
     }
 
+    /**
+     * @param arg an entity selector if it contains {@code @}. Otherwise, the name of an online player.
+     * @param success gets the players if at least one matches
+     * @param failure runs if no player matches
+     */
     public static void getPlayersOrElse(CommandSourceStack source, String arg, Consumer<List<ServerPlayer>> success, Runnable failure) throws CommandSyntaxException {
         List<ServerPlayer> players;
         if (arg.contains("@")) {
