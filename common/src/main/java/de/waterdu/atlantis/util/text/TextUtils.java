@@ -20,6 +20,9 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * Formats, colorizes, converts and joins text and components.
+ */
 public final class TextUtils {
 
     /**
@@ -57,6 +60,9 @@ public final class TextUtils {
     public static final boolean[] NO_STYLE = new boolean[]{false, false, false, false, false};
     private static final Set<String> DO_NOT_CAPITALIZE = Sets.newHashSet("the", "a", "of", "and", "for", "nor", "but", "or", "yet", "so");
 
+    /**
+     * Always throws, because this class has only static members.
+     */
     private TextUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -474,6 +480,13 @@ public final class TextUtils {
         return texts;
     }
 
+    /**
+     * Joins two arrays into a new array.
+     *
+     * @param a1 the strings to put first
+     * @param a2 the strings to put after them
+     * @return a new array with the strings of {@code a1}, then the strings of {@code a2}
+     */
     public static String[] join(String[] a1, String... a2) {
         var join = new String[a1.length + a2.length];
         System.arraycopy(a1, 0, join, 0, a1.length);
@@ -481,6 +494,13 @@ public final class TextUtils {
         return join;
     }
 
+    /**
+     * Counts how many times a character occurs in the string.
+     *
+     * @param string the string to search
+     * @param test the character to count
+     * @return the number of occurrences
+     */
     public static int countCharOccurrence(String string, char test) {
         var count = 0;
         for (var c : string.toCharArray()) {
@@ -618,6 +638,10 @@ public final class TextUtils {
         return true;
     }
 
+    /**
+     * @param ch the character to check
+     * @return whether the character is a digit from 0 to 9
+     */
     public static boolean isNumeral(char ch) {
         return ch >= '0' && ch <= '9';
     }
