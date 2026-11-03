@@ -45,6 +45,12 @@ public abstract class ArgumentCommand {
         });
     }
 
+    /**
+     * Registers the command under its name and each distinct, non-blank alias. Each name runs the command without
+     * arguments, or with the rest of the input split into words.
+     *
+     * @param dispatcher the dispatcher to register the command with
+     */
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         var names = new ArrayList<String>();
         names.add(this.name());
@@ -63,8 +69,14 @@ public abstract class ArgumentCommand {
         }
     }
 
+    /**
+     * @return the main name of the command, without the {@code /}
+     */
     public abstract String name();
 
+    /**
+     * @return the other names of the command. The default has none.
+     */
     public List<String> aliases() {
         return List.of();
     }
@@ -90,6 +102,13 @@ public abstract class ArgumentCommand {
         return List.of();
     }
 
+    /**
+     * Checks if the argument is equal to one of the options, ignoring case.
+     *
+     * @param arg the argument to check
+     * @param options the accepted values
+     * @return {@code true} if the argument matches an option
+     */
     protected boolean match(String arg, String... options) {
         for (var option : options) {
             if (option.equalsIgnoreCase(arg)) {
@@ -99,10 +118,23 @@ public abstract class ArgumentCommand {
         return false;
     }
 
+    /**
+     * Sends the message to the source with {@link MessageUtils#send}.
+     *
+     * @param source the source to send the message to
+     * @param message the message to send
+     */
     protected void send(CommandSourceStack source, Object message) {
         MessageUtils.send(message, source);
     }
 
+    /**
+     * Runs {@link #execute} and logs an exception if it throws one.
+     *
+     * @param context the context of the command
+     * @param args the words after the command name
+     * @return {@code 1} if the command succeeds, or {@code 0} if it throws
+     */
     private int run(CommandContext<CommandSourceStack> context, String[] args) {
         try {
             this.execute(context, args);
@@ -114,6 +146,14 @@ public abstract class ArgumentCommand {
         }
     }
 
+    /**
+     * Suggests the values from {@link #suggestions} that start with the last typed word, ignoring case. If the input is
+     * empty or ends with a space, the last word is empty.
+     *
+     * @param context the context of the command
+     * @param builder the builder for the suggestions
+     * @return the future of the suggestions
+     */
     private CompletableFuture<Suggestions> suggest(CommandContext<CommandSourceStack> context, SuggestionsBuilder builder) {
         var input = builder.getRemaining();
         var args = input.endsWith(" ") || input.isEmpty() ? append(split(input), "") : split(input);
@@ -127,11 +167,24 @@ public abstract class ArgumentCommand {
         return offset.buildFuture();
     }
 
+    /**
+     * Splits the input into words at whitespace.
+     *
+     * @param input the text to split
+     * @return the words, or an empty array if the input is blank
+     */
     private static String[] split(String input) {
         var trimmed = input.trim();
         return trimmed.isEmpty() ? new String[0] : trimmed.split("\\s+");
     }
 
+    /**
+     * Creates a copy of the array with one more element at the end.
+     *
+     * @param args the array to copy
+     * @param arg the element to add
+     * @return the new array
+     */
     private static String[] append(String[] args, String arg) {
         var appended = new String[args.length + 1];
         System.arraycopy(args, 0, appended, 0, args.length);
