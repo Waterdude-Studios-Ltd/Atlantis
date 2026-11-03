@@ -46,10 +46,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+/**
+ * Builds the {@code /atlantis} command, runs the version check of the mods and sends the Atlantis messages.
+ */
 public class AtlantisCommand {
 
     private static final AtomicBoolean READY = new AtomicBoolean(false);
     private static final AtomicBoolean OUTDATED = new AtomicBoolean(false);
+    /**
+     * The ids of Pixelmon and the mods by Water. Empty until {@link #setup(Consumer)} runs.
+     */
     public static final List<String> ATLANTIS_MODS = new ArrayList<>();
 
     public static final String ID = "atlantis";
@@ -64,15 +70,33 @@ public class AtlantisCommand {
     public static final String GRADIENT = "&#@55FFFF-00AAAA";
     public static final String BLUE = "&#73DCFF";
 
+    /**
+     * Shared component. The version check adds each mod to it about 30 seconds after startup. Do not modify it.
+     */
     public static final MutableComponent MODLIST = AtlantisCommand.PREFIX.compile().append(ChatFormatting.GRAY + "Mods: ");
+    /**
+     * null until {@link #setup(Consumer)} runs.
+     */
     public static MutableComponent MESSAGE_A = null;
+    /**
+     * null until {@link #setup(Consumer)} runs.
+     */
     public static MutableComponent MESSAGE_B = null;
+    /**
+     * Shared component. The version check adds each outdated mod to it about 30 seconds after startup. Do not modify it.
+     */
     public static final MutableComponent UPDATE = AtlantisCommand.PREFIX.compile().append(ChatFormatting.DARK_RED + "Out of date mods: ");
 
     private AtlantisCommand() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Registers the {@code /atlantis} command with its {@code mods}, {@code reload}, {@code logpages},
+     * {@code schematics}, {@code decorate}, {@code testpage}, {@code levelinfo} and {@code goto} subcommands.
+     *
+     * @param dispatcher the dispatcher to register the command with
+     */
     public static void makeCommand(CommandDispatcher<CommandSourceStack> dispatcher) {
         var root = Commands.literal(COMMAND_NAME)
                 .requires(source -> source.hasPermission(Permissions.USER))
@@ -271,6 +295,13 @@ public class AtlantisCommand {
         dispatcher.register(root);
     }
 
+    /**
+     * Registers the command and builds the messages. Then queues the version check, which runs 30 seconds later on
+     * {@link Atlantis#THREAD_POOL}. The check fills {@link #MODLIST} and {@link #UPDATE} and marks the command as
+     * ready.
+     *
+     * @param enqueue receives the task that schedules the version check
+     */
     public static void setup(Consumer<Runnable> enqueue) {
         CommandRegistry.register(AtlantisCommand::makeCommand);
         AtlantisCommand.buildMessages();
@@ -360,6 +391,10 @@ public class AtlantisCommand {
         }, 30, TimeUnit.SECONDS));
     }
 
+    /**
+     * Fills {@link #ATLANTIS_MODS} with Pixelmon and the mods by Water, then builds {@link #MESSAGE_A} and
+     * {@link #MESSAGE_B} from their names.
+     */
     private static void buildMessages() {
         var atlantisMods = new ArrayList<String>();
         for (var mod : Mods.modLoader().mods()) {
@@ -390,6 +425,12 @@ public class AtlantisCommand {
         );
     }
 
+    /**
+     * Joins the names with commas and {@code and} before the last name. Each name has the gradient color.
+     *
+     * @param names the mod names
+     * @return the joined names with color codes, or an empty string when there are no names
+     */
     private static String joinModNames(List<String> names) {
         var joined = new StringBuilder();
         for (var i = 0; i < names.size(); i++) {
@@ -401,6 +442,13 @@ public class AtlantisCommand {
         return joined.toString();
     }
 
+    /**
+     * Sends the list of outdated mods to the player when the version check is done and the player has
+     * {@link #PERMISSION}. If the player is Water and the public message is on, sends {@link #MESSAGE_A} to all
+     * players.
+     *
+     * @param player the player that logged in
+     */
     public static void login(ServerPlayer player) {
         if (AtlantisCommand.READY.get()) {
             if (AtlantisCommand.OUTDATED.get() && Permissions.hasPermission(player, AtlantisCommand.PERMISSION)) {
@@ -413,10 +461,18 @@ public class AtlantisCommand {
         }
     }
 
+    /**
+     * @return {@code true} after the version check is done, about 30 seconds after startup
+     */
     public static boolean isReady() {
         return AtlantisCommand.READY.get();
     }
 
+    /**
+     * Counts the loaded mods that have Water as an author. Pixelmon is not counted.
+     *
+     * @return the number of mods by Water
+     */
     public static int countAtlantisMods() {
         var count = 0;
         for (var mod : Mods.modLoader().mods()) {
@@ -427,6 +483,12 @@ public class AtlantisCommand {
         return count;
     }
 
+    /**
+     * Checks if an author name of the mod contains {@link Atlantis#WATER_NAME}.
+     *
+     * @param mod the mod to check
+     * @return {@code true} if the mod is by Water
+     */
     private static boolean isByWater(ModInfo mod) {
         for (var author : mod.authors()) {
             if (author.contains(Atlantis.WATER_NAME)) {

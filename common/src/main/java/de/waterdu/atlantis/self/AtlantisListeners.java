@@ -29,6 +29,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Listens for Atlantis' own events. It records the pages that open, tracks page class names for players and logs
+ * packets.
+ */
 public final class AtlantisListeners {
 
     private static final Pair<Integer, PageOptions.FormFactor> DEFAULT_FORM_FACTOR = Pair.of(6, PageOptions.FormFactor.CHEST);
@@ -52,14 +56,25 @@ public final class AtlantisListeners {
     @SuppressWarnings({"unused", "FieldCanBeLocal"})
     private PacketLogger packetLogger;
 
+    /**
+     * Creates the listeners and subscribes {@link #onPageOpen} to {@link UEvent#CONSTRUCT_PAGE}.
+     */
     public AtlantisListeners() {
         Mods.modLoader().event(UEvent.CONSTRUCT_PAGE).listen(this::onPageOpen);
     }
 
+    /**
+     * Starts to log intercepted packets at the level that {@link Settings} sets.
+     */
     public void startLoggingPackets() {
         this.packetLogger = new PacketLogger();
     }
 
+    /**
+     * While tracking is on, the player gets the class name of each page that they open.
+     *
+     * @return {@code true} if tracking is now on
+     */
     public boolean toggleClasspathTracking(Entity player) {
         if (this.pageClasspathTracking.contains(player.getUUID())) {
             this.pageClasspathTracking.remove(player.getUUID());
@@ -70,10 +85,17 @@ public final class AtlantisListeners {
         }
     }
 
+    /**
+     * @return the rows and form factor from the last time the page opened. Six rows and
+     *     {@link PageOptions.FormFactor#CHEST} if the page did not open since startup.
+     */
     public Pair<Integer, PageOptions.FormFactor> formFactor(Class<? extends Page> clazz) {
         return this.formFactors.getOrDefault(clazz, AtlantisListeners.DEFAULT_FORM_FACTOR);
     }
 
+    /**
+     * @return the full class names of the pages that opened since startup
+     */
     public String[] pageNames() {
         if (this.pageNames.length != this.pages.size()) {
             this.pageNames = this.pages.keySet().toArray(new String[0]);
@@ -81,10 +103,21 @@ public final class AtlantisListeners {
         return this.pageNames;
     }
 
+    /**
+     * @param name the full class name of the page
+     * @return null when the page did not open since startup
+     */
     public Class<? extends Page> getPage(String name) {
         return this.pages.get(name);
     }
 
+    /**
+     * Records the form factor and class of the page on {@link Atlantis#THREAD_POOL}. If the player tracks page class
+     * names, it also sends them the class name with copy and decorate buttons.
+     *
+     * @param event the page construction event
+     * @return {@link InteractionResult#PASS} always
+     */
     public InteractionResult onPageOpen(PageEventPayload.Construct event) {
         Atlantis.THREAD_POOL.submit(() -> {
             var options = event.page().options(event.player());
@@ -110,16 +143,29 @@ public final class AtlantisListeners {
         return InteractionResult.PASS;
     }
 
+    /**
+     * Logs each intercepted packet at the log level from {@link Settings#getLogPackets()}.
+     */
     private static final class PacketLogger {
 
         private final AtomicReference<AtlantisLogger.Severity> logLevel = new AtomicReference<>(AtlantisLogger.Severity.NONE);
 
+        /**
+         * Creates the logger, subscribes it to config reloads and intercepted packets, and reads the current log
+         * level.
+         */
         private PacketLogger() {
             Mods.modLoader().event(UEvent.READ_CONFIG).listen(this::onConfigReload);
             Mods.modLoader().event(UEvent.INTERCEPT_PACKET).listen(this::onInterceptPacket);
             this.logLevel.set(Settings.get().getLogPackets());
         }
 
+        /**
+         * Updates the log level when the {@link Settings} configuration is read.
+         *
+         * @param event the config read event
+         * @return {@link InteractionResult#PASS} always
+         */
         public InteractionResult onConfigReload(ConfigEventPayload.Read event) {
             if (event.object() instanceof Settings settings) {
                 this.logLevel.set(settings.getLogPackets());
@@ -127,6 +173,13 @@ public final class AtlantisListeners {
             return InteractionResult.PASS;
         }
 
+        /**
+         * Logs the player, direction, kind and class name of the packet, unless the log level is
+         * {@link AtlantisLogger.Severity#NONE}.
+         *
+         * @param event the packet intercept event
+         * @return {@link InteractionResult#PASS} always
+         */
         public InteractionResult onInterceptPacket(PacketInterceptEventPayload event) {
             var logLevel = this.logLevel.get();
             if (logLevel != AtlantisLogger.Severity.NONE) {

@@ -14,12 +14,23 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+/**
+ * Lets the player choose a brush for a {@link DecorationEditor}. Pinned items show first, then every other item.
+ *
+ * @param parent the editor that gets the brush
+ */
 public record DecorationPalette(DecorationEditor parent) implements Page {
 
     private static final Text LORE_A = Text.of(ChatFormatting.GRAY + "Left click to select brush");
     private static final Text LORE_B = Text.of(ChatFormatting.GRAY + "Right click to pin brush");
     private static final Text LORE_C = Text.of(ChatFormatting.RED + "Right click to unpin brush");
 
+    /**
+     * Gets the options of the palette: six rows, a fixed title and a hidden inventory.
+     *
+     * @param player the player that views the page
+     * @return the page options
+     */
     @Override
     public PageOptions options(PlayerReference player) {
         return PageOptions.builder()
@@ -29,6 +40,13 @@ public record DecorationPalette(DecorationEditor parent) implements Page {
                 .build();
     }
 
+    /**
+     * Adds the page arrows, a button that clears the brush, and a button for each pinned item and each registered
+     * item. The item buttons fill 54 slots on each page.
+     *
+     * @param player the player that views the page
+     * @param buttons the collector for the buttons
+     */
     @Override
     public void addButtons(PlayerReference player, ButtonCollector buttons) {
         buttons.collect(
@@ -75,6 +93,16 @@ public record DecorationPalette(DecorationEditor parent) implements Page {
         }
     }
 
+    /**
+     * Adds a button for an item. A left click opens the editor with the item as the brush. A right click pins or
+     * unpins the item in {@link Settings} and opens the palette again.
+     *
+     * @param buttons the collector for the button
+     * @param item the item of the button
+     * @param pinned {@code true} if the item is pinned
+     * @param page the page of the button
+     * @param slot the slot of the button on its page
+     */
     private void addItemButton(ButtonCollector buttons, Item item, boolean pinned, int page, int slot) {
         var stack = new ItemStack(item);
         var name = Text.of(ChatFormatting.RESET + "" + ChatFormatting.WHITE + item.getName(stack).getString());

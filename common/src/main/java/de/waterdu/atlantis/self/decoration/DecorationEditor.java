@@ -14,6 +14,10 @@ import de.waterdu.atlantis.util.item.ConfigurableItemStack;
 import de.waterdu.atlantis.util.text.Text;
 import net.minecraft.world.item.ItemStack;
 
+/**
+ * Edits the decorations of a page. A left click paints the brush item into a slot, a middle click clears the slot,
+ * and a right click opens the {@link DecorationPalette}.
+ */
 public final class DecorationEditor implements Page {
 
     final Class<? extends Page> clazz;
@@ -23,6 +27,12 @@ public final class DecorationEditor implements Page {
     final Decorations decorations;
     int ticker;
 
+    /**
+     * Creates an editor with an empty brush. If the page has no decorations yet, it creates, puts and saves new
+     * ones.
+     *
+     * @param clazz the page class to decorate
+     */
     public DecorationEditor(Class<? extends Page> clazz) {
         this.clazz = clazz;
         this.name = clazz.getSimpleName();
@@ -38,6 +48,16 @@ public final class DecorationEditor implements Page {
         this.ticker = 0;
     }
 
+    /**
+     * Creates an editor with the given state.
+     *
+     * @param clazz the page class to decorate
+     * @param name the name to show in the title
+     * @param brush the item to paint, or {@link ItemStack#EMPTY} to clear slots
+     * @param title the index of the title to show. Values above {@code 3} become {@code 0}.
+     * @param decorations the decorations to edit
+     * @param ticker the number of updates since the title changed
+     */
     public DecorationEditor(Class<? extends Page> clazz, String name, ItemStack brush, int title, Decorations decorations, int ticker) {
         this.clazz = clazz;
         this.name = name;
@@ -47,11 +67,24 @@ public final class DecorationEditor implements Page {
         this.ticker = ticker;
     }
 
+    /**
+     * Adds the current decorations as buttons.
+     *
+     * @param player the player that views the page
+     * @param buttons the collector for the buttons
+     */
     @Override
     public void addButtons(PlayerReference player, ButtonCollector buttons) {
         buttons.collect(this.decorations.buttons());
     }
 
+    /**
+     * Gets the options of the editor. It uses the rows and form factor that the decorated page last opened with,
+     * and hides the inventory.
+     *
+     * @param player the player that views the page
+     * @return the page options
+     */
     @Override
     public PageOptions options(PlayerReference player) {
         var formFactor = Atlantis.listeners().formFactor(this.clazz);
@@ -63,6 +96,14 @@ public final class DecorationEditor implements Page {
                 .build();
     }
 
+    /**
+     * Opens the palette on a right click. On other clicks in a slot, it paints the brush into the slot, or clears
+     * the slot if the brush is empty or the click is a middle click. Then it opens the editor again.
+     *
+     * @param player the player that clicked
+     * @param index the index of the clicked slot. Negative values change no slot.
+     * @param click the click
+     */
     @Override
     public void onButtonClick(PlayerReference player, int index, Click click) {
         if (click.button() == Click.Button.RIGHT) {
@@ -78,6 +119,14 @@ public final class DecorationEditor implements Page {
         }
     }
 
+    /**
+     * Counts the updates. After more than 45 updates, it opens a new editor that shows the next title.
+     *
+     * @param tick the current tick
+     * @param player the player that views the page
+     * @param buttons the current buttons
+     * @return the buttons, unchanged
+     */
     @Override
     public Buttons onUpdate(long tick, PlayerReference player, Buttons buttons) {
         this.ticker++;
@@ -87,6 +136,11 @@ public final class DecorationEditor implements Page {
         return buttons;
     }
 
+    /**
+     * Saves the decorations, marks them as changed and maps the decorations again.
+     *
+     * @param player the player that closed the page
+     */
     @Override
     public void afterClose(PlayerReference player) {
         this.decorations.save();
@@ -94,6 +148,11 @@ public final class DecorationEditor implements Page {
         AtlantisData.mapDecorations();
     }
 
+    /**
+     * Gets the title for the current title index: the page name, the brush, or one of two usage hints.
+     *
+     * @return the title
+     */
     private Text getTitle() {
         if (this.title == 0) {
             return Text.of("Editing: " + this.name);
