@@ -26,6 +26,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Holds a command line that runs as the server. It can contain {@code %}-placeholders and entity selectors.
+ *
+ * @param value the command, without the {@code /}
+ */
 public record Command(String value) {
 
     public static final char PLACEHOLDER_CHAR = '%';
@@ -38,18 +43,38 @@ public record Command(String value) {
     public static final String Z_PLACEHOLDER = PLACEHOLDER_CHAR + "z" + PLACEHOLDER_CHAR;
     public static final String DIMENSION_PLACEHOLDER = PLACEHOLDER_CHAR + "dim" + PLACEHOLDER_CHAR;
 
+    /**
+     * Creates a command from a string.
+     *
+     * @param command the command line
+     * @return the command
+     */
     public static Command of(String command) {
         return new Command(command);
     }
 
+    /**
+     * Creates a command from the raw string of a text.
+     *
+     * @param text the text that holds the command line
+     * @return the command
+     */
     public static Command of(Text text) {
         return new Command(text.get());
     }
 
+    /**
+     * Creates a context to fill the placeholders of this command and run it.
+     *
+     * @return a new context for this command
+     */
     public CommandContext prepareContext() {
         return new CommandContext(this);
     }
 
+    /**
+     * Collects the placeholder values and the selector source for a command, then runs it or defers it.
+     */
     public static class CommandContext {
 
         private final Command command;
@@ -58,6 +83,11 @@ public record Command(String value) {
         private LevelPosition position;
         private final UnaryMap<String> placeholders = UnaryMap.create();
 
+        /**
+         * Creates a context for the command.
+         *
+         * @param command the command that {@link #execute()} and {@link #defer()} use, or {@code null} for none
+         */
         private CommandContext(Command command) {
             this.command = command;
         }
@@ -77,11 +107,22 @@ public record Command(String value) {
             return this;
         }
 
+        /**
+         * Fills {@code %p%} and {@code %player%} with the name.
+         *
+         * @param player the name of the player
+         * @return this context
+         */
         public CommandContext player(String player) {
             this.player = player;
             return this;
         }
 
+        /**
+         * Uses the server as the source for the entity selectors in the command.
+         *
+         * @return this context
+         */
         public CommandContext serverSource() {
             return this.source(null);
         }
@@ -96,6 +137,12 @@ public record Command(String value) {
             return this;
         }
 
+        /**
+         * Fills the position placeholders with the position of the entity.
+         *
+         * @param entity the entity to get the position from
+         * @return this context
+         */
         public CommandContext position(Entity entity) {
             return this.position(LevelPosition.of(entity));
         }
@@ -125,6 +172,10 @@ public record Command(String value) {
             return this;
         }
 
+        /**
+         * Runs the command of this context with {@link #execute(Command)}. If the context has no command, it does
+         * nothing.
+         */
         public void execute() {
             this.execute(this.command);
         }
@@ -140,6 +191,11 @@ public record Command(String value) {
             }
         }
 
+        /**
+         * Prepares the command of this context with {@link #defer(Command)}.
+         *
+         * @return the commands to run later, or an empty executable if the context has no command
+         */
         public Executable defer() {
             return this.defer(this.command);
         }
@@ -154,6 +210,13 @@ public record Command(String value) {
             return Executable.EMPTY;
         }
 
+        /**
+         * Fills the placeholders of the command and resolves the first entity selector that parses. If no source is
+         * set, it sets the server as the source.
+         *
+         * @param command the command to prepare
+         * @return one command for each selected entity, or the filled command if no selector parses
+         */
         private Executable compile(Command command) {
             String value = command.value;
             Executable executable = new Executable();
@@ -211,16 +274,27 @@ public record Command(String value) {
         }
     }
 
+    /**
+     * Holds prepared command lines to run as the server.
+     */
     public static class Executable {
 
         private static final Executable EMPTY = new Executable();
 
         private final List<String> commands = new ArrayList<>();
 
+        /**
+         * Creates an executable without commands.
+         */
         private Executable() {
             // noop
         }
 
+        /**
+         * Adds a command line to run.
+         *
+         * @param command the command line
+         */
         public void add(String command) {
             this.commands.add(command);
         }
@@ -250,13 +324,32 @@ public record Command(String value) {
         }
     }
 
+    /**
+     * Reads and writes a {@link Command} as a JSON string.
+     */
     public static class TypeAdapter implements JsonDeserializer<Command>, JsonSerializer<Command> {
 
+        /**
+         * Creates a command from the string value of the JSON element.
+         *
+         * @param json the JSON element
+         * @param typeOfT the type to read
+         * @param context the deserialization context
+         * @return the command
+         */
         @Override
         public Command deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             return Command.of(json.getAsString());
         }
 
+        /**
+         * Writes the command line as a JSON string.
+         *
+         * @param src the command to write
+         * @param typeOfSrc the type to write
+         * @param context the serialization context
+         * @return the JSON string
+         */
         @Override
         public JsonElement serialize(Command src, Type typeOfSrc, JsonSerializationContext context) {
             return new JsonPrimitive(src.value);
