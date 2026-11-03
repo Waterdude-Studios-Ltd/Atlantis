@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Holds the global Atlantis settings, loaded from {@code atlantis.aon} before every other config.
+ */
 @FileBackedObject(mod = Atlantis.ID, path = "atlantis.aon", order = LoadOrder.FIRST)
 @AonComment(value = {"Atlantis global settings", "These settings affect everything using Atlantis.", "Be sure to periodically update this file, ensuring you have good settings for performance!"}, indents = {3,2,2})
 public class Settings implements Configuration {
@@ -149,6 +152,10 @@ public class Settings implements Configuration {
 
     private transient List<Item> parsedPinnedDecorations = null;
     
+    /**
+     * Creates the default settings. Fills the default HikariCP properties, an example database remap and the
+     * remaps for Poké Ball item names.
+     */
     public Settings() {
         this.hikariProperties.put("cachePrepStmts", "true");
         this.hikariProperties.put("prepStmtCacheSize", "250");
@@ -256,30 +263,59 @@ public class Settings implements Configuration {
         return this.threads;
     }
 
+    /**
+     * Sets the thread count.
+     *
+     * @param threads the thread count. A value of zero or less means that Atlantis chooses the count.
+     */
     public void setThreads(int threads) {
         this.threads = threads;
     }
 
+    /**
+     * @return {@code true} if files save automatically and asynchronously
+     */
     public boolean isUseAsyncAutosaver() {
         return this.useAsyncAutosaver;
     }
 
+    /**
+     * Sets if files save automatically and asynchronously.
+     *
+     * @param useAsyncAutosaver {@code true} to use the async autosaver
+     */
     public void setUseAsyncAutosaver(boolean useAsyncAutosaver) {
         this.useAsyncAutosaver = useAsyncAutosaver;
     }
 
+    /**
+     * @return the mode that decides when cached player data is evicted
+     */
     public EvictionMode getPlayerDataEvictionAlgorithm() {
         return this.playerDataEvictionAlgorithm;
     }
 
+    /**
+     * Sets the mode that decides when cached player data is evicted.
+     *
+     * @param playerDataEvictionAlgorithm the eviction mode
+     */
     public void setPlayerDataEvictionAlgorithm(EvictionMode playerDataEvictionAlgorithm) {
         this.playerDataEvictionAlgorithm = playerDataEvictionAlgorithm;
     }
 
+    /**
+     * @return the time between async autosaves, in seconds
+     */
     public long getAsyncSaveDelaySeconds() {
         return this.asyncSaveDelaySeconds;
     }
 
+    /**
+     * Sets the time between async autosaves.
+     *
+     * @param asyncSaveDelaySeconds the time in seconds
+     */
     public void setAsyncSaveDelaySeconds(long asyncSaveDelaySeconds) {
         this.asyncSaveDelaySeconds = asyncSaveDelaySeconds;
     }
@@ -291,6 +327,11 @@ public class Settings implements Configuration {
         return this.dataSaveDelay;
     }
 
+    /**
+     * Sets the delay between each file save.
+     *
+     * @param dataSaveDelay the delay in milliseconds
+     */
     public void setDataSaveDelay(long dataSaveDelay) {
         this.dataSaveDelay = dataSaveDelay;
     }
@@ -302,6 +343,11 @@ public class Settings implements Configuration {
         return this.scheduledTaskDelay;
     }
 
+    /**
+     * Sets the delay between each attempt to run config scheduled tasks.
+     *
+     * @param scheduledTaskDelay the delay in milliseconds
+     */
     public void setScheduledTaskDelay(long scheduledTaskDelay) {
         this.scheduledTaskDelay = scheduledTaskDelay;
     }
@@ -313,6 +359,11 @@ public class Settings implements Configuration {
         return this.doubleClickDelay;
     }
 
+    /**
+     * Sets the maximum time between two clicks on a page that count as a double click.
+     *
+     * @param doubleClickDelay the delay in milliseconds
+     */
     public void setDoubleClickDelay(long doubleClickDelay) {
         this.doubleClickDelay = doubleClickDelay;
     }
@@ -324,218 +375,435 @@ public class Settings implements Configuration {
         return this.duplicateSaveDelay;
     }
 
+    /**
+     * Sets the delay between a duplicate file save and its retry.
+     *
+     * @param duplicateSaveDelay the delay in milliseconds
+     */
     public void setDuplicateSaveDelay(long duplicateSaveDelay) {
         this.duplicateSaveDelay = duplicateSaveDelay;
     }
 
+    /**
+     * @return {@code true} if errored files go to the error bin instead of being renamed and marked
+     */
     public boolean isUseErrorBin() {
         return this.useErrorBin;
     }
 
+    /**
+     * Sets if errored files go to the error bin instead of being renamed and marked.
+     *
+     * @param useErrorBin {@code true} to use the error bin
+     */
     public void setUseErrorBin(boolean useErrorBin) {
         this.useErrorBin = useErrorBin;
     }
 
+    /**
+     * @return the time until a cached player skin is fetched from Mojang again, in seconds
+     */
     public long getSkinRefetchGapSeconds() {
         return this.skinRefetchGapSeconds;
     }
 
+    /**
+     * Sets the time until a cached player skin is fetched from Mojang again.
+     *
+     * @param skinRefetchGapSeconds the time in seconds
+     */
     public void setSkinRefetchGapSeconds(long skinRefetchGapSeconds) {
         this.skinRefetchGapSeconds = skinRefetchGapSeconds;
     }
 
+    /**
+     * @return the time until a leaderboard stops waiting for data, in seconds
+     */
     public long getLeaderboardGetDataTimeoutSeconds() {
         return this.leaderboardGetDataTimeoutSeconds;
     }
 
+    /**
+     * Sets the time until a leaderboard stops waiting for data.
+     *
+     * @param leaderboardGetDataTimeoutSeconds the time in seconds
+     */
     public void setLeaderboardGetDataTimeoutSeconds(long leaderboardGetDataTimeoutSeconds) {
         this.leaderboardGetDataTimeoutSeconds = leaderboardGetDataTimeoutSeconds;
     }
 
+    /**
+     * @return the time between automatic leaderboard recalculations, in seconds
+     */
     public long getLeaderboardRecalculateGapSeconds() {
         return this.leaderboardRecalculateGapSeconds;
     }
 
+    /**
+     * Sets the time between automatic leaderboard recalculations.
+     *
+     * @param leaderboardRecalculateGapSeconds the time in seconds
+     */
     public void setLeaderboardRecalculateGapSeconds(long leaderboardRecalculateGapSeconds) {
         this.leaderboardRecalculateGapSeconds = leaderboardRecalculateGapSeconds;
     }
 
+    /**
+     * @return {@code true} if leaderboards recalculate on multiple threads
+     */
     public boolean isLeaderboardMultithreadedRecalculate() {
         return this.leaderboardMultithreadedRecalculate;
     }
 
+    /**
+     * Sets if leaderboards recalculate on multiple threads.
+     *
+     * @param leaderboardMultithreadedRecalculate {@code true} to use multiple threads
+     */
     public void setLeaderboardMultithreadedRecalculate(boolean leaderboardMultithreadedRecalculate) {
         this.leaderboardMultithreadedRecalculate = leaderboardMultithreadedRecalculate;
     }
 
+    /**
+     * @return the priority for occasion event handlers that do not specify one
+     */
     public UEvent.Priority getOccasionsDefaultEventHandlerPriority() {
         return this.occasionsDefaultEventHandlerPriority;
     }
 
+    /**
+     * Sets the priority for occasion event handlers that do not specify one.
+     *
+     * @param occasionsDefaultEventHandlerPriority the default priority
+     */
     public void setOccasionsDefaultEventHandlerPriority(UEvent.Priority occasionsDefaultEventHandlerPriority) {
         this.occasionsDefaultEventHandlerPriority = occasionsDefaultEventHandlerPriority;
     }
 
+    /**
+     * @return the level at which load messages are logged
+     */
     public AtlantisLogger.Severity getLogLoadMessages() {
         return this.logLoadMessages;
     }
 
+    /**
+     * Sets the level at which load messages are logged.
+     *
+     * @param logLoadMessages the level, or {@link AtlantisLogger.Severity#NONE} to log nothing
+     */
     public void setLogLoadMessages(AtlantisLogger.Severity logLoadMessages) {
         this.logLoadMessages = logLoadMessages;
     }
 
+    /**
+     * @return the level at which intercepted packets are logged
+     */
     public AtlantisLogger.Severity getLogPackets() {
         return this.logPackets;
     }
 
+    /**
+     * Sets the level at which intercepted packets are logged.
+     *
+     * @param logPackets the level, or {@link AtlantisLogger.Severity#NONE} to log nothing
+     */
     public void setLogPackets(AtlantisLogger.Severity logPackets) {
         this.logPackets = logPackets;
     }
 
+    /**
+     * @return {@code true} if a registered placeholder API processes the text in pages
+     */
     public boolean isUsePlaceholdersInPages() {
         return this.usePlaceholdersInPages;
     }
 
+    /**
+     * Sets if a registered placeholder API processes the text in pages.
+     *
+     * @param usePlaceholdersInPages {@code true} to use placeholders in pages
+     */
     public void setUsePlaceholdersInPages(boolean usePlaceholdersInPages) {
         this.usePlaceholdersInPages = usePlaceholdersInPages;
     }
 
+    /**
+     * Sets if Atlantis sends a public broadcast when Water joins.
+     *
+     * @param atlantisPublicMessage {@code true} to send the broadcast
+     */
     public void setAtlantisPublicMessage(boolean atlantisPublicMessage) {
         this.atlantisPublicMessage = atlantisPublicMessage;
     }
 
+    /**
+     * @return {@code true} if Atlantis sends a public broadcast when Water joins
+     */
     public boolean isAtlantisPublicMessage() {
         return this.atlantisPublicMessage;
     }
 
+    /**
+     * Sets if extra data is removed after a schematic is prepared for placement.
+     *
+     * @param cleanSchematicsAfterPrepare {@code true} to remove the extra data
+     */
     public void setCleanSchematicsAfterPrepare(boolean cleanSchematicsAfterPrepare) {
         this.cleanSchematicsAfterPrepare = cleanSchematicsAfterPrepare;
     }
 
+    /**
+     * @return {@code true} if extra data is removed after a schematic is prepared for placement
+     */
     public boolean isCleanSchematicsAfterPrepare() {
         return this.cleanSchematicsAfterPrepare;
     }
 
+    /**
+     * Sets if schematics placed with {@code /atlantis schematic} ignore air blocks.
+     *
+     * @param schematicIgnoreAir {@code true} to ignore air blocks
+     */
     public void setSchematicIgnoreAir(boolean schematicIgnoreAir) {
         this.schematicIgnoreAir = schematicIgnoreAir;
     }
 
+    /**
+     * @return {@code true} if schematics placed with {@code /atlantis schematic} ignore air blocks
+     */
     public boolean isSchematicIgnoreAir() {
         return this.schematicIgnoreAir;
     }
 
+    /**
+     * Sets if schematics placed with {@code /atlantis schematic} use async placement.
+     *
+     * @param schematicAsync {@code true} to use async placement
+     */
     public void setSchematicAsync(boolean schematicAsync) {
         this.schematicAsync = schematicAsync;
     }
 
+    /**
+     * @return {@code true} if schematics placed with {@code /atlantis schematic} use async placement
+     */
     public boolean isSchematicAsync() {
         return this.schematicAsync;
     }
 
+    /**
+     * Sets the number of blocks to place in each schematic placement step.
+     *
+     * @param schematicBlocksPerStep the number of blocks
+     */
     public void setSchematicBlocksPerStep(int schematicBlocksPerStep) {
         this.schematicBlocksPerStep = schematicBlocksPerStep;
     }
 
+    /**
+     * @return the number of blocks to place in each schematic placement step
+     */
     public int getSchematicBlocksPerStep() {
         return this.schematicBlocksPerStep;
     }
 
+    /**
+     * Sets the number of ticks in each schematic placement step.
+     *
+     * @param schematicTicksPerStep the number of ticks
+     */
     public void setSchematicTicksPerStep(int schematicTicksPerStep) {
         this.schematicTicksPerStep = schematicTicksPerStep;
     }
 
+    /**
+     * @return the number of ticks in each schematic placement step
+     */
     public int getSchematicTicksPerStep() {
         return this.schematicTicksPerStep;
     }
 
+    /**
+     * Sets the number of schematic placements that {@code /atlantis undo} keeps in history.
+     *
+     * @param schematicHistoryDepth the number of placements
+     */
     public void setSchematicHistoryDepth(int schematicHistoryDepth) {
         this.schematicHistoryDepth = schematicHistoryDepth;
     }
 
+    /**
+     * @return the number of schematic placements that {@code /atlantis undo} keeps in history
+     */
     public int getSchematicHistoryDepth() {
         return this.schematicHistoryDepth;
     }
 
+    /**
+     * Sets if Atlantis creates an example Atlantis level.
+     *
+     * @param createDefaultAtlantisLevel {@code true} to create the example level
+     */
     public void setCreateDefaultAtlantisLevel(boolean createDefaultAtlantisLevel) {
         this.createDefaultAtlantisLevel = createDefaultAtlantisLevel;
     }
 
+    /**
+     * @return {@code true} if Atlantis creates an example Atlantis level
+     */
     public boolean isCreateDefaultAtlantisLevel() {
         return this.createDefaultAtlantisLevel;
     }
 
+    /**
+     * Sets if the mod ID of a data type is put before its database table names.
+     *
+     * @param modIdPrefixOnTableNames {@code true} to add the prefix
+     */
     public void setModIdPrefixOnTableNames(boolean modIdPrefixOnTableNames) {
         this.modIdPrefixOnTableNames = modIdPrefixOnTableNames;
     }
 
+    /**
+     * @return {@code true} if the mod ID of a data type is put before its database table names
+     */
     public boolean isModIdPrefixOnTableNames() {
         return this.modIdPrefixOnTableNames;
     }
 
+    /**
+     * Sets the database schema that every mod uses instead of its mod ID.
+     *
+     * @param globalDatabaseSchemaOverride the schema name, or an empty string for no override
+     */
     public void setGlobalDatabaseSchemaOverride(String globalDatabaseSchemaOverride) {
         this.globalDatabaseSchemaOverride = globalDatabaseSchemaOverride;
     }
 
+    /**
+     * @return the database schema that every mod uses instead of its mod ID, or an empty string for no override
+     */
     public String getGlobalDatabaseSchemaOverride() {
         return this.globalDatabaseSchemaOverride;
     }
 
+    /**
+     * Sets if missing player login and logout callbacks log a warning.
+     *
+     * @param warnForMissingCallbacks {@code true} to log a warning
+     */
     public void setWarnForMissingCallbacks(boolean warnForMissingCallbacks) {
         this.warnForMissingCallbacks = warnForMissingCallbacks;
     }
 
+    /**
+     * @return {@code true} if missing player login and logout callbacks log a warning
+     */
     public boolean isWarnForMissingCallbacks() {
         return this.warnForMissingCallbacks;
     }
 
+    /**
+     * @return {@link AtlantisLogger.Severity#WARN} if {@link #isWarnForMissingCallbacks()} is {@code true},
+     *     otherwise {@link AtlantisLogger.Severity#DEBUG}
+     */
     public AtlantisLogger.Severity getMissingCallbacksSeverity() {
         return this.warnForMissingCallbacks ? AtlantisLogger.Severity.WARN : AtlantisLogger.Severity.DEBUG;
     }
 
+    /**
+     * @return the time to wait for Redis acknowledgements before syncing continues, in milliseconds
+     */
     public long getRedisAckMilliseconds() {
         return this.redisAckMilliseconds;
     }
 
+    /**
+     * Sets the time to wait for Redis acknowledgements before syncing continues.
+     *
+     * @param redisAckMilliseconds the time in milliseconds
+     */
     public void setRedisAckMilliseconds(long redisAckMilliseconds) {
         this.redisAckMilliseconds = redisAckMilliseconds;
     }
 
+    /**
+     * @return the time between Redis sync messages, in milliseconds
+     */
     public long getRedisSyncMilliseconds() {
         return this.redisSyncMilliseconds;
     }
 
+    /**
+     * Sets the time between Redis sync messages.
+     *
+     * @param redisSyncMilliseconds the time in milliseconds
+     */
     public void setRedisSyncMilliseconds(long redisSyncMilliseconds) {
         this.redisSyncMilliseconds = redisSyncMilliseconds;
     }
 
+    /**
+     * @return {@code true} if Redis connections use SSL
+     */
     public boolean isRedisSSL() {
         return this.redisSSL;
     }
 
+    /**
+     * Sets if Redis connections use SSL.
+     *
+     * @param redisSSL {@code true} to use SSL
+     */
     public void setRedisSSL(boolean redisSSL) {
         this.redisSSL = redisSSL;
     }
 
+    /**
+     * @return the default number of connections in a database connection pool
+     */
     public int getDefaultDatabaseConnections() {
         return this.defaultDatabaseConnections;
     }
 
+    /**
+     * Sets the default number of connections in a database connection pool.
+     *
+     * @param defaultDatabaseConnections the number of connections
+     */
     public void setDefaultDatabaseConnections(int defaultDatabaseConnections) {
         this.defaultDatabaseConnections = defaultDatabaseConnections;
     }
 
+    /**
+     * Sets the HikariCP database properties.
+     *
+     * @param hikariProperties the property names mapped to their values
+     */
     public void setHikariProperties(Map<String, String> hikariProperties) {
         this.hikariProperties = hikariProperties;
     }
 
+    /**
+     * @return the HikariCP property names mapped to their values
+     */
     public Map<String, String> getHikariProperties() {
         return this.hikariProperties;
     }
 
+    /**
+     * Sets the remaps for default database names.
+     *
+     * @param remappedDatabaseNames the default names mapped to the names to use
+     */
     public void setRemappedDatabaseNames(Map<String, String> remappedDatabaseNames) {
         this.remappedDatabaseNames = remappedDatabaseNames;
     }
 
+    /**
+     * @return the default database names mapped to the names to use
+     */
     public Map<String, String> getRemappedDatabaseNames() {
         return this.remappedDatabaseNames;
     }
@@ -548,10 +816,18 @@ public class Settings implements Configuration {
         return this.globalDatabaseSchemaOverride.isEmpty() ? this.remappedDatabaseNames.getOrDefault(value, value) : this.globalDatabaseSchemaOverride;
     }
 
+    /**
+     * Sets the remaps for parsed item stacks.
+     *
+     * @param remappedParsedItemStacks the item strings mapped to their replacements
+     */
     public void setRemappedParsedItemStacks(Map<String, String> remappedParsedItemStacks) {
         this.remappedParsedItemStacks = remappedParsedItemStacks;
     }
 
+    /**
+     * @return the item strings mapped to their replacements
+     */
     public Map<String, String> getRemappedParsedItemStacks() {
         return this.remappedParsedItemStacks;
     }
@@ -563,10 +839,18 @@ public class Settings implements Configuration {
         return this.remappedParsedItemStacks.getOrDefault(item, item);
     }
 
+    /**
+     * Sets the pinned decoration items of the page decorator.
+     *
+     * @param pinnedDecorations the pinned items
+     */
     public void setPinnedDecorations(List<ConfigurableItemStack> pinnedDecorations) {
         this.pinnedDecorations = pinnedDecorations;
     }
 
+    /**
+     * @return the pinned decoration items of the page decorator
+     */
     public List<ConfigurableItemStack> getPinnedDecorations() {
         return this.pinnedDecorations;
     }
@@ -585,6 +869,9 @@ public class Settings implements Configuration {
         return this.parsedPinnedDecorations;
     }
 
+    /**
+     * Clears the cached result of {@link #getParsedPinnedDecorations()}, then saves the settings.
+     */
     @Override
     public void save() {
         this.parsedPinnedDecorations = null;
@@ -598,6 +885,9 @@ public class Settings implements Configuration {
         return Atlantis.CONFIG.orElse(Settings.class, Settings.DEFAULTS);
     }
 
+    /**
+     * Decides when cached player data is evicted as players join and leave.
+     */
     public enum EvictionMode {
 
         NEVER,
