@@ -6,6 +6,10 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 
+/**
+ * Creates the chunk generator of an {@link AtlantisLevel}. Register one with
+ * {@code AtlantisLevelRegistry.registerChunkGenerator}.
+ */
 @FunctionalInterface
 public interface ChunkGeneratorFunction {
 
