@@ -18,6 +18,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/**
+ * Encodes data components to a store, such as a {@link CompoundTag} or a {@link JsonObject}, and decodes them back.
+ * Each component is stored under the ID of its type.
+ *
+ * @param <S> the type of the store
+ * @param <V> the type of an encoded value
+ * @param ops the ops that encode and decode the values
+ * @param constructor creates an empty store
+ * @param encoder puts an encoded value in the store under the ID of its type
+ * @param keys gets the keys of the store
+ * @param decoder gets the value for a key from the store
+ */
 public record DataComponentEncoder<S, V>(
         DynamicOps<V> ops, Supplier<S> constructor,
         TriConsumer<ResourceLocation, DataResult<V>, S> encoder,
@@ -41,6 +53,9 @@ public record DataComponentEncoder<S, V>(
             JsonObject::get
     );
 
+    /**
+     * Skips components that are not registered or that fail to encode.
+     */
     public S encode(DataComponentMap components) {
         var store = this.constructor.get();
         for (var component : components) {
@@ -57,6 +72,9 @@ public record DataComponentEncoder<S, V>(
         return store;
     }
 
+    /**
+     * Skips keys that are not registered components and values that fail to decode.
+     */
     public DataComponentMap decode(S data) {
         var builder = DataComponentMap.builder();
         for (var key : this.keys.apply(data)) {
@@ -74,6 +92,14 @@ public record DataComponentEncoder<S, V>(
         return builder.build();
     }
 
+    /**
+     * Sets the component in the builder without a type check.
+     *
+     * @param <T> the type of the component value
+     * @param builder the builder to change
+     * @param type the component type
+     * @param value the decoded value. It must be of the type of the component.
+     */
     @SuppressWarnings("unchecked")
     private static <T> void setComponent(DataComponentMap.Builder builder, net.minecraft.core.component.DataComponentType<T> type, Object value) {
         builder.set(type, (T) value);
