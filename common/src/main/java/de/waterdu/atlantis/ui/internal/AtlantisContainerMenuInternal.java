@@ -25,8 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Shows an Atlantis page as a container menu. Clicks go to the page buttons. Unless the page is draggable, players
+ * cannot move items, and the player inventory slots also show page buttons.
+ */
 public class AtlantisContainerMenuInternal extends AbstractContainerMenu implements AtlantisContainerMenu {
 
+    /**
+     * The slot ID that vanilla sends for a click outside the screen.
+     */
     public static final int OUTSIDE_SCREEN_INDEX = -999;
     private static final Button OUTSIDE_SCREEN_BUTTON = Button.emptyButton(OUTSIDE_SCREEN_INDEX);
 
@@ -40,6 +47,13 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
     protected boolean changingPage = false;
     protected boolean forceAll = false;
 
+    /**
+     * Creates the menu and adds its slots. A draggable page uses the real player inventory slots. Other pages use
+     * page slots in their place.
+     *
+     * @param inventory the page inventory
+     * @param player the player that opens the menu
+     */
     public AtlantisContainerMenuInternal(AtlantisInventoryInternal inventory, Player player) {
         super(inventory.options().formFactor().getType(inventory.options()), 1);
 
@@ -103,6 +117,13 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Adds the slot to the menu and to {@link #inventorySlots}. For a page that is not draggable, it also sets the
+     * slot index.
+     *
+     * @param slotIn the slot to add
+     * @return the added slot
+     */
     @Override
     protected @NonNull Slot addSlot(@NonNull Slot slotIn) {
         if (this.inventory.isDraggable()) {
@@ -118,15 +139,33 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return slotIn;
     }
 
-    public AtlantisInventoryInternal getAquaUIInventory() {
+    /**
+     * @return the inventory that holds the page and its buttons
+     */
+    @Override
+    public AtlantisInventoryInternal atlantisInventory() {
         return this.inventory;
     }
 
+    /**
+     * Checks if the player can still use the menu.
+     *
+     * @param playerIn the player
+     * @return always {@code true}
+     */
     @Override
     public boolean stillValid(@NonNull Player playerIn) {
         return true;
     }
 
+    /**
+     * Moves the stack between the page and the player inventory if the page is draggable. Otherwise, it resets the
+     * display and moves nothing.
+     *
+     * @param player the player that moves the stack
+     * @param index the index of the clicked slot
+     * @return a copy of the moved stack, or {@link ItemStack#EMPTY} if nothing moves
+     */
     @Override
     public @NonNull ItemStack quickMoveStack(@NonNull Player player, int index) {
         if (this.inventory.isDraggable()) {
@@ -154,6 +193,15 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return ItemStack.EMPTY;
     }
 
+    /**
+     * Makes a {@link Click} and sends it to the button in the slot. A draggable page also runs the vanilla click
+     * logic. Other pages reset the client state instead.
+     *
+     * @param slot the index of the clicked slot, or {@link #OUTSIDE_SCREEN_INDEX}
+     * @param dragType the mouse button or drag state that vanilla sends
+     * @param clickTypeIn the type of click
+     * @param player the player that clicks
+     */
     @Override
     public void clicked(int slot, int dragType, @NonNull ClickType clickTypeIn, @NonNull Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
@@ -182,15 +230,35 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Gets the button in the slot.
+     *
+     * @param slot the index of the slot, or {@link #OUTSIDE_SCREEN_INDEX}
+     * @return the button, or an empty button for a click outside the screen
+     */
     private Button resolveButton(int slot) {
         return slot == OUTSIDE_SCREEN_INDEX ? OUTSIDE_SCREEN_BUTTON : this.inventory.buttons().button(slot);
     }
 
+    /**
+     * Clears the carried item on the client and marks the whole display for an update.
+     *
+     * @param serverPlayer the player to reset
+     */
     private void resetClientState(ServerPlayer serverPlayer) {
         serverPlayer.connection.send(new ClientboundContainerSetSlotPacket(-1, 1, 0, ItemStack.EMPTY));
         this.resetDisplay();
     }
 
+    /**
+     * Handles the click on {@link Atlantis#THREAD_POOL}. If the button has presses left and the player is not in
+     * {@link AtlantisUI#LOCKED}, it emits {@link UEvent#PRESS_PAGE}. If no listener cancels the event, the page and
+     * the button receive the click. Then the player is locked until the next display update.
+     *
+     * @param slot the index of the clicked slot
+     * @param button the clicked button
+     * @param click the click
+     */
     private void doButtonClick(final int slot, final Button button, final Click click) {
         Atlantis.THREAD_POOL.submit(() -> {
             if (button.presses() == Integer.MIN_VALUE || button.presses() > 0) {
@@ -208,6 +276,15 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         });
     }
 
+    /**
+     * Moves the stack into the slot range with the vanilla logic, but only if the page is draggable.
+     *
+     * @param stack the stack to move
+     * @param start the first slot index of the range
+     * @param end the slot index after the end of the range
+     * @param backwards {@code true} to fill the range from the end
+     * @return {@code true} if a part of the stack moved. Always {@code false} if the page is not draggable.
+     */
     @Override
     protected boolean moveItemStackTo(@NonNull ItemStack stack, int start, int end, boolean backwards) {
         if (this.inventory.isDraggable()) {
@@ -216,6 +293,13 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return false;
     }
 
+    /**
+     * Checks if a double click can collect items from the slot.
+     *
+     * @param stack the stack that the player collects
+     * @param slotIn the slot to collect from
+     * @return the vanilla result if the page is draggable, otherwise {@code false}
+     */
     @Override
     public boolean canTakeItemForPickAll(@NonNull ItemStack stack, @NonNull Slot slotIn) {
         if (this.inventory.isDraggable()) {
@@ -224,6 +308,12 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return false;
     }
 
+    /**
+     * Closes the menu and puts the player back in their inventory menu. If the page refuses to close, or a listener
+     * cancels {@link UEvent#DESTRUCT_PAGE}, the page opens again. A page change does not count as a close.
+     *
+     * @param playerIn the player that closes the menu
+     */
     @Override
     public void removed(@NonNull Player playerIn) {
         if (playerIn instanceof ServerPlayer player) {
@@ -259,6 +349,13 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Sets the item in the slot, but only if the page is draggable.
+     *
+     * @param slotId the index of the slot
+     * @param stateId the state ID of the menu
+     * @param stack the item to set
+     */
     @Override
     public void setItem(int slotId, int stateId, @NonNull ItemStack stack) {
         if (this.inventory.isDraggable()) {
@@ -266,6 +363,12 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Checks if a drag can put items in the slot.
+     *
+     * @param slot the slot
+     * @return the vanilla result if the page is draggable, otherwise {@code false}
+     */
     @Override
     public boolean canDragTo(@NonNull Slot slot) {
         if (this.inventory.isDraggable()) {
@@ -274,19 +377,37 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return false;
     }
 
+    /**
+     * Marks the whole display for an update.
+     */
     public void resetDisplay() {
         this.updateDisplay(true);
     }
 
+    /**
+     * Marks the display of the page player for an update.
+     *
+     * @param forceAll {@code true} sends the whole menu again, instead of only the changed buttons
+     */
     public void updateDisplay(boolean forceAll) {
         this.updateDisplay(this.inventory.player(), forceAll);
     }
 
+    /**
+     * Marks the display for an update. The next page update sends it.
+     *
+     * @param player not used
+     * @param forceAll {@code true} sends the whole menu again, instead of only the changed buttons
+     */
     public void updateDisplay(PlayerReference player, boolean forceAll) {
         this.enqueueUpdate = true;
         this.forceAll = this.forceAll || forceAll;
     }
 
+    /**
+     * Sends the update that {@link #updateDisplay(PlayerReference, boolean)} marked, and removes the player from
+     * {@link AtlantisUI#LOCKED}. A draggable page only receives its buttons on the first call.
+     */
     public void updateDisplayEnqueued(PlayerReference player) {
         var entity = player.entityDirect();
         if (entity == null) {
@@ -328,11 +449,20 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Gets the slot from {@link #inventorySlots}. An index past the end gets the last slot.
+     *
+     * @param slotId the index of the slot
+     * @return the slot
+     */
     @Override
     public @NonNull Slot getSlot(int slotId) {
         return this.inventorySlots.get(Math.min(this.inventorySlots.size() - 1, slotId));
     }
 
+    /**
+     * Sends the changed slots to the client, but only if the page is draggable.
+     */
     @Override
     public void broadcastChanges() {
         if (this.inventory.isDraggable()) {
@@ -340,6 +470,11 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         }
     }
 
+    /**
+     * Gets the item that the player carries with the cursor.
+     *
+     * @return the carried item if the page is draggable, otherwise {@link ItemStack#EMPTY}
+     */
     @Override
     public @NonNull ItemStack getCarried() {
         if (this.inventory.isDraggable()) {
@@ -348,18 +483,34 @@ public class AtlantisContainerMenuInternal extends AbstractContainerMenu impleme
         return ItemStack.EMPTY;
     }
 
+    /**
+     * @return the item stacks of the menu slots
+     */
     public List<ItemStack> getInventoryItemStacks() {
         return this.inventoryItemStacks;
     }
 
+    /**
+     * Sets the item stacks of the menu slots.
+     *
+     * @param inventoryItemStacks the item stacks
+     */
     public void setInventoryItemStacks(List<ItemStack> inventoryItemStacks) {
         this.inventoryItemStacks = inventoryItemStacks;
     }
 
+    /**
+     * @return the slots of the menu
+     */
     public List<Slot> getInventorySlots() {
         return this.inventorySlots;
     }
 
+    /**
+     * Sets the slots of the menu.
+     *
+     * @param inventorySlots the slots
+     */
     public void setInventorySlots(List<Slot> inventorySlots) {
         this.inventorySlots = inventorySlots;
     }

@@ -5,6 +5,9 @@ import de.waterdu.atlantis.util.java.ExceptionUtils;
 import java.io.IOException;
 import java.util.Properties;
 
+/**
+ * Measures the width of text in pixels in the default Minecraft font.
+ */
 public class FontUtils {
 
     protected static int SPACES_COUNT = 40;
@@ -18,6 +21,9 @@ public class FontUtils {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Loads the character widths. Until this runs, {@link #getStringWidth(String)} gives wrong values.
+     */
     public static void init() throws IOException {
         Properties chars = new Properties();
         chars.load(FontUtils.class.getResourceAsStream("chars.properties"));
@@ -38,6 +44,10 @@ public class FontUtils {
         FontUtils.SPACES_WIDTH = FontUtils.SPACE_WIDTH * FontUtils.SPACES_COUNT;
     }
 
+    /**
+     * @return the width in pixels in the default font, or 0 if the text is null. Color codes have no width. Bold
+     *     characters are 1 pixel wider.
+     */
     public static int getStringWidth(String text) {
         if (text == null) {
             return 0;
@@ -77,6 +87,9 @@ public class FontUtils {
         }
     }
 
+    /**
+     * @return the width in pixels, or -1 for {@code §}
+     */
     public static int getCharWidth(char character) {
         if (character == 160) {
             return 4;

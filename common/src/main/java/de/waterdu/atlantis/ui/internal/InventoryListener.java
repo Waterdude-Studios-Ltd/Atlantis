@@ -9,6 +9,9 @@ import de.waterdu.atlantis.util.java.ExceptionUtils;
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket;
 import net.minecraft.world.InteractionResult;
 
+/**
+ * Opens and closes queued pages and updates open pages on each server tick.
+ */
 public class InventoryListener {
 
     private static long tick = 0;
@@ -17,10 +20,20 @@ public class InventoryListener {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Listens for {@link UEvent#SERVER_TICK_PRE}.
+     */
     public static void register() {
         Mods.modLoader().event(UEvent.SERVER_TICK_PRE).listen(InventoryListener::onServerTick);
     }
 
+    /**
+     * Handles the pages in {@link AtlantisUI#FUTURE_OPEN}. A closure marker closes the menu of the player. Other pages
+     * open when the player has no other menu open. Then it updates each open page whose refresh rate is due.
+     *
+     * @param event the server tick event
+     * @return always {@link InteractionResult#PASS}
+     */
     private static InteractionResult onServerTick(ServerTickEventPayload.Pre event) {
         InventoryListener.tick++;
         for (var entry : AtlantisUI.FUTURE_OPEN.entrySet()) {
@@ -47,9 +60,9 @@ public class InventoryListener {
 
         for (var player : event.server().getPlayerList().getPlayers()) {
             if (player.containerMenu instanceof AtlantisContainerMenuInternal container) {
-                var refreshRate = container.getAquaUIInventory().options().refreshRate();
+                var refreshRate = container.atlantisInventory().options().refreshRate();
                 if (refreshRate < 2 || InventoryListener.tick % refreshRate == 0) {
-                    container.getAquaUIInventory().onUpdate(player, container);
+                    container.atlantisInventory().onUpdate(player, container);
                 }
             }
         }

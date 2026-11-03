@@ -17,6 +17,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public interface Page {
 
+    /**
+     * Marker in {@link AtlantisUI#FUTURE_OPEN} that closes the current page. Do not open it.
+     */
     Page CLOSURE_PAGE = new Page() {
         @Override
         public boolean closureMarker() {
@@ -27,8 +30,8 @@ public interface Page {
     /**
      * Returns the {@link PageOptions} object for all pages.
      *
-     * @param player The user that sees this page.
-     * @return The options to apply to this page.
+     * @param player the user that sees this page
+     * @return the options to apply to this page
      * @see PageOptions
      */
     default PageOptions options(PlayerReference player) {
@@ -39,19 +42,18 @@ public interface Page {
      * Adds the buttons that the page shows.
      * Buttons are instances of {@link Button}.
      *
-     * @param player The user that sees this page.
-     * @param collector The button collector that receives the buttons.
-     * @see                         Button
+     * @param player the user that sees this page
+     * @param collector the button collector that receives the buttons
+     * @see Button
      */
     default void addButtons(PlayerReference player, final ButtonCollector collector) {}
 
     /**
      * Called when the user presses a button on the page.
      *
-     * @param player The user that sees this page.
-     * @param index The index of the pressed button.
-     * @param click The {@link Click} representing the user's action.
-     *
+     * @param player the user that sees this page
+     * @param index the index of the pressed button
+     * @param click the {@link Click} representing the user's action
      * @deprecated Use functional click handlers instead. See the {@link Button.Builder} methods.
      */
     @Deprecated
@@ -60,10 +62,10 @@ public interface Page {
     /**
      * Called each tick.
      *
-     * @param tick The tick this call represents.
-     * @param player The user that sees this page.
-     * @param buttons The buttons object for this page.
-     * @return The buttons that this page now shows.
+     * @param tick the tick this call represents
+     * @param player the user that sees this page
+     * @param buttons the buttons object for this page
+     * @return the buttons that this page now shows
      * @see Buttons
      */
     default Buttons onUpdate(long tick, PlayerReference player, Buttons buttons) {
@@ -73,8 +75,8 @@ public interface Page {
     /**
      * Called before the page closes.
      *
-     * @param player The user that sees this page.
-     * @return Whether to continue to close the page.
+     * @param player the user that sees this page
+     * @return whether to continue to close the page
      */
     default boolean onClose(PlayerReference player) {
         return true;
@@ -83,23 +85,23 @@ public interface Page {
     /**
      * Called after the page closes.
      *
-     * @param player The user that sees this page.
+     * @param player the user that sees this page
      */
     default void afterClose(PlayerReference player) {}
 
     /**
      * Called when a draggable page changes.
      *
-     * @param player The user that sees this page.
-     * @param inventory The inventory of this page.
-     * @param closed Whether the page closure caused this change.
+     * @param player the user that sees this page
+     * @param inventory the inventory of this page
+     * @param closed whether the page closure caused this change
      */
     default void onChanged(PlayerReference player, AtlantisInventoryInternal inventory, boolean closed) {}
 
     /**
      * Opens the page for a player.
      *
-     * @param player The user to show this page to.
+     * @param player the user to show this page to
      */
     default void open(PlayerReference player) {
         AtlantisUI.open(player, this);
@@ -108,7 +110,7 @@ public interface Page {
     /**
      * Opens the page for a player.
      *
-     * @param player The user to show this page to.
+     * @param player the user to show this page to
      */
     default void open(Player player) {
         AtlantisUI.open(player, this);
@@ -119,7 +121,7 @@ public interface Page {
      * implemented.
      * If you do not know what this is for, it is best not to change it.
      *
-     * @return Whether this page is a closure marker.
+     * @return whether this page is a closure marker
      */
     @ApiStatus.Internal
     default boolean closureMarker() {

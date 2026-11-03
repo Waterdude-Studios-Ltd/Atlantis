@@ -13,6 +13,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 
+/**
+ * Shows a test page with a sprite button and ten pages of grouped buttons.
+ */
 public class TestPage implements Page {
 
     private static final Item[] ITEMS = new Item[]{
@@ -28,6 +31,12 @@ public class TestPage implements Page {
             Items.DIAMOND_PICKAXE,
     };
 
+    /**
+     * Gets the options of the page: the title {@code Test Page}, three rows and a hidden inventory.
+     *
+     * @param player the player who views the page
+     * @return the page options
+     */
     @Override
     public PageOptions options(PlayerReference player) {
         return PageOptions.builder()
@@ -37,6 +46,13 @@ public class TestPage implements Page {
                 .build();
     }
 
+    /**
+     * Adds a Pikachu sprite button at index 9 and nine button groups with ten pages each. A left click shows the next
+     * page of a group and a right click shows the previous page.
+     *
+     * @param player the player who views the page
+     * @param buttons the collector that receives the buttons
+     */
     @Override
     public void addButtons(PlayerReference player, ButtonCollector buttons) {
         var cis = ConfigurableItemStack.of("#sprite Pikachu gender:male shiny #end glow");

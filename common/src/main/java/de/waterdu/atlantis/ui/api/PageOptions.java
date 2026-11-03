@@ -13,6 +13,10 @@ import net.minecraft.world.inventory.MenuType;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Holds the options of a page, such as its form factor, title, rows and refresh rate. Use {@link #builder()} to make
+ * one.
+ */
 public class PageOptions {
 
     private static final PageOptions DEFAULTS = new PageOptions();
@@ -34,38 +38,71 @@ public class PageOptions {
 
     private transient int hashCode = -1;
 
+    /**
+     * @return the form factor of the page
+     */
     public FormFactor formFactor() {
         return this.formFactor;
     }
 
+    /**
+     * @return the number of chest rows of the page
+     */
     public int rows() {
         return this.rows;
     }
 
+    /**
+     * @return the title of the page
+     */
     public Text title() {
         return this.title;
     }
 
+    /**
+     * @return {@code true} if players can move items in and out of the page
+     */
     public boolean isDraggable() {
         return this.draggable;
     }
 
+    /**
+     * @return the number of ticks between page updates
+     */
     public long refreshRate() {
         return this.refreshRate;
     }
 
+    /**
+     * @return always false for a draggable page
+     */
     public boolean isInventoryHidden() {
         return this.inventoryHidden && !this.draggable;
     }
 
+    /**
+     * Runs the handler for a click outside the screen.
+     *
+     * @param click the click outside the screen
+     */
     public void onClickOutsideScreen(Click click) {
         this.outsideScreenClick.accept(click);
     }
 
+    /**
+     * Gets the shared options with the default values: a chest of 3 rows with an empty title.
+     *
+     * @return the default options
+     */
     public static PageOptions defaults() {
         return PageOptions.DEFAULTS;
     }
 
+    /**
+     * Calculates a hash code from all options, and caches it after the first call.
+     *
+     * @return the hash code of the options
+     */
     @Override
     public int hashCode() {
         if (this.hashCode == -1) {
@@ -82,6 +119,12 @@ public class PageOptions {
         return this.hashCode;
     }
 
+    /**
+     * Checks if the object is a {@link PageOptions} with the same hash code.
+     *
+     * @param obj the object to compare
+     * @return {@code true} if the options are equal
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -93,68 +136,133 @@ public class PageOptions {
         return this.hashCode() == obj.hashCode();
     }
 
+    /**
+     * Creates a builder that starts with the default values.
+     *
+     * @return the new builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Builds {@link PageOptions}. Each setter changes the options and returns this builder.
+     */
     public static class Builder {
 
         private final PageOptions options;
 
+        /**
+         * Creates a builder that starts with the default values.
+         */
         public Builder() {
             this.options = new PageOptions();
         }
 
+        /**
+         * Sets the form factor of the page.
+         *
+         * @param formFactor the form factor
+         * @return this builder
+         */
         public Builder formFactor(FormFactor formFactor) {
             this.options.formFactor = formFactor;
             return this;
         }
 
+        /**
+         * @param rows the number of chest rows, from 1 to 6. Only form factors with rows use this value.
+         */
         public Builder rows(int rows) {
             this.options.rows = rows;
             return this;
         }
 
+        /**
+         * Sets the title of the page.
+         *
+         * @param title the title, converted to {@link Text} with {@link TextUtils#asText}
+         * @param <T> the type of the title
+         * @return this builder
+         */
         public <T> Builder title(T title) {
             this.options.title = TextUtils.asText(title);
             return this;
         }
 
+        /**
+         * Lets players move items in and out of the page as in a normal container. {@link Page#onChanged} receives
+         * the changes. A draggable page always shows the player inventory.
+         */
         public Builder draggable(boolean draggable) {
             this.options.draggable = draggable;
             return this;
         }
 
+        /**
+         * @param rate the number of ticks between page updates. Values below 2 update the page each tick.
+         */
         public Builder refreshRate(long rate) {
             this.options.refreshRate = rate;
             return this;
         }
 
+        /**
+         * Sets if the page hides the player inventory. A draggable page always shows it.
+         *
+         * @param hidden {@code true} to hide the player inventory
+         * @return this builder
+         */
         public Builder inventoryHidden(boolean hidden) {
             this.options.inventoryHidden = hidden;
             return this;
         }
 
+        /**
+         * Hides the player inventory. A draggable page always shows it.
+         *
+         * @return this builder
+         */
         public Builder hideInventory() {
             this.options.inventoryHidden = true;
             return this;
         }
 
+        /**
+         * Shows the player inventory.
+         *
+         * @return this builder
+         */
         public Builder showInventory() {
             this.options.inventoryHidden = false;
             return this;
         }
 
+        /**
+         * @param outsideScreenClick runs off the server thread when the player clicks outside the screen
+         */
         public Builder outsideScreenClick(Consumer<Click> outsideScreenClick) {
             this.options.outsideScreenClick = outsideScreenClick;
             return this;
         }
 
+        /**
+         * Gets the options. The builder does not copy them, so later changes to the builder also change them.
+         *
+         * @return the options
+         */
         public PageOptions build() {
             return this.options;
         }
     }
 
+    /**
+     * Describes a type of container screen that a page can use.
+     *
+     * @param slots the number of container slots
+     * @param hasRows {@code true} if the number of rows of the page changes the menu type
+     * @param menuTypeFunction gets the menu type for the options of a page
+     */
     public record FormFactor(
             int slots,
             boolean hasRows,
@@ -187,6 +295,14 @@ public class PageOptions {
         public static FormFactor POKE_BAG;
         public static FormFactor DAY_CARE;
 
+        /**
+         * Creates a form factor.
+         *
+         * @param slots the number of container slots
+         * @param hasRows {@code true} if the number of rows of the page changes the menu type
+         * @param menuTypeFunction gets the menu type for the options of a page
+         * @return the new form factor
+         */
         public static FormFactor create(int slots, boolean hasRows, Function<PageOptions, MenuType<? extends AbstractContainerMenu>> menuTypeFunction) {
             return new FormFactor(slots, hasRows, menuTypeFunction);
         }
@@ -220,6 +336,9 @@ public class PageOptions {
             FormFactor.STONECUTTER = FormFactor.create(2, false, options -> MenuType.STONECUTTER);
         }
 
+        /**
+         * Creates the Pixelmon form factors, such as {@link #COOKING_POT}. If Pixelmon is not loaded, they stay null.
+         */
         public static void createDefaults(HolderLookup.Provider registryAccess) {
             // TODO: Mod proxy this.
             if (Mods.isPresent("pixelmon")) {
@@ -231,6 +350,12 @@ public class PageOptions {
             }
         }
 
+        /**
+         * Gets the menu type for the options of a page.
+         *
+         * @param options the options of the page
+         * @return the menu type, or {@code null} if a Pixelmon menu is not registered
+         */
         public MenuType<? extends AbstractContainerMenu> getType(PageOptions options) {
             return this.menuTypeFunction.apply(options);
         }
