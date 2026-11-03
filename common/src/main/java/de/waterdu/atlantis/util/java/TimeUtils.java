@@ -5,6 +5,9 @@ import org.jetbrains.annotations.ApiStatus;
 import java.time.ZoneOffset;
 import java.util.function.BiFunction;
 
+/**
+ * Holds time constants and the global tick counters, and formats durations.
+ */
 public final class TimeUtils {
 
     public static final Timezone UTC = Timezone.of("UTC");
@@ -34,6 +37,9 @@ public final class TimeUtils {
      */
     public static long GLOBAL_SECOND_TICK = 0;
 
+    /**
+     * Always throws, because this class only has static members.
+     */
     private TimeUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -51,6 +57,11 @@ public final class TimeUtils {
     }
 
     // Note: do not access from non-main thread!
+    /**
+     * Checks if the current server tick starts a new second. This is true once every 20 ticks.
+     *
+     * @return {@code true} if {@link #GLOBAL_SECOND_TICK} is 0
+     */
     public static boolean isSecond() {
         return GLOBAL_SECOND_TICK == 0;
     }
