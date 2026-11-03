@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * During development, Trident can load one more Tine from the paths in the {@value #DEV_PROPERTY} system property.
  * The paths are joined by {@link File#pathSeparator}. The Tine Gradle plugin sets this property on its runs.
  */
-@Bootstrapped(order = -50)
+@Bootstrapped(Bootstrapped.Priority.VERY_HIGH)
 public final class Trident {
 
     public static final String DIRECTORY = "atlantis/trident";
@@ -66,6 +66,9 @@ public final class Trident {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Clears the loaded Tines, the class loader and the discovery result, so that discovery can run again.
+     */
     @VisibleForTesting
     public static void resetForTesting() {
         tines = Map.of();
@@ -73,22 +76,45 @@ public final class Trident {
         discovery = null;
     }
 
+    /**
+     * Checks if a Tine with the ID is loaded.
+     *
+     * @param id the ID of the Tine
+     * @return {@code true} if the Tine is loaded
+     */
     public static boolean isLoaded(String id) {
         return tines.containsKey(id);
     }
 
+    /**
+     * @return the loaded Tines in load order. This is empty before {@link #discover(TridentHost, Collection)}.
+     */
     public static Collection<TineContainer> tines() {
         return tines.values();
     }
 
+    /**
+     * @return the mod info of the loaded Tines in load order
+     */
     public static List<ModInfo> mods() {
         return tines.values().stream().map(TineContainer::toModInfo).toList();
     }
 
+    /**
+     * The class loader that loads Tine classes. Before discovery, or if no Tines load, this is the class loader of
+     * Atlantis.
+     */
     public static ClassLoader classLoader() {
         return classLoader;
     }
 
+    /**
+     * Finds, validates and orders the Tines, adds them to the class path and registers their mixin configs. Only the
+     * first call does this. Later calls return the first result and ignore their arguments.
+     *
+     * @param annotations the annotations to look for on the Tine classes
+     * @return the class loader and the names of the Tine classes that have each annotation
+     */
     public static synchronized Discovery discover(TridentHost host, Collection<Class<? extends Annotation>> annotations) {
         if (discovery == null) {
             discovery = Trident.find(host, annotations);
@@ -96,6 +122,14 @@ public final class Trident {
         return discovery;
     }
 
+    /**
+     * Reads the Tine jars and the dev Tine, orders them, adds them to the class path and registers their mixin
+     * configs. If no Tine loads or the class path change fails, the result has no classes.
+     *
+     * @param loader the host that gives the config directory, the loaded mods and the class path
+     * @param annotations the annotations to look for on the Tine classes
+     * @return the class loader and the names of the Tine classes that have each annotation
+     */
     private static Discovery find(TridentHost loader, Collection<Class<? extends Annotation>> annotations) {
         TridentLogger.info("Starting Tine discovery");
 
@@ -133,6 +167,10 @@ public final class Trident {
         return new Discovery(classLoader, classes);
     }
 
+    /**
+     * Calls the {@link Tine.Barb} method of the main class of each loaded Tine, in load order. It logs an error if
+     * a main class cannot be loaded.
+     */
     @Entrypoint
     public static void load() {
         TridentLogger.info("Loading {} Tine(s)", tines.size());
@@ -151,6 +189,12 @@ public final class Trident {
         }
     }
 
+    /**
+     * Lists the jar files in the directory, sorted by path. It creates the directory if it does not exist.
+     *
+     * @param directory the directory to list
+     * @return the jar files, or an empty list if the directory cannot be read
+     */
     private static List<Path> jars(Path directory) {
         try {
             Files.createDirectories(directory);
@@ -163,6 +207,12 @@ public final class Trident {
         }
     }
 
+    /**
+     * Gets the paths of the dev Tine from the {@value #DEV_PROPERTY} system property. Paths that do not exist are
+     * left out.
+     *
+     * @return the paths, or an empty optional if the property is not set or no path exists
+     */
     private static Optional<List<Path>> devTine() {
         var property = System.getProperty(DEV_PROPERTY);
         if (property == null || property.isBlank()) {
@@ -177,6 +227,13 @@ public final class Trident {
         return paths.isEmpty() ? Optional.empty() : Optional.of(paths);
     }
 
+    /**
+     * Converts the paths to URLs.
+     *
+     * @param jars the paths of the jars and directories
+     * @return the URLs in the same order
+     * @throws UncheckedIOException if a path cannot be converted to a URL
+     */
     public static URL[] jarsToURLs(List<Path> jars) {
         var urls = new URL[jars.size()];
         for (var i = 0; i < urls.length; i++) {
@@ -189,6 +246,15 @@ public final class Trident {
         return urls;
     }
 
+    /**
+     * Scans each source and keeps the valid Tines. It skips a Tine if a mod with its ID is loaded, if it does not
+     * support this Atlantis version, or if more than one source declares its ID.
+     *
+     * @param loader the host that tells which mods are loaded
+     * @param sources the paths of each Tine. The first path names the Tine in the log.
+     * @param annotations the annotations to look for on the Tine classes
+     * @return the candidates by Tine ID, in source order
+     */
     private static Map<String, Candidate> read(TridentHost loader, List<List<Path>> sources, Collection<Class<? extends Annotation>> annotations) {
         var candidates = new LinkedHashMap<String, Candidate>();
         var duplicates = new ArrayList<String>();
@@ -219,6 +285,15 @@ public final class Trident {
         return candidates;
     }
 
+    /**
+     * Scans the paths of a Tine with ClassGraph. It reads the {@value TineMetadata#FILE_NAME}, the {@link Tine}
+     * class and the classes that have each annotation.
+     *
+     * @param paths the paths of the Tine
+     * @param annotations the annotations to look for
+     * @return the candidate, or {@code null} if the paths have no {@value TineMetadata#FILE_NAME}, more than one
+     *     {@link Tine} class, or cannot be read
+     */
     private static @Nullable Candidate scan(List<Path> paths, Collection<Class<? extends Annotation>> annotations) {
         var jar = paths.getFirst();
         try (var scan = new ClassGraph().overrideClasspath(paths).enableClassInfo().enableAnnotationInfo().ignoreClassVisibility().scan()) {
@@ -247,6 +322,14 @@ public final class Trident {
         }
     }
 
+    /**
+     * Removes candidates with unmet dependencies until all remaining dependencies are met, then orders the rest. Dependencies come
+     * first, then lower {@link TineMetadata#order()}, then the ID. It skips candidates in a dependency cycle.
+     *
+     * @param loader the host that gives the loaded mods
+     * @param candidates the candidates by Tine ID
+     * @return the candidates in load order
+     */
     private static List<Candidate> resolve(TridentHost loader, Map<String, Candidate> candidates) {
         if (candidates.isEmpty()) {
             return List.of();
@@ -314,6 +397,16 @@ public final class Trident {
         return ordered;
     }
 
+    /**
+     * Finds the first dependency of the Tine that is not installed or has a version outside its range. A loader mod
+     * with no known version meets a dependency only if the range accepts any version.
+     *
+     * @param loader the host that tells which mods are loaded
+     * @param metadata the metadata of the Tine
+     * @param tines the remaining candidates by Tine ID
+     * @param versions the versions of the loaded mods by mod ID
+     * @return a description of the problem, or {@code null} if all dependencies are met
+     */
     private static @Nullable String findUnmetDependency(TridentHost loader, TineMetadata metadata, Map<String, Candidate> tines, Map<String, String> versions) {
         for (var dependency : metadata.depends().entrySet()) {
             var id = dependency.getKey();
@@ -334,7 +427,19 @@ public final class Trident {
         return null;
     }
 
+    /**
+     * Holds the result of Tine discovery.
+     *
+     * @param classLoader the class loader that loads the Tine classes
+     * @param classes the names of the Tine classes that have each annotation
+     */
     public record Discovery(ClassLoader classLoader, Map<Class<? extends Annotation>, List<String>> classes) {}
 
+    /**
+     * Holds a Tine that was read but is not loaded yet.
+     *
+     * @param container the container of the Tine
+     * @param classes the names of the Tine classes that have each annotation
+     */
     private record Candidate(TineContainer container, Map<Class<? extends Annotation>, List<String>> classes) {}
 }

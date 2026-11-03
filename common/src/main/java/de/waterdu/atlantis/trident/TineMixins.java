@@ -14,6 +14,9 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Adds the mixin configs of Tines to Mixin and makes Mixin select them, also after it has applied other mixins.
+ */
 final class TineMixins {
 
     private static final String MOD_ID_DECORATION = "fabric-modId";
@@ -22,6 +25,12 @@ final class TineMixins {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Adds the mixin configs of the Tines, decorates each config with the ID of its Tine, and makes Mixin select
+     * them. If two Tines declare the same config, only the first one gets it.
+     *
+     * @param tines the Tines in load order
+     */
     static void register(Collection<TineContainer> tines) {
         var owners = new LinkedHashMap<String, String>();
         for (var tine : tines) {
@@ -50,6 +59,13 @@ final class TineMixins {
         TineMixins.select();
     }
 
+    /**
+     * Decorates each Mixin config of a Tine with the {@code fabric-modId} of its Tine. It logs an error for each
+     * config that it does not find.
+     *
+     * @param owners the IDs of the owning Tines, by config name
+     * @throws Throwable if the config of a Mixin handle cannot be read
+     */
     private static void decorate(Map<String, String> owners) throws Throwable {
         var found = new HashSet<String>();
         for (Object handle : Mixins.getConfigs()) {
@@ -68,6 +84,10 @@ final class TineMixins {
         });
     }
 
+    /**
+     * Calls the private {@code select} method of the processor of the active Mixin transformer, so that it selects
+     * the new configs. It does nothing if there is no active transformer.
+     */
     private static void select() {
         var environment = MixinEnvironment.getCurrentEnvironment();
         var transformer = environment.getActiveTransformer();
@@ -101,6 +121,13 @@ final class TineMixins {
         }
     }
 
+    /**
+     * Creates a lookup with private access to the type.
+     *
+     * @param type the type to access
+     * @return the private lookup
+     * @throws IllegalAccessException if the module of the type does not allow private access
+     */
     private static MethodHandles.Lookup lookup(Class<?> type) throws IllegalAccessException {
         return MethodHandles.privateLookupIn(type, MethodHandles.lookup());
     }

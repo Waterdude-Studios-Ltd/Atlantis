@@ -12,6 +12,10 @@ import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
 import java.util.Set;
 
+/**
+ * Checks {@link Tine} classes and {@link Tine.Barb} methods at compile time. A barb must be a static, no-argument
+ * {@code void} method in a {@link Tine} class, and a {@link Tine} class must have at most one barb.
+ */
 @SupportedAnnotationTypes({
         "de.waterdu.atlantis.trident.Tine",
         "de.waterdu.atlantis.trident.Tine.Barb"
@@ -19,10 +23,21 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class TineValidator extends AbstractProcessor {
 
+    /**
+     * Creates the processor.
+     */
     public TineValidator() {
         super();
     }
 
+    /**
+     * Reports an error for each barb that is not valid and for each {@link Tine} class with more than one barb. It
+     * reports a warning for each {@link Tine} class with no barb.
+     *
+     * @param annotations the annotation types to process
+     * @param roundEnv the environment of the current round
+     * @return {@code true} always, so that no other processor claims the annotations
+     */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         var messager = this.processingEnv.getMessager();
