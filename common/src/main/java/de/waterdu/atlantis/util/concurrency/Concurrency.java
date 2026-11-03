@@ -20,7 +20,7 @@ public final class Concurrency {
     /**
      * Runs a task on a thread other than the main thread.
      *
-     * @param task Task to run asynchronously.
+     * @param task task to run asynchronously
      */
     public static void async(Runnable task) {
         Atlantis.THREAD_POOL.submit(task);
@@ -29,7 +29,7 @@ public final class Concurrency {
     /**
      * Runs a task on the main thread.
      *
-     * @param task Task to be run synchronously.
+     * @param task task to be run synchronously
      */
     public static void sync(Runnable task) {
         ServerUtils.server().execute(() -> {
@@ -46,9 +46,9 @@ public final class Concurrency {
     /**
      * Runs a task on the main thread, with fallback support. For internal use.
      *
-     * @param player Player that this task is associated with.
-     * @param fallback Page to show if this task fails.
-     * @param task Task to be run synchronously.
+     * @param player player that this task is associated with
+     * @param fallback page to show if this task fails
+     * @param task task to be run synchronously
      */
     public static void sync(Player player, Page fallback, Runnable task) {
         ServerUtils.server().execute(() -> {
