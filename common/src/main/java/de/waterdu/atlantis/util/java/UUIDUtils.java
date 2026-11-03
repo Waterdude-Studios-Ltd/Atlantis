@@ -3,10 +3,16 @@ package de.waterdu.atlantis.util.java;
 import java.util.Random;
 import java.util.UUID;
 
+/**
+ * Parses and creates UUIDs.
+ */
 public final class UUIDUtils {
 
     public static final UUID ZEROED_UUID = new UUID(0L, 0L);
 
+    /**
+     * Always throws, because this class only has static members.
+     */
     private UUIDUtils() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
@@ -28,6 +34,12 @@ public final class UUIDUtils {
         }
     }
 
+    /**
+     * Creates a UUID with the hash code of the object as the seed. See {@link #fromSeed(long)}.
+     *
+     * @param object the object to hash
+     * @return the UUID
+     */
     public static UUID fromHashCode(Object object) {
         return UUIDUtils.fromSeed(object.hashCode());
     }
