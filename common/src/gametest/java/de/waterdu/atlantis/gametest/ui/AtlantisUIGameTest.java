@@ -15,7 +15,6 @@ import de.waterdu.atlantis.ui.api.AtlantisPage;
 import de.waterdu.atlantis.ui.api.AtlantisUI;
 import de.waterdu.atlantis.ui.api.Button;
 import de.waterdu.atlantis.ui.api.ButtonCollector;
-import de.waterdu.atlantis.ui.api.Click;
 import de.waterdu.atlantis.ui.api.Decorations;
 import de.waterdu.atlantis.ui.api.Page;
 import de.waterdu.atlantis.ui.api.PageOptions;
@@ -52,8 +51,17 @@ public final class AtlantisUIGameTest {
     private static final String BATCH = "atlantis_ui";
     private static final int TIMEOUT = 200000;
 
+    /**
+     * Prevents instantiation.
+     */
     private AtlantisUIGameTest() {}
 
+    /**
+     * Checks that opening a chest page builds a menu with the correct rows and buttons, and sends an open screen
+     * packet with the title.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void opensAChestPageWithItsRowsTitleAndButtons(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -70,8 +78,8 @@ public final class AtlantisUIGameTest {
                 .thenExecute(() -> {
                     var menu = container(helper, player);
                     helper.assertTrue(menu.getType() == MenuType.GENERIC_9x2, "menu type is " + menu.getType());
-                    helper.assertValueEqual(menu.getAquaUIInventory().getContainerSize(), 18, "container size");
-                    helper.assertTrue(menu.getAquaUIInventory().getItem(3).is(Items.DIAMOND), "button not in slot 3");
+                    helper.assertValueEqual(menu.atlantisInventory().getContainerSize(), 18, "container size");
+                    helper.assertTrue(menu.atlantisInventory().getItem(3).is(Items.DIAMOND), "button not in slot 3");
                     var open = GameTestConnections.sent(player).stream()
                             .filter(ClientboundOpenScreenPacket.class::isInstance)
                             .map(ClientboundOpenScreenPacket.class::cast)
@@ -83,6 +91,12 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that every form factor and every chest size from one to six rows builds a menu of the correct type and
+     * slot count.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void everyFormFactorBuildsItsMenu(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -125,6 +139,11 @@ public final class AtlantisUIGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the page does not open when a listener cancels {@link UEvent#CONSTRUCT_PAGE}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void cancellingConstructPageBlocksTheOpen(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -144,6 +163,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a button that a {@link UEvent#CONSTRUCT_PAGE} listener adds shows in the open page.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void constructPageCanAddButtons(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -152,9 +176,15 @@ public final class AtlantisUIGameTest {
 
         AtlantisUI.open(player, page);
 
-        helper.succeedWhen(() -> helper.assertTrue(container(helper, player).getAquaUIInventory().getItem(4).is(Items.EMERALD), "added button missing"));
+        helper.succeedWhen(() -> helper.assertTrue(container(helper, player).atlantisInventory().getItem(4).is(Items.EMERALD), "added button missing"));
     }
 
+    /**
+     * Checks that a page opened with {@code waitForScreen} is queued while another screen is open, and opens when that
+     * screen closes.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void waitForScreenOpensOnceTheCurrentScreenCloses(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -176,6 +206,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that configured decorations show in the page and that {@link UEvent#DECORATE_PAGE} fires.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void decorationsAreAppliedAndDecoratePageFires(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -188,10 +223,16 @@ public final class AtlantisUIGameTest {
 
         helper.succeedWhen(() -> {
             helper.assertTrue(fired.get(), "DECORATE_PAGE did not fire");
-            helper.assertTrue(container(helper, player).getAquaUIInventory().getItem(5).is(Items.GOLD_BLOCK), "decoration missing");
+            helper.assertTrue(container(helper, player).atlantisInventory().getItem(5).is(Items.GOLD_BLOCK), "decoration missing");
         });
     }
 
+    /**
+     * Checks that a click on a button fires {@link UEvent#PRESS_PAGE} for that button and runs its left click action
+     * once.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void clickingAButtonFiresPressPageAndRunsItsAction(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -213,6 +254,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the action of a button does not run when a listener cancels {@link UEvent#PRESS_PAGE}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void cancellingPressPageSuppressesTheAction(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -238,6 +284,12 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a second click within the double click delay runs the double click action. The test sets the delay
+     * to one minute and restores it at the end.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void twoQuickClicksAreADoubleClick(GameTestHelper helper) {
         var settings = Settings.get();
@@ -272,6 +324,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a click outside the screen runs the {@code outsideScreenClick} action of the page options.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void clickingOutsideTheScreenRunsTheOption(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -287,6 +344,12 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the pagination methods of {@link AtlantisUI} move between pages, loop only when told to, and keep
+     * each button group on its own page.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void paginationMovesBetweenPages(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -297,7 +360,7 @@ public final class AtlantisUIGameTest {
         helper.startSequence()
                 .thenWaitUntil(() -> container(helper, player))
                 .thenExecute(() -> {
-                    var inventory = container(helper, player).getAquaUIInventory();
+                    var inventory = container(helper, player).atlantisInventory();
                     helper.assertValueEqual(AtlantisUI.currentPage(player, 0), 0, "first page");
                     helper.assertTrue(inventory.getItem(0).is(PagedPage.ITEMS[0]), "page 0 shown");
                     helper.assertTrue(AtlantisUI.hasNextPage(player, 0), "has a next page");
@@ -327,6 +390,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the update task of a button runs repeatedly on a page with a refresh rate of one.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void updateTasksRunAtTheRefreshRate(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -341,6 +409,11 @@ public final class AtlantisUIGameTest {
         helper.succeedWhen(() -> helper.assertTrue(runs.get() >= 5, "update task ran " + runs.get() + " times"));
     }
 
+    /**
+     * Checks that closing a page fires {@link UEvent#DESTRUCT_PAGE} and returns the player to their inventory menu.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void closingFiresDestructPage(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -360,6 +433,11 @@ public final class AtlantisUIGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the page opens again when a listener cancels {@link UEvent#DESTRUCT_PAGE}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void cancellingDestructPageReopensThePage(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -377,10 +455,15 @@ public final class AtlantisUIGameTest {
                 .thenWaitUntil(() -> unlocked(helper, player))
                 .thenExecute(player::closeContainer)
                 .thenWaitUntil(() -> helper.assertValueEqual(destructs.get(), 1, "destructs"))
-                .thenWaitUntil(() -> helper.assertTrue(container(helper, player).getAquaUIInventory().page() == page, "page was not reopened"))
+                .thenWaitUntil(() -> helper.assertTrue(container(helper, player).atlantisInventory().page() == page, "page was not reopened"))
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a page that does not allow exit is queued and opens again when the player closes it.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void allowExitFalseReopensThePage(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -392,10 +475,15 @@ public final class AtlantisUIGameTest {
                 .thenWaitUntil(() -> unlocked(helper, player))
                 .thenExecute(player::closeContainer)
                 .thenExecute(() -> helper.assertTrue(AtlantisUI.FUTURE_OPEN.get(player.getUUID()) == page, "page was not queued to reopen"))
-                .thenWaitUntil(() -> helper.assertTrue(container(helper, player).getAquaUIInventory().page() == page, "page was not reopened"))
+                .thenWaitUntil(() -> helper.assertTrue(container(helper, player).atlantisInventory().page() == page, "page was not reopened"))
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a shift click moves an item from the hotbar into a draggable page.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void draggablePagesHoldRealItems(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -408,14 +496,19 @@ public final class AtlantisUIGameTest {
                 .thenWaitUntil(() -> container(helper, player))
                 .thenExecute(() -> {
                     var menu = container(helper, player);
-                    helper.assertTrue(menu.getAquaUIInventory().isDraggable(), "page not draggable");
+                    helper.assertTrue(menu.atlantisInventory().isDraggable(), "page not draggable");
                     menu.quickMoveStack(player, 9 + 27);
-                    helper.assertTrue(menu.getAquaUIInventory().getItem(0).is(Items.APPLE), "item was not moved into the page");
+                    helper.assertTrue(menu.atlantisInventory().getItem(0).is(Items.APPLE), "item was not moved into the page");
                     helper.assertTrue(player.getInventory().getItem(0).isEmpty(), "item still in the hotbar");
                 })
                 .thenSucceed();
     }
 
+    /**
+     * Checks that {@link TestPage}, {@link DecorationEditor} and {@link DecorationPalette} open.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void builtInPagesOpen(GameTestHelper helper) {
         var testPagePlayer = GameTestPlayers.mock(helper);
@@ -427,21 +520,44 @@ public final class AtlantisUIGameTest {
         AtlantisUI.open(palettePlayer, new DecorationPalette(new DecorationEditor(EditedPage.class)));
 
         helper.succeedWhen(() -> {
-            helper.assertTrue(container(helper, testPagePlayer).getAquaUIInventory().page() instanceof TestPage, "TestPage");
-            helper.assertTrue(container(helper, editorPlayer).getAquaUIInventory().page() instanceof DecorationEditor, "DecorationEditor");
-            helper.assertTrue(container(helper, palettePlayer).getAquaUIInventory().page() instanceof DecorationPalette, "DecorationPalette");
+            helper.assertTrue(container(helper, testPagePlayer).atlantisInventory().page() instanceof TestPage, "TestPage");
+            helper.assertTrue(container(helper, editorPlayer).atlantisInventory().page() instanceof DecorationEditor, "DecorationEditor");
+            helper.assertTrue(container(helper, palettePlayer).atlantisInventory().page() instanceof DecorationPalette, "DecorationPalette");
         });
     }
 
+    /**
+     * Gets the Atlantis menu that the player has open.
+     *
+     * @param helper the GameTest helper
+     * @param player the player to check
+     * @return the open Atlantis menu
+     * @throws GameTestAssertException if no page is open
+     */
     private static AtlantisContainerMenuInternal container(GameTestHelper helper, ServerPlayer player) {
         return AtlantisUI.currentContainer(player).orElseThrow(() -> new GameTestAssertException("no page is open"));
     }
 
+    /**
+     * Fails the test if no page is open or if {@link AtlantisUI#LOCKED} contains the player.
+     *
+     * @param helper the GameTest helper
+     * @param player the player to check
+     */
     private static void unlocked(GameTestHelper helper, ServerPlayer player) {
         container(helper, player);
         helper.assertFalse(AtlantisUI.LOCKED.contains(player.getUUID()), "player is locked");
     }
 
+    /**
+     * Listens for a page event and passes only the payloads of the player to the listener. The listener always
+     * returns {@link InteractionResult#PASS}, so it does not cancel the event.
+     *
+     * @param key the key of the page event
+     * @param player the player whose payloads to pass on
+     * @param listener receives each payload of the player
+     * @param <P> the payload type
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static <P extends PageEventPayload> void listen(de.waterdu.atlantis.util.config.Key<? extends UEvent<P>> key, ServerPlayer player, Consumer<P> listener) {
         var reference = PlayerReference.get(player);
@@ -453,19 +569,40 @@ public final class AtlantisUIGameTest {
         });
     }
 
+    /**
+     * An empty page that the decoration test configures decorations for.
+     */
     public static final class DecoratedPage implements Page {}
 
+    /**
+     * An empty page that the built-in page test opens in the decoration editor.
+     */
     public static final class EditedPage implements Page {}
 
+    /**
+     * A page with two button groups. Group 0 has three pages and group 1 has two pages.
+     */
     private static final class PagedPage implements Page {
 
         static final net.minecraft.world.item.Item[] ITEMS = {Items.RED_WOOL, Items.GREEN_WOOL, Items.BLUE_WOOL};
 
+        /**
+         * Gets the options of a page with two rows.
+         *
+         * @param player the player who views the page
+         * @return the page options
+         */
         @Override
         public PageOptions options(PlayerReference player) {
             return PageOptions.builder().rows(2).build();
         }
 
+        /**
+         * Adds one wool button per page at index 0 in group 0, and at index 9 in group 1.
+         *
+         * @param player the player who views the page
+         * @param collector collects the buttons
+         */
         @Override
         public void addButtons(PlayerReference player, ButtonCollector collector) {
             for (var page = 0; page < 3; page++) {

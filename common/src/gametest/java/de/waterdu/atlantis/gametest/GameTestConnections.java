@@ -14,8 +14,18 @@ import java.util.List;
  */
 public final class GameTestConnections {
 
+    /**
+     * Prevents instantiation.
+     */
     private GameTestConnections() {}
 
+    /**
+     * Gets the embedded channel of the mock player's connection through reflection.
+     *
+     * @param player the mock player
+     * @return the channel of the player's connection
+     * @throws IllegalStateException if the channel cannot be read
+     */
     public static EmbeddedChannel channel(ServerPlayer player) {
         var connection = ((MixinServerCommonPacketListenerImpl) (Object) player.connection).atlantis$getConnection();
         try {
@@ -27,7 +37,9 @@ public final class GameTestConnections {
         }
     }
 
-    /** Drains the packets written to the mock player since the last call. */
+    /**
+     * Drains the packets written to the mock player since the last call.
+     */
     public static List<Packet<?>> sent(ServerPlayer player) {
         var channel = channel(player);
         var packets = new ArrayList<Packet<?>>();

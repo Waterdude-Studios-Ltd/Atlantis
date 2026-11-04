@@ -14,10 +14,21 @@ import net.minecraft.world.level.GameType;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+/**
+ * Tests the {@link UEvent#ACTUALLY_HURT} event.
+ */
 public final class ActuallyHurtGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private ActuallyHurtGameTest() {}
 
+    /**
+     * Checks that the event fires with the damage amount and that the entity loses that much health.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void firesWithTheDamageTakenFromHealth(GameTestHelper helper) {
         var pig = helper.spawn(EntityType.PIG, 2, 2, 2);
@@ -31,6 +42,11 @@ public final class ActuallyHurtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the entity loses the damage amount that a listener sets.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void listenerCanChangeTheDamage(GameTestHelper helper) {
         var pig = helper.spawn(EntityType.PIG, 2, 2, 2);
@@ -42,6 +58,11 @@ public final class ActuallyHurtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the entity keeps its full health when a listener cancels the event.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingKeepsHealth(GameTestHelper helper) {
         var pig = helper.spawn(EntityType.PIG, 2, 2, 2);
@@ -53,6 +74,11 @@ public final class ActuallyHurtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the event also fires for a survival player and that a changed amount applies to it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void appliesToPlayers(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -65,6 +91,13 @@ public final class ActuallyHurtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Listens for {@link UEvent#ACTUALLY_HURT} and gives the payloads of the given entity to the listener. The handler
+     * always returns {@link InteractionResult#PASS}.
+     *
+     * @param entity the entity to listen for
+     * @param listener receives each payload of the entity
+     */
     private static void listen(LivingEntity entity, Consumer<ActuallyHurtEventPayload> listener) {
         Mods.modLoader().event(UEvent.ACTUALLY_HURT).listen(payload -> {
             if (payload.entity() == entity) {

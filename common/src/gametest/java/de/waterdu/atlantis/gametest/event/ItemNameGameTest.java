@@ -12,10 +12,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 
+/**
+ * Tests the {@link UEvent#ITEM_NAME} event.
+ */
 public final class ItemNameGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private ItemNameGameTest() {}
 
+    /**
+     * Checks that the first tooltip line shows the name that a listener sets.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void listenerRenamesTheTooltip(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -33,6 +44,12 @@ public final class ItemNameGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the payload has the player of the tooltip and that the name does not change without a listener that
+     * sets it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void payloadCarriesThePlayer(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);

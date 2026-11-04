@@ -9,16 +9,34 @@ import net.minecraft.world.InteractionResult;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Tests the {@link UEvent#SERVER_TICK_PRE} and {@link UEvent#SERVER_TICK_POST} events.
+ */
 public final class ServerTickGameTest {
 
     private static final int TICKS = 4;
 
+    /**
+     * Prevents instantiation.
+     */
     private ServerTickGameTest() {}
 
+    /**
+     * Gets the tick count from a recorded event such as {@code pre:12}.
+     *
+     * @param event the recorded event
+     * @return the number after the {@code :}
+     */
     private static int tick(String event) {
         return Integer.parseInt(event.substring(event.indexOf(':') + 1));
     }
 
+    /**
+     * Checks that the pre and post events fire once in each tick, with pre before post, for a number of consecutive
+     * ticks.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void preAndPostFireOncePerTickInOrder(GameTestHelper helper) {
         var events = new ArrayList<String>();

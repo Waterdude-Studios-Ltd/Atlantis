@@ -24,8 +24,16 @@ public final class PlayerDataGameTest {
     private static final String BATCH = "atlantis_player_data";
     private static final int TIMEOUT = 100000;
 
+    /**
+     * Prevents instantiation.
+     */
     private PlayerDataGameTest() {}
 
+    /**
+     * Checks that a joining player's name and UUID are in the name cache in both directions.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void joiningRecordsTheName(GameTestHelper helper) {
         var profile = profile();
@@ -41,6 +49,11 @@ public final class PlayerDataGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a name added for a second UUID moves to that UUID, and that the first UUID has an empty name.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void aNameTakenOverByAnotherPlayerMovesToThem(GameTestHelper helper) {
         var name = name();
@@ -56,6 +69,11 @@ public final class PlayerDataGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a UUID added with a new name has only the new name, and that the old name has the nil UUID.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void aRenamedPlayerKeepsOnlyTheNewName(GameTestHelper helper) {
         var uuid = UUID.randomUUID();
@@ -71,6 +89,11 @@ public final class PlayerDataGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a joining player gets {@link AtlantisPlayer} data with its UUID, its name and a last login time.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void joiningCreatesAtlantisPlayerData(GameTestHelper helper) {
         var profile = profile();
@@ -89,6 +112,11 @@ public final class PlayerDataGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the player data file of a player exists after the player logs out.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void leavingSavesThePlayerData(GameTestHelper helper) {
         var profile = profile();
@@ -104,10 +132,20 @@ public final class PlayerDataGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Creates a profile with a random UUID and a random name.
+     *
+     * @return the profile
+     */
     private static GameProfile profile() {
         return new GameProfile(UUID.randomUUID(), name());
     }
 
+    /**
+     * Creates a random player name of 14 characters that starts with {@code gt}.
+     *
+     * @return the name
+     */
     private static String name() {
         return "gt" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }

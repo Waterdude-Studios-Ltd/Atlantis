@@ -13,8 +13,8 @@ import de.waterdu.atlantis.util.level.ConfigurableLevel;
 import de.waterdu.atlantis.util.level.LevelPosition;
 import de.waterdu.atlantis.util.level.LevelUtils;
 import de.waterdu.atlantis.util.level.LocalPosition;
-import de.waterdu.atlantis.util.level.ParticleUtils;
 import de.waterdu.atlantis.util.particle.Particle;
+import de.waterdu.atlantis.util.particle.ParticleUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleType;
@@ -56,25 +56,40 @@ public final class LevelUtilsGameTest {
     private static final String OVERWORLD = "minecraft:overworld";
     private static final double EPSILON = 1.0E-4;
 
+    /**
+     * Prevents instantiation.
+     */
     private LevelUtilsGameTest() {}
 
+    /**
+     * Checks that {@link LevelUtils} resolves the loaded levels and their IDs, and returns {@code null} for unknown
+     * levels.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelUtilsResolveTheLiveLevels(GameTestHelper helper) {
         var overworld = helper.getLevel();
 
         helper.assertTrue(LevelUtils.overworld() == overworld, "overworld()");
-        helper.assertTrue(LevelUtils.level(OVERWORLD).orElse(null) == overworld, "level(String)");
-        helper.assertTrue(LevelUtils.level(Level.OVERWORLD).orElse(null) == overworld, "level(ResourceKey)");
-        helper.assertTrue(LevelUtils.level(Level.NETHER).isPresent(), "the nether is missing");
-        helper.assertTrue(LevelUtils.level("minecraft:not_a_level").isEmpty(), "an unknown level resolved");
+        helper.assertTrue(LevelUtils.level(OVERWORLD) == overworld, "level(String)");
+        helper.assertTrue(LevelUtils.level(Level.OVERWORLD) == overworld, "level(ResourceKey)");
+        helper.assertTrue(LevelUtils.level(Level.NETHER) != null, "the nether is missing");
+        helper.assertTrue(LevelUtils.level("minecraft:not_a_level") == null, "an unknown level resolved");
         helper.assertTrue(LevelUtils.levels().contains(overworld), "levels() misses the overworld");
-        helper.assertTrue(LevelUtils.levelIDs().contains(OVERWORLD), "levelIDs() misses the overworld");
-        helper.assertTrue(LevelUtils.levelIDs().contains("minecraft:the_nether"), "levelIDs() misses the nether");
-        helper.assertValueEqual(LevelUtils.levelIDs().size(), LevelUtils.levels().size(), "levelIDs() size");
+        helper.assertTrue(LevelUtils.levelIds().contains(OVERWORLD), "levelIds() misses the overworld");
+        helper.assertTrue(LevelUtils.levelIds().contains("minecraft:the_nether"), "levelIds() misses the nether");
+        helper.assertValueEqual(LevelUtils.levelIds().size(), LevelUtils.levels().size(), "levelIds() size");
         helper.assertTrue(LevelUtils.dimension("") == null, "dimension(\"\") is not null");
         helper.succeed();
     }
 
+    /**
+     * Checks that every factory of {@link ConfigurableLevel} gives an equal level that resolves to the overworld, and
+     * that {@code matches} and {@code contains} compare correctly.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void configurableLevelResolvesAndMatches(GameTestHelper helper) {
         var level = helper.getLevel();
@@ -109,6 +124,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a {@link LevelPosition} resolves its level, block position, coordinates and rotation.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionResolvesLevelAndBlock(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(2.5, 2.25, 3.75));
@@ -126,6 +146,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a {@link LevelPosition} made from an entity has the level, position and rotation of the entity.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionOfAnEntityCapturesItsPlace(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(1, 2, 3));
@@ -142,6 +167,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that level positions with the same level and position are equal and have the same hash code, and that
+     * positions in different levels are not equal.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionsWithTheSameLevelAndPositionAreEqual(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
@@ -155,6 +186,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link LevelPosition#teleport} moves an entity to the position and rotation in the same level.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionTeleportsAnEntity(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(1, 2, 1));
@@ -169,6 +205,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link LevelPosition#teleport} moves a player that is given by its player reference.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionTeleportsAPlayerByReference(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -182,6 +223,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link LevelPosition#createEntity} creates an entity at the position without adding it to the
+     * level.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionCreatesAnUnspawnedEntity(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
@@ -196,6 +243,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link LevelPosition#sound} sends a sound packet with the volume and pitch to a nearby player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void levelPositionSoundReachesNearbyPlayers(GameTestHelper helper) {
         var player = playerInStructure(helper);
@@ -214,6 +266,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link Particle} resolves simple and parameterized particles, caches its data, and gives
+     * {@code null} data for unknown particles.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void particleResolvesAgainstTheServerRegistries(GameTestHelper helper) {
         var flame = Particle.of("minecraft:flame");
@@ -232,6 +290,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ParticleUtils#spawnParticle} sends one packet with a count of one for each particle.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void spawnParticleSendsOnePacketPerParticle(GameTestHelper helper) {
         var player = playerInStructure(helper);
@@ -250,6 +313,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a negative particle count sends that many packets with a count of zero, and with the motion as the
+     * offset.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void negativeParticleCountSendsTheMotionDirectly(GameTestHelper helper) {
         var player = playerInStructure(helper);
@@ -271,6 +340,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#addEffect} applies an ambient effect without particles by default, and applies
+     * the explicit flags when they are given.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void addEffectAppliesAnAmbientHiddenEffect(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(1, 2, 1));
@@ -293,6 +368,11 @@ public final class LevelUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that {@link EntityUtils#playSound} sends a sound packet with the source, volume and pitch at the player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playSoundIsSentToThePlayer(GameTestHelper helper) {
         var player = playerInStructure(helper);
@@ -308,6 +388,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#lookAt} sets the yaw and pitch of an entity towards the target, and returns the
+     * yaw.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void lookAtTurnsAnEntityTowardsTheTarget(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(1, 2, 1));
@@ -327,6 +413,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#lookAt} turns a player on the server and sends a look-at packet for the target.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void lookAtTellsThePlayerToLookAtTheTarget(GameTestHelper helper) {
         var player = playerInStructure(helper);
@@ -346,6 +437,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#createEntity} makes a no-op entity invulnerable, silent, invisible and without
+     * gravity or physics, applies the modifier and spawns it.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void createEntityConfiguresAndSpawnsANoopEntity(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
@@ -364,6 +461,11 @@ public final class LevelUtilsGameTest {
         helper.succeedWhen(() -> helper.assertTrue(helper.getLevel().getEntity(stand.getUUID()) == stand, "entity was not spawned"));
     }
 
+    /**
+     * Checks that a no-op armor stand from {@link EntityUtils#createEntity} is a marker.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void noopArmorStandIsAMarker(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(1.5, 2, 1.5));
@@ -374,6 +476,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#createEntity} without spawn applies the modifier, keeps a regular entity
+     * unchanged and does not add it to the level.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void createEntityWithoutSpawnLeavesTheLevelAlone(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(3.5, 2, 1.5));
@@ -389,6 +497,12 @@ public final class LevelUtilsGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#setVelocity} and {@link EntityUtils#addVelocity} change the delta movement and
+     * flag an impulse.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void velocityHelpersSetTheDeltaMovement(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 2, 2));
@@ -406,6 +520,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#getAreaAround} gives a box of the correct size with its center on the entity.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void areaAroundAnEntityIsCentredOnIt(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 2, 2));
@@ -419,6 +538,11 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link EntityUtils#moveToSafeLocation} moves an entity in the floor to air above a solid block.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void moveToSafeLocationPutsAnEntityOnTheFloor(GameTestHelper helper) {
         var pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(2, 1, 2));
@@ -434,6 +558,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the default {@link Configurable} contexts deserialize and serialize potions, particle types,
+     * particles, effects, sounds and biomes.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void defaultConfigurableContextsRoundTripRegistryValues(GameTestHelper helper) {
         var builder = new GsonBuilder();
@@ -462,6 +592,12 @@ public final class LevelUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Creates a mock player in the center of the test structure and drains the packets that were sent to it.
+     *
+     * @param helper the GameTest helper
+     * @return the mock player
+     */
     private static ServerPlayer playerInStructure(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
         var at = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
@@ -470,6 +606,13 @@ public final class LevelUtilsGameTest {
         return player;
     }
 
+    /**
+     * Drains the packets sent to the player and keeps the sound packets of the sound.
+     *
+     * @param player the player to read the packets of
+     * @param sound the sound to look for
+     * @return the sound packets of the sound
+     */
     private static Stream<ClientboundSoundPacket> sounds(ServerPlayer player, SoundEvent sound) {
         return GameTestConnections.sent(player).stream()
                 .filter(ClientboundSoundPacket.class::isInstance)
@@ -477,6 +620,13 @@ public final class LevelUtilsGameTest {
                 .filter(packet -> packet.getSound().value() == sound);
     }
 
+    /**
+     * Drains the packets sent to the player and keeps the particle packets at the position.
+     *
+     * @param player the player to read the packets of
+     * @param at the position of the particles
+     * @return the particle packets at the position
+     */
     private static List<ClientboundLevelParticlesPacket> particlesAt(ServerPlayer player, Vec3 at) {
         return GameTestConnections.sent(player).stream()
                 .filter(ClientboundLevelParticlesPacket.class::isInstance)
@@ -485,23 +635,62 @@ public final class LevelUtilsGameTest {
                 .toList();
     }
 
+    /**
+     * Fails the test if the entity is not at the expected position.
+     *
+     * @param helper the GameTest helper
+     * @param entity the entity to check
+     * @param expected the expected position
+     * @param name the name of the entity in the failure message
+     */
     private static void assertAt(GameTestHelper helper, Entity entity, Vec3 expected, String name) {
         helper.assertTrue(entity.position().distanceTo(expected) < EPSILON, name + " is at " + entity.position() + " instead of " + expected);
     }
 
+    /**
+     * Checks if two angles differ by less than {@code 0.01}.
+     *
+     * @param actual the actual angle
+     * @param expected the expected angle
+     * @return {@code true} if the angles are close
+     */
     private static boolean close(float actual, float expected) {
         return Math.abs(actual - expected) < 0.01F;
     }
 
+    /**
+     * Gets the generic type of a {@link Configurable} of the class.
+     *
+     * @param type the class of the value
+     * @return the parameterized {@link Configurable} type
+     */
     private static Type configurableOf(Class<?> type) {
         return TypeToken.getParameterized(Configurable.class, type).getType();
     }
 
+    /**
+     * Deserializes the JSON as a {@link Configurable} of the type and gets its value.
+     *
+     * @param gson the Gson instance to use
+     * @param json the JSON to read
+     * @param type the class of the value
+     * @param <T> the type of the value
+     * @return the value of the deserialized configurable
+     */
     private static <T> T deserialize(Gson gson, String json, Class<T> type) {
         Configurable<T> configurable = gson.fromJson(json, configurableOf(type));
         return configurable.get();
     }
 
+    /**
+     * Serializes the value as a {@link Configurable} of the type and reads the result as a string.
+     *
+     * @param gson the Gson instance to use
+     * @param value the value to write
+     * @param type the class of the value
+     * @param <T> the type of the value
+     * @return the serialized value as a string
+     */
     private static <T> String serialize(Gson gson, T value, Class<T> type) {
         return JsonParser.parseString(gson.toJson(Configurable.of(value), configurableOf(type))).getAsString();
     }

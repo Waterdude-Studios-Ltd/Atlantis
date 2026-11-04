@@ -17,8 +17,16 @@ public final class PermissionsGameTest {
     private static final String USER_NODE = Permissions.buildNode("atlantis_test", "command", false);
     private static final String ADMIN_NODE = Permissions.buildNode("atlantis_test", "command", true);
 
+    /**
+     * Prevents instantiation.
+     */
     private PermissionsGameTest() {}
 
+    /**
+     * Checks that a player who is not an operator has the user node but not the admin node.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void playersHaveUserPermissions(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -34,6 +42,11 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that an operator has both the admin node and the user node.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void operatorsHaveAdminPermissions(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -49,6 +62,12 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link DefaultPermissionUser#ALL}, {@link DefaultPermissionUser#NONE} and
+     * {@link DefaultPermissionUser#OP} match the correct players.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void defaultPermissionUsers(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -65,6 +84,11 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the user and admin group nodes exist and that the loader resolves them for players and operators.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void groupNodesResolveThroughTheLoader(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -82,6 +106,12 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a node created after startup throws on NeoForge, and resolves through its default resolver on
+     * Fabric.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void newNodesResolveOnlyOnFabric(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -99,6 +129,12 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks the permissions of a player command source and of the console. Node checks on the console must return
+     * {@code null}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void commandSourcePermissions(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
@@ -114,6 +150,13 @@ public final class PermissionsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Adds the player to or removes the player from the operator list of the server.
+     *
+     * @param helper the GameTest helper
+     * @param player the player to change
+     * @param op {@code true} to make the player an operator, {@code false} to remove the operator status
+     */
     private static void op(GameTestHelper helper, ServerPlayer player, boolean op) {
         var list = helper.getLevel().getServer().getPlayerList();
         if (op) {

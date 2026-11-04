@@ -23,12 +23,22 @@ public final class GameTestLevels {
 
     private static AtlantisLevel injected;
 
+    /**
+     * Prevents instantiation.
+     */
     private GameTestLevels() {}
 
+    /**
+     * @return the injected level, or {@code null} before {@link #registerOnce()} runs
+     */
     public static AtlantisLevel injected() {
         return injected;
     }
 
+    /**
+     * Builds the injected level and listens for {@link UEvent#REGISTRY_INJECT} to inject it. Calls after the first do
+     * nothing.
+     */
     static synchronized void registerOnce() {
         if (injected != null) {
             return;
@@ -47,6 +57,12 @@ public final class GameTestLevels {
         });
     }
 
+    /**
+     * Gets the private {@code onRegistryInject} method of {@link AtlantisLevel} and makes it accessible.
+     *
+     * @return the accessible method
+     * @throws IllegalStateException if the method does not exist
+     */
     private static Method onRegistryInject() {
         try {
             var method = AtlantisLevel.class.getDeclaredMethod("onRegistryInject", RegistryInjectEventPayload.class);

@@ -13,14 +13,28 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AtlantisGameTest {
 
-    /** Structure template in the {@value AtlantisGameTests#NAMESPACE} namespace. */
+    /**
+     * Structure template in the {@value AtlantisGameTests#NAMESPACE} namespace.
+     */
     String template() default "empty";
 
+    /**
+     * @return the batch that the test runs in
+     */
     String batch() default "atlantis";
 
+    /**
+     * @return the number of ticks after which the test fails if it did not succeed
+     */
     int timeoutTicks() default 100;
 
+    /**
+     * @return the number of ticks to wait after the structure is placed before the test starts
+     */
     long setupTicks() default 0;
 
+    /**
+     * @return {@code true} if a failure of this test fails the test run
+     */
     boolean required() default true;
 }

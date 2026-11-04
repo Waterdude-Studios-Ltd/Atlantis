@@ -45,8 +45,16 @@ public final class ServerUtilsGameTest {
     private static final String USER_NODE = Permissions.buildNode("atlantis_test", "command", false);
     private static final String ADMIN_NODE = Permissions.buildNode("atlantis_test", "command", true);
 
+    /**
+     * Prevents instantiation.
+     */
     private ServerUtilsGameTest() {}
 
+    /**
+     * Checks that {@link ServerUtils#server()} and {@link ServerUtils#playerList()} are those of the running server.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void serverIsTheRunningServer(GameTestHelper helper) {
         helper.assertTrue(ServerUtils.server() == helper.getLevel().getServer(), "server() is not the running server");
@@ -54,6 +62,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the player lookups of {@link ServerUtils} find a mock player by UUID and by name, and find no
+     * unknown player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playersListsAndFindsAMockPlayer(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -73,6 +87,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ServerUtils#performCommand} returns the command result, fills in arguments, and throws for
+     * an unknown command.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void performCommandRunsAsTheConsole(GameTestHelper helper) throws CommandSyntaxException {
         var gameTime = (int) (helper.getLevel().getServer().overworld().getGameTime() % Integer.MAX_VALUE);
@@ -87,6 +107,11 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ServerUtils#spawnPoint()} is the shared spawn position of the overworld.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void spawnPointIsTheOverworldSpawn(GameTestHelper helper) {
         var overworld = helper.getLevel().getServer().overworld();
@@ -98,6 +123,11 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the registry access, registries and keys of {@link ServerUtils} come from the running server.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void registriesComeFromTheServer(GameTestHelper helper) {
         var stone = ResourceLocation.withDefaultNamespace("stone");
@@ -108,6 +138,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ServerUtils#parsePlayersOrElse} resolves selectors and names, and runs the failure action
+     * when no player matches.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsePlayersResolvesSelectorsAndNames(GameTestHelper helper) throws CommandSyntaxException {
         var player = GameTestPlayers.mock(helper);
@@ -132,6 +168,11 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a {@link Concurrency#sync} task submitted from another thread runs on the server thread.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void syncRunsOnTheServerThread(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
@@ -149,6 +190,11 @@ public final class ServerUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that a {@link Concurrency#async} task does not run on the server thread.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void asyncRunsOffTheServerThread(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
@@ -159,6 +205,11 @@ public final class ServerUtilsGameTest {
         helper.succeedWhen(() -> helper.assertTrue(Boolean.TRUE.equals(ranOffThread.get()), "async task ran off-thread"));
     }
 
+    /**
+     * Checks that a delayed sync {@link Task} runs on the server thread, and not before its delay in ticks.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void syncTaskRunsOnTheServerThreadNoEarlierThanItsDelay(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
@@ -179,6 +230,12 @@ public final class ServerUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that the {@code andThen} action of a sync {@link Task} runs after the task, and both run on the server
+     * thread.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void andThenRunsAfterTheTaskOnTheServerThread(GameTestHelper helper) {
         var server = helper.getLevel().getServer();
@@ -192,6 +249,11 @@ public final class ServerUtilsGameTest {
         helper.succeedWhen(() -> helper.assertValueEqual(calls, List.of("first true", "second true"), "calls"));
     }
 
+    /**
+     * Checks that a repeating sync {@link Task} stops running and stops repeating after it cancels itself.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void repeatingSyncTaskStopsWhenCancelled(GameTestHelper helper) {
         var runs = new AtomicInteger();
@@ -212,6 +274,11 @@ public final class ServerUtilsGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a repeating sync {@link Task} stops running after it turns off its repeat.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void repeatingSyncTaskStopsWhenRepeatIsTurnedOff(GameTestHelper helper) {
         var runs = new AtomicInteger();
@@ -231,6 +298,11 @@ public final class ServerUtilsGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a {@link Task} that is cancelled before its delay ends never runs.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void cancelledTaskNeverRuns(GameTestHelper helper) {
         var runs = new AtomicInteger();
@@ -246,6 +318,12 @@ public final class ServerUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that {@link PlayerReference#get} returns the same reference for a player and its UUID, and that the
+     * reference points to the player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playerReferencesAreInterned(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -261,6 +339,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a reset {@link PlayerReference} finds its player again from a thread that is not the server
+     * thread.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void playerReferenceResolvesTheEntityOffThread(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -273,6 +357,11 @@ public final class ServerUtilsGameTest {
         helper.succeedWhen(() -> helper.assertTrue(resolved.get() == player, "entityDirect() off-thread"));
     }
 
+    /**
+     * Checks that a {@link PlayerReference} of a mock player has the user node and does not have the admin node.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playerReferencePermissionsMatchThePlayer(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -283,6 +372,11 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link PlayerReference#send} sends a chat message to the player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playerReferenceSendsChat(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -294,6 +388,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a {@link PlayerReference} loads the {@link AtlantisPlayer} data of its player and returns the
+     * cached instance after that.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void playerReferenceLoadsAndCachesAtlantisPlayerData(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -310,6 +410,12 @@ public final class ServerUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that a {@link PlayerReference} stays the same after its player logs out, but no longer returns the
+     * entity or grants permissions.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void playerReferenceForgetsTheEntityAfterLogout(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -327,6 +433,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link MessageUtils#send} reaches the player through every recipient type, and sends nothing for
+     * a {@code null} message.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void messagesReachPlayersAndSources(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -352,6 +464,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the filtered broadcasts of {@link MessageUtils} reach only the players that match, and that
+     * {@link MessageUtils#sendToAll} reaches every player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void filteredBroadcastsReachOnlyMatchingPlayers(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -373,6 +491,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link MessageUtils#sendToAllWithPerm} reaches an operator and does not reach a player without
+     * the admin node.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void permissionBroadcastsReachOnlyPermittedPlayers(GameTestHelper helper) {
         var operator = GameTestPlayers.mock(helper);
@@ -393,6 +517,12 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a login records the address and IP of the player, and that {@link NetworkUtils} finds the player
+     * by both.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void loginRecordsThePlayersAddress(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -412,6 +542,14 @@ public final class ServerUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks if the player received a chat message with the given text since the last drain of its packets.
+     * This drains the packets.
+     *
+     * @param player the mock player
+     * @param text the text of the message
+     * @return {@code true} if a system chat packet that is not an overlay has the text
+     */
     private static boolean receivedChat(ServerPlayer player, String text) {
         return GameTestConnections.sent(player).stream()
                 .anyMatch(packet -> packet instanceof ClientboundSystemChatPacket chat && !chat.overlay() && chat.content().getString().equals(text));

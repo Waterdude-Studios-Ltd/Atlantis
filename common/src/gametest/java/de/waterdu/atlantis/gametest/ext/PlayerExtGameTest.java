@@ -5,10 +5,21 @@ import de.waterdu.atlantis.gametest.GameTestPlayers;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import net.minecraft.gametest.framework.GameTestHelper;
 
+/**
+ * Tests the methods that {@code PlayerExt} adds to players.
+ */
 public final class PlayerExtGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private PlayerExtGameTest() {}
 
+    /**
+     * Checks that {@code reference()} returns the interned {@link PlayerReference} of the player each time.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void referenceIsTheInternedPlayerReference(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -18,6 +29,11 @@ public final class PlayerExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@code safeReference()} is not {@code null} and holds the value of {@code reference()}.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void safeReferenceWrapsReference(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -27,6 +43,11 @@ public final class PlayerExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@code getContainerCounter()} returns the value that {@code setContainerCounter} set.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void containerCounterRoundTrips(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);

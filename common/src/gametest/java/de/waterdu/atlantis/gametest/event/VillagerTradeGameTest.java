@@ -24,14 +24,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Tests the {@link UEvent#VILLAGER_TRADE_PRE}, {@link UEvent#VILLAGER_TRADE_POST} and {@link UEvent#VILLAGER_TRADE_XP}
+ * events.
+ */
 public final class VillagerTradeGameTest {
 
     private static final int PAYMENT_SLOT = 0;
     private static final int RESULT_SLOT = 2;
     private static final int OFFER_XP = 5;
 
+    /**
+     * Prevents instantiation.
+     */
     private VillagerTradeGameTest() {}
 
+    /**
+     * Checks that a trade fires the pre event and then the post event, gives the result, takes the payment and grants
+     * the villager the offer XP.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void tradeFiresPreAndPostAndGrantsXp(GameTestHelper helper) {
         var trade = Trade.create(helper);
@@ -49,6 +62,11 @@ public final class VillagerTradeGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that cancelling the pre event undoes a trade made with a normal click.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingPreUndoesAClick(GameTestHelper helper) {
         var trade = Trade.create(helper);
@@ -63,6 +81,11 @@ public final class VillagerTradeGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that cancelling the pre event undoes a trade made with a shift click.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingPreUndoesAShiftClick(GameTestHelper helper) {
         var trade = Trade.create(helper);
@@ -76,6 +99,11 @@ public final class VillagerTradeGameTest {
         helper.succeedWhen(() -> trade.assertNotTraded(post, xp));
     }
 
+    /**
+     * Checks that the villager gets the XP that an XP event listener sets.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void xpListenerOverridesXp(GameTestHelper helper) {
         var trade = Trade.create(helper);
@@ -88,6 +116,11 @@ public final class VillagerTradeGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that cancelling the XP event grants the villager no XP, but the player still gets the result.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingXpGrantsNone(GameTestHelper helper) {
         var trade = Trade.create(helper);
@@ -101,8 +134,23 @@ public final class VillagerTradeGameTest {
         helper.succeed();
     }
 
+    /**
+     * Holds a villager with one offer and a mock player who has the merchant menu of the villager open.
+     *
+     * @param helper the helper of the running test
+     * @param villager the villager that trades
+     * @param player the player who trades with the villager
+     * @param menu the merchant menu of the player
+     */
     private record Trade(GameTestHelper helper, Villager villager, ServerPlayer player, MerchantMenu menu) {
 
+        /**
+         * Spawns a villager without AI that trades one emerald for one diamond, and opens its menu for a mock player.
+         * The emerald is put into the payment slot.
+         *
+         * @param helper the helper of the running test
+         * @return the trade
+         */
         static Trade create(GameTestHelper helper) {
             var villager = helper.spawn(EntityType.VILLAGER, 2, 2, 2);
             villager.setNoAi(true);
@@ -118,6 +166,13 @@ public final class VillagerTradeGameTest {
             return new Trade(helper, villager, player, menu);
         }
 
+        /**
+         * Listens for a villager trade event and gives the payloads of this villager to the listener.
+         *
+         * @param <P> the payload type of the event
+         * @param key the key of the event
+         * @param listener receives each payload of this villager
+         */
         @SuppressWarnings({"unchecked", "rawtypes"})
         <P extends VillagerTradeEventPayload> void listen(Key<? extends UEvent<? extends EventPayload>> key, Consumer<P> listener) {
             Mods.modLoader().event((Key) key).listen(payload -> {
@@ -128,6 +183,13 @@ public final class VillagerTradeGameTest {
             });
         }
 
+        /**
+         * Checks that no trade happened: the post event did not fire, the player has no result, the payment and the
+         * result slot are unchanged and the villager XP did not change.
+         *
+         * @param post the post events that were recorded
+         * @param xp the villager XP before the trade
+         */
         void assertNotTraded(List<String> post, int xp) {
             this.helper.assertTrue(post.isEmpty(), "VILLAGER_TRADE_POST fired for a cancelled trade");
             this.helper.assertTrue(this.menu.getCarried().isEmpty(), "cursor still holds the result");

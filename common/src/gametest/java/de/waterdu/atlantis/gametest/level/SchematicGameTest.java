@@ -44,8 +44,16 @@ public final class SchematicGameTest {
 
     private static final AtomicBoolean WRITTEN = new AtomicBoolean();
 
+    /**
+     * Prevents instantiation.
+     */
     private SchematicGameTest() {}
 
+    /**
+     * Checks that the loaded schematic is listed and has its name.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void loadListsTheSchematic(GameTestHelper helper) {
         helper.succeedWhen(() -> {
@@ -55,6 +63,12 @@ public final class SchematicGameTest {
         });
     }
 
+    /**
+     * Checks that placing the schematic sets its blocks and the chest contents, but keeps a block where the schematic
+     * has air.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void placeSetsBlocksAndBlockEntitiesAndSkipsAir(GameTestHelper helper) {
         var origin = new BlockPos(1, 2, 1);
@@ -70,6 +84,11 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that placing the schematic with its air replaces a block where the schematic has air.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void placeWithAirReplacesBlocks(GameTestHelper helper) {
         var origin = new BlockPos(1, 2, 1);
@@ -85,12 +104,23 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that placing a schematic that is not loaded returns {@code false}.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void placingAnUnknownSchematicFails(GameTestHelper helper) {
         helper.assertFalse(Schematics.place("atlantis_test_missing", helper.getLevel(), helper.absolutePos(BlockPos.ZERO)), "placed a missing schematic");
         helper.succeed();
     }
 
+    /**
+     * Checks that restoring the history of a placement in two passes puts back the blocks from before the placement
+     * and removes the chest's block entity.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH, timeoutTicks = TIMEOUT)
     public static void undoRestoresTheBlocksFromBeforeEveryPass(GameTestHelper helper) {
         var origin = new BlockPos(1, 2, 1);
@@ -110,6 +140,12 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that every block is placed when {@code placeAsync} completes, that its history is offered, and that the
+     * history restores the air.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = ASYNC_BATCH, timeoutTicks = TIMEOUT)
     public static void placeAsyncPlacesEveryBlockBeforeCompleting(GameTestHelper helper) {
         var origin = new BlockPos(1, 2, 1);
@@ -138,6 +174,12 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that {@code /atlantis schematics place} places the schematic and that {@code /atlantis schematics undo}
+     * removes it again.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = COMMAND_BATCH, timeoutTicks = TIMEOUT)
     public static void placeAndUndoCommands(GameTestHelper helper) {
         var start = helper.absolutePos(new BlockPos(1, 4, 1));
@@ -152,6 +194,11 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the schematic is still listed after {@code /atlantis schematics reload}.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = COMMAND_BATCH, timeoutTicks = TIMEOUT)
     public static void reloadCommandLoadsTheSchematics(GameTestHelper helper) {
         helper.startSequence()
@@ -161,6 +208,13 @@ public final class SchematicGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that the fixture schematic is loaded. The first call writes the fixture to the schematics directory and
+     * loads it.
+     *
+     * @param helper the helper of the running test
+     * @throws UncheckedIOException if the fixture cannot be written
+     */
     private static void loaded(GameTestHelper helper) {
         if (WRITTEN.compareAndSet(false, true)) {
             var dir = Mods.modLoader().configDir().resolve(Atlantis.ID).resolve("schematics");
@@ -176,10 +230,18 @@ public final class SchematicGameTest {
         helper.assertTrue(Schematics.get(NAME) != null, "schematic not loaded yet");
     }
 
+    /**
+     * @return the fixture schematic, or {@code null} if it is not loaded
+     */
     private static Schematic schematic() {
         return Schematics.get(NAME);
     }
 
+    /**
+     * Creates the fixture as a Sponge schematic of version 2.
+     *
+     * @return the schematic tag
+     */
     private static CompoundTag fixture() {
         var tag = new CompoundTag();
         tag.putInt("Version", 2);
@@ -210,6 +272,12 @@ public final class SchematicGameTest {
         return tag;
     }
 
+    /**
+     * Checks that the stone blocks and the chest with 5 diamonds of the fixture are at the origin.
+     *
+     * @param helper the helper of the running test
+     * @param origin the origin of the placement, relative to the test structure
+     */
     private static void assertPlaced(GameTestHelper helper, BlockPos origin) {
         helper.assertBlockPresent(Blocks.STONE, origin);
         helper.assertBlockPresent(Blocks.CHEST, origin.offset(1, 0, 0));
@@ -221,6 +289,13 @@ public final class SchematicGameTest {
         helper.assertValueEqual(chest.getItem(0).getCount(), 5, "diamonds in the chest");
     }
 
+    /**
+     * Sets the block in the 2 by 2 area of the fixture at the origin.
+     *
+     * @param helper the helper of the running test
+     * @param origin the origin of the area, relative to the test structure
+     * @param block the block to set
+     */
     private static void fill(GameTestHelper helper, BlockPos origin, net.minecraft.world.level.block.Block block) {
         for (var x = 0; x < 2; x++) {
             for (var y = 0; y < 2; y++) {
@@ -229,6 +304,13 @@ public final class SchematicGameTest {
         }
     }
 
+    /**
+     * Checks that the 2 by 2 area of the fixture at the origin contains only the block.
+     *
+     * @param helper the helper of the running test
+     * @param origin the origin of the area, relative to the test structure
+     * @param block the expected block
+     */
     private static void assertFilled(GameTestHelper helper, BlockPos origin, net.minecraft.world.level.block.Block block) {
         for (var x = 0; x < 2; x++) {
             for (var y = 0; y < 2; y++) {
@@ -237,6 +319,14 @@ public final class SchematicGameTest {
         }
     }
 
+    /**
+     * Runs a command as the server, without output.
+     *
+     * @param helper the helper of the running test
+     * @param command the command, without the leading {@code /}
+     * @return the result of the command
+     * @throws GameTestAssertException if the command cannot be parsed or fails
+     */
     private static int execute(GameTestHelper helper, String command) {
         var server = helper.getLevel().getServer();
         try {

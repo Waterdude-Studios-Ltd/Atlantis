@@ -32,8 +32,16 @@ public final class RegistryExtGameTest {
 
     private static final ResourceLocation DIAMOND = ResourceLocation.withDefaultNamespace("diamond");
 
+    /**
+     * Prevents instantiation.
+     */
     private RegistryExtGameTest() {}
 
+    /**
+     * Checks that the {@code ResourceKeyExt} methods resolve values, holders and registries for items and biomes.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void resourceKeyExt(GameTestHelper helper) {
         var key = ResourceKey.create(Registries.ITEM, DIAMOND);
@@ -48,6 +56,12 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the {@code ResourceLocationExt} methods convert a resource location to keys, registry values, items,
+     * blocks and configurable item stacks.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void resourceLocationExt(GameTestHelper helper) {
         var registries = helper.getLevel().getServer().registryAccess();
@@ -61,6 +75,11 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses the damage, name, lore, glow and model properties.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void configurableItemStackParsesProperties(GameTestHelper helper) {
         var stack = ConfigurableItemStack.of("minecraft:diamond_sword #5 name:Cool_Sword lore:Sharp glow model:7").stack();
@@ -74,6 +93,11 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses {@code x} and bare counts, and that unknown items become air.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void configurableItemStackParsesCounts(GameTestHelper helper) {
         helper.assertValueEqual(ConfigurableItemStack.of("minecraft:diamond x12").stack().getCount(), 12, "x count");
@@ -82,6 +106,11 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses an enchantment with its level.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void configurableItemStackParsesEnchantments(GameTestHelper helper) {
         var stack = ConfigurableItemStack.of("minecraft:diamond_sword enchantment:minecraft:sharpness-3").stack();
@@ -91,6 +120,11 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses a JSON object of data components.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void configurableItemStackParsesComponents(GameTestHelper helper) {
         var stack = ConfigurableItemStack.of("minecraft:diamond {\"minecraft:max_stack_size\":3}").stack();
@@ -99,6 +133,12 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the default {@link Configurable} contexts deserialize registry values from JSON, and serialize an
+     * item back to its ID.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest
     public static void defaultConfigurableContextsResolveRegistries(GameTestHelper helper) {
         var builder = new GsonBuilder();
@@ -120,6 +160,15 @@ public final class RegistryExtGameTest {
         helper.succeed();
     }
 
+    /**
+     * Deserializes the JSON as a {@link Configurable} of the type and gets its value.
+     *
+     * @param gson the Gson instance to use
+     * @param json the JSON to read
+     * @param type the class of the value
+     * @param <T> the type of the value
+     * @return the value of the deserialized configurable
+     */
     private static <T> T deserialize(com.google.gson.Gson gson, String json, Class<T> type) {
         Configurable<T> configurable = gson.fromJson(json, TypeToken.getParameterized(Configurable.class, type).getType());
         return configurable.get();

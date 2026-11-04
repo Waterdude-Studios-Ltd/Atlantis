@@ -17,8 +17,16 @@ public final class ChunkLoaderGameTest {
     private static final String SETUP_BATCH = "atlantis_chunks_setup";
     private static final int BASE = 2000;
 
+    /**
+     * Prevents instantiation.
+     */
     private ChunkLoaderGameTest() {}
 
+    /**
+     * Checks that loading a chunk forces it and stores it as a transient chunk only.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void loadForcesATransientChunk(GameTestHelper helper) {
         var chunk = chunk(helper, 0, 0);
@@ -35,6 +43,11 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that loading a permanent chunk forces it and stores it as a permanent chunk only.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void loadForcesAPermanentChunk(GameTestHelper helper) {
         var chunk = chunk(helper, 1, 0);
@@ -51,6 +64,11 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that unloading a chunk stops forcing it and removes it from the storage.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void unloadReleasesAndForgetsTheChunk(GameTestHelper helper) {
         var chunk = chunk(helper, 2, 0);
@@ -63,6 +81,12 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that changing the coordinates of a loaded chunk forces the new position, releases the old one and keeps
+     * the chunk stored as permanent.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void settersMoveTheForcedChunkAndKeepItStored(GameTestHelper helper) {
         var chunk = chunk(helper, 3, 0);
@@ -83,6 +107,11 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that changing the coordinates of a chunk that was not loaded does not store it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void settersOfAnUnstoredChunkDoNotStoreIt(GameTestHelper helper) {
         var chunk = chunk(helper, 5, 0);
@@ -98,6 +127,12 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link AtlantisChunkLoader#setup} releases and removes the transient chunks, but keeps the permanent
+     * chunk forced and stored.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest(batch = SETUP_BATCH)
     public static void setupDropsTransientChunksAndKeepsPermanentOnes(GameTestHelper helper) {
         var first = chunk(helper, 0, 1);
@@ -121,14 +156,33 @@ public final class ChunkLoaderGameTest {
         helper.succeed();
     }
 
+    /**
+     * Creates a chunk in the test level. The coordinates are offset by {@link #BASE}, so the chunk is far from the
+     * test structures.
+     *
+     * @param helper the helper of the running test
+     * @param x the x offset of the chunk
+     * @param z the z offset of the chunk
+     * @return the chunk, which is not loaded yet
+     */
     private static AtlantisChunk chunk(GameTestHelper helper, int x, int z) {
         return new AtlantisChunk("atlantis_test", ConfigurableLevel.of(helper.getLevel()), BASE + x, BASE + z);
     }
 
+    /**
+     * @return the chunk storage of Atlantis
+     */
     private static AtlantisChunkStorage storage() {
         return AtlantisChunkStorage.getInstance();
     }
 
+    /**
+     * Checks that the test level forces the chunk at the position, or does not force it.
+     *
+     * @param helper the helper of the running test
+     * @param pos the position of the chunk
+     * @param forced {@code true} if the chunk must be forced
+     */
     private static void assertForced(GameTestHelper helper, ChunkPos pos, boolean forced) {
         helper.assertValueEqual(helper.getLevel().getForcedChunks().contains(pos.toLong()), forced, "forced state of " + pos);
     }

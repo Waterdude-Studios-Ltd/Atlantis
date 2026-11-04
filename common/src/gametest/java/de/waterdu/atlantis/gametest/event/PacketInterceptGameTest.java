@@ -19,10 +19,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Tests the {@link UEvent#INTERCEPT_PACKET} event for outbound and inbound packets.
+ */
 public final class PacketInterceptGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private PacketInterceptGameTest() {}
 
+    /**
+     * Checks that the event sees an outbound packet with its player and direction, and that the packet is still sent.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void outboundPacketsAreSeen(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -40,6 +51,11 @@ public final class PacketInterceptGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a cancelled outbound packet is not sent and that other packets are still sent.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingStopsAnOutboundPacket(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -59,6 +75,11 @@ public final class PacketInterceptGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the server sends the packet that a listener sets in place of the original packet.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void replacingChangesAnOutboundPacket(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -77,6 +98,11 @@ public final class PacketInterceptGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the event sees an inbound swing packet as serverbound and that the server still handles it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void inboundPacketsAreHandled(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -90,6 +116,11 @@ public final class PacketInterceptGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the server does not handle a cancelled inbound swing packet.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void cancellingStopsAnInboundPacket(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -105,18 +136,44 @@ public final class PacketInterceptGameTest {
         helper.succeed();
     }
 
+    /**
+     * Creates a system chat packet that is not an action bar message.
+     *
+     * @param text the text of the message
+     * @return the packet
+     */
     private static ClientboundSystemChatPacket chat(String text) {
         return new ClientboundSystemChatPacket(Component.literal(text), false);
     }
 
+    /**
+     * Checks if the packet is a system chat packet with the given text.
+     *
+     * @param packet the packet to check
+     * @param text the text to look for
+     * @return {@code true} if the packet is a system chat packet with the text
+     */
     private static boolean isChat(Packet<?> packet, String text) {
         return packet instanceof ClientboundSystemChatPacket chat && chat.content().getString().equals(text);
     }
 
+    /**
+     * Checks if one of the packets is a system chat packet with the given text.
+     *
+     * @param packets the packets to check
+     * @param text the text to look for
+     * @return {@code true} if a packet is a system chat packet with the text
+     */
     private static boolean containsChat(List<Packet<?>> packets, String text) {
         return packets.stream().anyMatch(packet -> isChat(packet, text));
     }
 
+    /**
+     * Listens for {@link UEvent#INTERCEPT_PACKET} and gives the payloads of the given player to the listener.
+     *
+     * @param player the player to listen for
+     * @param listener receives each payload of the player
+     */
     private static void listen(ServerPlayer player, Consumer<PacketInterceptEventPayload> listener) {
         Mods.modLoader().event(UEvent.INTERCEPT_PACKET).listen(payload -> {
             if (payload.player() == player) {

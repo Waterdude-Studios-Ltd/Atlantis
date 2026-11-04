@@ -12,10 +12,21 @@ import net.minecraft.world.level.block.Blocks;
 import java.nio.file.Files;
 import java.util.List;
 
+/**
+ * Tests the {@code ModLoaderDelegate} of the running loader.
+ */
 public final class ModLoaderDelegateGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private ModLoaderDelegateGameTest() {}
 
+    /**
+     * Checks the server, the dedicated server flag, the config directory and {@code isModLoaded} of the delegate.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void environment(GameTestHelper helper) {
         var loader = Mods.modLoader();
@@ -28,6 +39,11 @@ public final class ModLoaderDelegateGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@code mods()} lists Atlantis with its display name and a version check.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void modsListsAtlantis(GameTestHelper helper) {
         var atlantis = Mods.modLoader().mods().stream().filter(mod -> mod.id().equals("atlantis")).findFirst().orElse(null);
@@ -38,6 +54,12 @@ public final class ModLoaderDelegateGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the annotation scan finds {@link Mods} and {@code AtlantisLevelRegistry} as {@link Bootstrapped}
+     * classes.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void scanFindsBootstrappedClasses(GameTestHelper helper) {
         var scan = Mods.modLoader().scanAnnotatedClasses(List.of(Bootstrapped.class));
@@ -48,6 +70,11 @@ public final class ModLoaderDelegateGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the delegate does not report a mock player as a fake player.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void mockPlayersAreNotFakePlayers(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -56,6 +83,12 @@ public final class ModLoaderDelegateGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the block hooks allow a survival player to place and break dirt, and that the player cannot harvest
+     * stone by hand.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void blockHooksAllowASurvivalPlayer(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -74,6 +107,11 @@ public final class ModLoaderDelegateGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a boolean permission node has the namespace and the path, separated by {@code .}, as its key.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void createBooleanNodeHasItsKey(GameTestHelper helper) {
         var node = Mods.modLoader().createBooleanNode("atlantis_test", "node", player -> true);

@@ -66,8 +66,17 @@ public final class AtlantisGameTests {
             PlayerDataGameTest.class
     );
 
+    /**
+     * Prevents instantiation.
+     */
     private AtlantisGameTests() {}
 
+    /**
+     * Registers the GameTest level once, then creates a test function for each {@link AtlantisGameTest} method. The
+     * methods of each class are sorted by name.
+     *
+     * @return the test functions of all test classes
+     */
     public static List<TestFunction> collect() {
         GameTestLevels.registerOnce();
         var functions = new ArrayList<TestFunction>();
@@ -84,6 +93,16 @@ public final class AtlantisGameTests {
         return functions;
     }
 
+    /**
+     * Creates a test function from a test method. The test name is the class name and the method name, separated by
+     * {@code .}, in lower case.
+     *
+     * @param testClass the class that declares the method
+     * @param method the test method
+     * @param test the annotation of the method
+     * @return the test function that runs the method
+     * @throws IllegalStateException if the method is not static or does not take only a {@link GameTestHelper}
+     */
     private static TestFunction toTestFunction(Class<?> testClass, Method method, AtlantisGameTest test) {
         if (!Modifier.isStatic(method.getModifiers()) || method.getParameterCount() != 1 || method.getParameterTypes()[0] != GameTestHelper.class) {
             throw new IllegalStateException("@AtlantisGameTest method " + testClass.getName() + "#" + method.getName() + " must be static and take only a GameTestHelper");
@@ -106,6 +125,13 @@ public final class AtlantisGameTests {
         );
     }
 
+    /**
+     * Runs a static test method. A runtime exception or error that the method throws is thrown again as it is.
+     *
+     * @param method the test method
+     * @param helper the helper of the running test
+     * @throws IllegalStateException if the method is not accessible
+     */
     private static void invoke(Method method, GameTestHelper helper) {
         try {
             method.invoke(null, helper);

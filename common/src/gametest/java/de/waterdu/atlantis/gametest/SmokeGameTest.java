@@ -10,8 +10,16 @@ import net.minecraft.world.level.block.Blocks;
  */
 public final class SmokeGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private SmokeGameTest() {}
 
+    /**
+     * Checks that the test structure has stone at its floor corners and air above it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void structureLoads(GameTestHelper helper) {
         helper.assertBlockPresent(Blocks.STONE, new BlockPos(0, 1, 0));
@@ -20,6 +28,12 @@ public final class SmokeGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the mod loader delegate has the running server, that Atlantis is loaded and that {@code /atlantis}
+     * is registered.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void atlantisBootstrapped(GameTestHelper helper) {
         var server = helper.getLevel().getServer();

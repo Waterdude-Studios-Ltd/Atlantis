@@ -14,8 +14,16 @@ import net.minecraft.resources.ResourceKey;
  */
 public final class RegistryInjectGameTest {
 
+    /**
+     * Prevents instantiation.
+     */
     private RegistryInjectGameTest() {}
 
+    /**
+     * Checks that the dimension type registry contains the injected dimension type and that the level holds it.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void dimensionTypeIsInjected(GameTestHelper helper) {
         var registry = helper.getLevel().getServer().registryAccess().registryOrThrow(Registries.DIMENSION_TYPE);
@@ -27,6 +35,11 @@ public final class RegistryInjectGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the level stem exists and has an {@link AtlantisChunkGenerator} and the dimension type of the level.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void levelStemIsBuiltWithItsGenerator(GameTestHelper helper) {
         var stem = GameTestLevels.injected().levelStem();

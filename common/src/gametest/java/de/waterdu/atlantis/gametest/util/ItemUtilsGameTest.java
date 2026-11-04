@@ -46,8 +46,17 @@ public final class ItemUtilsGameTest {
     private static final BlockPos INSIDE = new BlockPos(2, 2, 2);
     private static final BlockPos FLOOR = new BlockPos(2, 1, 2);
 
+    /**
+     * Prevents instantiation.
+     */
     private ItemUtilsGameTest() {}
 
+    /**
+     * Checks that {@link ItemUtils#item} resolves item IDs, and treats air as absent unless {@code airIsNull} is
+     * {@code false}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void itemLookupResolvesIdsAndTreatsAirAsAbsent(GameTestHelper helper) {
         helper.assertTrue(ItemUtils.item("minecraft:diamond").orElse(null) == Items.DIAMOND, "diamond not found");
@@ -58,6 +67,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the block lookups of {@link ItemUtils} and {@link BlockUtils} resolve block IDs, and treat air as
+     * absent unless {@code airIsNull} is {@code false}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void blockLookupResolvesIdsAndTreatsAirAsAbsent(GameTestHelper helper) {
         helper.assertTrue(ItemUtils.getBlock("minecraft:stone").orElse(null) == Blocks.STONE, "ItemUtils: stone not found");
@@ -70,6 +85,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the item and block lookups return nothing for unknown IDs, also when {@code airIsNull} is
+     * {@code false}.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void unknownIdsAreAbsentEvenWhenAirIsAllowed(GameTestHelper helper) {
         var missing = "atlantis_test:missing";
@@ -80,6 +101,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#setDisplayName} changes the name of a stack.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setDisplayNameRenamesTheStack(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -90,6 +116,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#setDisplayName} replaces a custom name that the stack already has.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setDisplayNameReplacesAnExistingCustomName(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -101,6 +132,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the lore methods of {@link ItemUtils} set, add and prepend lines, with arrays and with collections.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void loreCanBeSetAddedAndPrepended(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -123,6 +159,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that enchantments can be added, removed one at a time and cleared.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void enchantmentsCanBeAddedRemovedAndCleared(GameTestHelper helper) {
         var sharpness = enchantment(helper, Enchantments.SHARPNESS);
@@ -145,6 +186,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#setEnchantments} replaces the Infinity enchantment that
+     * {@link ItemUtils#addDummyEnchantment} adds.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setEnchantmentsReplacesTheDummyEnchantment(GameTestHelper helper) {
         var infinity = enchantment(helper, Enchantments.INFINITY);
@@ -163,6 +210,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the glint override can make a stack glow, hide the glint of an enchanted stack, and be removed.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void glowCanBeAppliedHiddenAndRemoved(GameTestHelper helper) {
         var stack = new ItemStack(Items.DIAMOND_SWORD);
@@ -181,6 +233,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#hideTooltips} hides the attribute modifiers and the additional tooltip but not the
+     * whole tooltip, and that {@link ItemUtils#hideAllTooltips} hides the whole tooltip.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void hideTooltipsHidesAttributesAndAdditionalTooltips(GameTestHelper helper) {
         var stack = new ItemStack(Items.DIAMOND_SWORD);
@@ -197,6 +255,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that custom model data can be set, read and removed, and that it reads as {@code -1} when absent.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void customModelDataCanBeSetReadAndRemoved(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -210,6 +273,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#tag} writes a value to the custom data of a stack.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void tagWritesCustomData(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -222,6 +290,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#tag} stores empty custom data on a stack that has none.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void tagCreatesEmptyCustomDataWhenAbsent(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -234,6 +307,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#computeIfAbsent} sets a component only when the stack does not have it.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void computeIfAbsentOnlySetsMissingComponents(GameTestHelper helper) {
         var stack = new ItemStack(Items.PAPER);
@@ -247,6 +325,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#giveOrElse} gives the stack and does not run the fallback when the inventory has
+     * room.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void giveOrElseGivesWhenThereIsRoom(GameTestHelper helper) {
         var player = player(helper);
@@ -260,6 +344,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#giveOrElse} passes the full stack to the fallback when the inventory is full.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void giveOrElseRunsOrElseWhenTheInventoryIsFull(GameTestHelper helper) {
         var player = player(helper);
@@ -275,6 +364,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#giveOrDrop} fills the inventory as far as possible and drops the remainder.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void giveOrDropDropsTheRemainderOfAPartialGive(GameTestHelper helper) {
         var player = player(helper);
@@ -292,6 +386,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemUtils#drop} creates an item entity, passes it to the modifier and adds it to the level.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void dropSpawnsAnItemEntity(GameTestHelper helper) {
         var at = helper.absoluteVec(Vec3.atBottomCenterOf(INSIDE));
@@ -310,6 +409,11 @@ public final class ItemUtilsGameTest {
         });
     }
 
+    /**
+     * Checks that {@link ItemBuilder} applies every property it sets to the built stack.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void builderBuildsAFullyConfiguredStack(GameTestHelper helper) {
         var sharpness = enchantment(helper, Enchantments.SHARPNESS);
@@ -340,6 +444,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a builder made without a stack builds a stack of one of the item it is given.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void emptyBuilderTakesTheItem(GameTestHelper helper) {
         var stack = ItemBuilder.builder().item(Items.DIAMOND).buildAsStack();
@@ -349,6 +458,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ItemBuilder#giveOrDrop} gives the built stack to the player.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void builderGiveOrDropGivesTheStack(GameTestHelper helper) {
         var player = player(helper);
@@ -360,6 +474,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link BlockUtils#setBlock} with {@code ifAir} places a block into air.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setBlockPlacesIntoAir(GameTestHelper helper) {
         var player = player(helper);
@@ -371,6 +490,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link BlockUtils#setBlock} with {@code ifAir} does not replace a solid block.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setBlockIfAirLeavesOccupiedPositions(GameTestHelper helper) {
         var player = player(helper);
@@ -382,6 +506,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link BlockUtils#setBlock} without {@code ifAir} replaces a block.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void setBlockReplacesWithoutIfAir(GameTestHelper helper) {
         var player = player(helper);
@@ -394,6 +523,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the player may place and remove at a position, and that {@link BlockUtils#removeBlock} breaks dirt.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void removeBlockBreaksTheBlock(GameTestHelper helper) {
         var player = player(helper);
@@ -409,6 +543,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link BlockUtils#removeBlock} breaks stone, which needs a tool for drops, without a tool.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void removeBlockBreaksBlocksThatNeedAToolForDrops(GameTestHelper helper) {
         var player = player(helper);
@@ -423,6 +562,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses the default count, the {@code x} and bare count shorthands and
+     * the {@code count} processor.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsesCountShorthands(GameTestHelper helper) {
         helper.assertValueEqual(ConfigurableItemStack.of("minecraft:diamond").newStack().getCount(), 1, "default count");
@@ -432,6 +577,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses damage with {@code #} and with the {@code damage} processor.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsesDamage(GameTestHelper helper) {
         helper.assertValueEqual(ConfigurableItemStack.of("minecraft:diamond_sword #10").newStack().getDamageValue(), 10, "# damage");
@@ -439,6 +589,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} applies the built-in enchantment, glow, name, model and lore
+     * processors.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsesBuiltInProcessors(GameTestHelper helper) {
         var sharpness = enchantment(helper, Enchantments.SHARPNESS);
@@ -456,6 +612,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses a component object after a space and directly after the ID.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsesFlatComponents(GameTestHelper helper) {
         var spaced = ConfigurableItemStack.of("minecraft:diamond {\"minecraft:custom_model_data\":5}").newStack();
@@ -466,6 +627,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack} parses a count together with a component that holds a nested object.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void parsesNestedComponents(GameTestHelper helper) {
         var stack = ConfigurableItemStack.of("minecraft:diamond x2 {\"minecraft:custom_data\":{atlantis_test:1b}}").newStack();
@@ -476,6 +642,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a {@link ConfigurableItemStack} made from a stack creates a stack that matches the original.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void ofItemStackRoundTrips(GameTestHelper helper) {
         var original = ItemBuilder.builder(Items.DIAMOND).count(3).name("Gem").customModelData(8).buildAsStack();
@@ -486,6 +657,11 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that an unknown item ID parses to an empty stack.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void unknownItemParsesToAir(GameTestHelper helper) {
         var stack = ConfigurableItemStack.of("atlantis_test:missing_item x3").newStack();
@@ -494,6 +670,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a registered preprocessor and a registered processor apply when a stack is parsed, and that the
+     * remaining arguments still parse.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void registeredPreprocessorAndProcessorAreApplied(GameTestHelper helper) {
         ConfigurableItemStack.Preprocessor.register("#atlantis_gametest", (full, args) ->
@@ -509,6 +691,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that {@link ConfigurableItemStack#matches} compares items, stacks with their counts and strings without
+     * case, and that {@link ConfigurableItemStack#newStack} returns a copy.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void matchesItemsStacksAndStrings(GameTestHelper helper) {
         var configurable = ConfigurableItemStack.of("minecraft:diamond x2");
@@ -526,6 +714,12 @@ public final class ItemUtilsGameTest {
         helper.succeed();
     }
 
+    /**
+     * Creates a mock player at the {@link #INSIDE} position, without instant build.
+     *
+     * @param helper the GameTest helper
+     * @return the mock player
+     */
     private static ServerPlayer player(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
         var at = helper.absoluteVec(Vec3.atBottomCenterOf(INSIDE));
@@ -534,6 +728,11 @@ public final class ItemUtilsGameTest {
         return player;
     }
 
+    /**
+     * Fills every main inventory slot of the player with a full stack of stone.
+     *
+     * @param player the player whose inventory to fill
+     */
     private static void fill(ServerPlayer player) {
         var items = player.getInventory().items;
         for (var i = 0; i < items.size(); i++) {
@@ -541,10 +740,23 @@ public final class ItemUtilsGameTest {
         }
     }
 
+    /**
+     * Gets the holder of an enchantment from the registries of the test level.
+     *
+     * @param helper the GameTest helper
+     * @param key the key of the enchantment
+     * @return the enchantment holder
+     */
     private static Holder<Enchantment> enchantment(GameTestHelper helper, ResourceKey<Enchantment> key) {
         return helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(key);
     }
 
+    /**
+     * Gets the lore lines of a stack as plain strings.
+     *
+     * @param stack the stack to read
+     * @return the lore lines, or an empty list if the stack has no lore
+     */
     private static List<String> lore(ItemStack stack) {
         var lines = new ArrayList<String>();
         var lore = stack.get(DataComponents.LORE);

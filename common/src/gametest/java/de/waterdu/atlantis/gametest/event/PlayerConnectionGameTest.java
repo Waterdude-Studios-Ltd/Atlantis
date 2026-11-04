@@ -13,14 +13,25 @@ import net.minecraft.world.entity.player.Player;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Tests the {@link UEvent#LOG_IN} and {@link UEvent#LOG_OUT} events.
+ */
 public final class PlayerConnectionGameTest {
 
     private static final Set<Player> LOGGED_IN = ConcurrentHashMap.newKeySet();
     private static final Set<Player> LOGGED_OUT = ConcurrentHashMap.newKeySet();
     private static boolean listening = false;
 
+    /**
+     * Prevents instantiation.
+     */
     private PlayerConnectionGameTest() {}
 
+    /**
+     * Checks that the log in event fires when a player joins, and that the log out event does not.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void loginFiresWhenAPlayerJoins(GameTestHelper helper) {
         listen();
@@ -32,6 +43,12 @@ public final class PlayerConnectionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the log out event fires when a player disconnects and that the server removes the player from its
+     * player list.
+     *
+     * @param helper the helper of the running test
+     */
     @AtlantisGameTest
     public static void logoutFiresWhenAPlayerDisconnects(GameTestHelper helper) {
         listen();
@@ -46,6 +63,9 @@ public final class PlayerConnectionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Listens for the log in and log out events and records their players. Calls after the first do nothing.
+     */
     private static synchronized void listen() {
         if (listening) {
             return;

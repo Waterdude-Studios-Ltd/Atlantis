@@ -27,8 +27,17 @@ public final class OccasionGameTest {
 
     private static final String BATCH = "atlantis_occasions";
 
+    /**
+     * Prevents instantiation.
+     */
     private OccasionGameTest() {}
 
+    /**
+     * Checks that building an occasion starts its first moment once, does not start the second moment and registers
+     * the occasion with the manager.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void buildingStartsTheFirstMomentOnce(GameTestHelper helper) {
         var firstStarts = new AtomicInteger();
@@ -46,6 +55,12 @@ public final class OccasionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the manager tracks added members, that a player is added only once, and that a removed member moves
+     * to the recovery position.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void membersAreTrackedByTheManager(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -67,6 +82,12 @@ public final class OccasionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that the server ticks the occasion and its current moment until the moment exceeds its duration, and that
+     * each tick calls the {@code onTick} handlers.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void theServerTicksTheOccasionAndItsMoment(GameTestHelper helper) {
         var occasionTicks = new AtomicInteger();
@@ -86,6 +107,12 @@ public final class OccasionGameTest {
         });
     }
 
+    /**
+     * Checks that incrementing past the last moment ends it, completes the occasion, removes its members and
+     * unregisters it.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void incrementingPastTheLastMomentCompletesTheOccasion(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -108,6 +135,12 @@ public final class OccasionGameTest {
         helper.succeedWhen(() -> helper.assertFalse(OccasionManager.getFor(occasion.uuid()).isPresent(), "completed occasion still registered"));
     }
 
+    /**
+     * Checks that completing a repeating occasion resets it to its first moment without members, keeps it registered
+     * and lets players join it again.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void aRepeatingOccasionResetsAndCanBeRejoined(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -135,6 +168,11 @@ public final class OccasionGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that members see the shared and individual boss bars of a moment, and that removed members do not.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void bossBarsShowToMembers(GameTestHelper helper) {
         var player = GameTestPlayers.mock(helper);
@@ -160,6 +198,12 @@ public final class OccasionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Checks that a member who logs out is removed after the timeout and moves to the recovery position when they log
+     * back in.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void aMemberWhoLogsOutIsRecoveredWhenTheyLogBackIn(GameTestHelper helper) {
         var profile = new GameProfile(UUID.randomUUID(), "test-mock-player");
@@ -183,6 +227,12 @@ public final class OccasionGameTest {
                 .thenSucceed();
     }
 
+    /**
+     * Checks that a member who is removed while online moves to the recovery position once, and stays where they are
+     * when they log back in.
+     *
+     * @param helper the GameTest helper
+     */
     @AtlantisGameTest(batch = BATCH)
     public static void aMemberRemovedWhileOnlineIsNotMovedAgainWhenTheyLogBackIn(GameTestHelper helper) {
         var profile = new GameProfile(UUID.randomUUID(), "test-mock-player");
@@ -209,16 +259,36 @@ public final class OccasionGameTest {
         helper.succeed();
     }
 
+    /**
+     * Creates a level position at the center of a block in the test structure.
+     *
+     * @param helper the GameTest helper
+     * @param relative the block position, relative to the test structure
+     * @return the level position at the horizontal center of the block
+     */
     private static LevelPosition position(GameTestHelper helper, BlockPos relative) {
         var absolute = helper.absolutePos(relative);
         return LevelPosition.of(ConfigurableLevel.of(helper.getLevel()), new LocalPosition(absolute.getX() + 0.5, absolute.getY(), absolute.getZ() + 0.5));
     }
 
+    /**
+     * Fails the test if the player is not in the block of the position.
+     *
+     * @param helper the GameTest helper
+     * @param player the player to check
+     * @param position the expected position
+     */
     private static void assertAt(GameTestHelper helper, ServerPlayer player, LevelPosition position) {
         var target = position.position().getBlockPos();
         helper.assertTrue(player.blockPosition().equals(target), "player is at " + player.blockPosition() + ", not " + target);
     }
 
+    /**
+     * Counts the members of the occasion with {@link Occasion#forEachMember}.
+     *
+     * @param occasion the occasion to count the members of
+     * @return the number of members that the occasion iterates over
+     */
     private static int countMembers(Occasion occasion) {
         var count = new AtomicInteger();
         occasion.forEachMember(__ -> count.incrementAndGet());
