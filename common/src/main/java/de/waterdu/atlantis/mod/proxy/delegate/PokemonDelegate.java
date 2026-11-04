@@ -23,6 +23,7 @@ import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UNature;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UPokeBall;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.USpecies;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UStatus;
+import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UTeraType;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.moves.UMoveCategory;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.moves.UMoveTemplate;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.stats.UStat;
@@ -47,8 +48,17 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Gives common code access to the active Pokémon mod, such as Pixelmon or Cobblemon. Get it with
+ * {@code Mods.pokemon()}.
+ */
 public interface PokemonDelegate extends ModProxy {
 
+    /**
+     * Registers the type adapters for {@link StoredPokemon}, {@link ConfigurablePokemon} and every {@link UPokemon}.
+     *
+     * @param gsonBuilder the builder to register the type adapters on
+     */
     @Override
     default void registerTypeAdapters(GsonBuilder gsonBuilder) {
         gsonBuilder.registerTypeAdapter(StoredPokemon.class, new StoredPokemon.TypeAdapter())
@@ -56,6 +66,12 @@ public interface PokemonDelegate extends ModProxy {
                 .registerTypeHierarchyAdapter(UPokemon.class, new PokemonTypeAdapter());
     }
 
+    /**
+     * Creates the item preprocessors for Pokémon. One turns the rest of the input into a spec and gets its item. The
+     * other gets the item for a Poké Ball name with {@link #pokeBallItem}.
+     *
+     * @return the item preprocessors
+     */
     @Override
     default ConfigurableItemStack.Preprocessor[] makeItemPreprocessors() {
         return new ConfigurableItemStack.Preprocessor[]{
@@ -75,14 +91,44 @@ public interface PokemonDelegate extends ModProxy {
         return ball == null ? ItemStack.EMPTY : ball.item();
     }
 
+    /**
+     * Gets the party of the player.
+     *
+     * @param player the player
+     * @return the party of the player
+     */
     UParty<?, ?> party(PlayerReference player);
 
+    /**
+     * Gets the PC of the player.
+     *
+     * @param player the player
+     * @return the PC of the player
+     */
     UPC<?, ?> pc(PlayerReference player);
 
+    /**
+     * Gets the Pokédex of the player.
+     *
+     * @param player the player
+     * @return the Pokédex of the player
+     */
     UPokedex<?> pokedex(PlayerReference player);
 
+    /**
+     * Checks if the player has chosen a starter Pokémon.
+     *
+     * @param player the player
+     * @return {@code true} if the player has chosen a starter
+     */
     boolean hasChosenStarter(PlayerReference player);
 
+    /**
+     * Sets whether the player has chosen a starter Pokémon.
+     *
+     * @param player the player
+     * @param chosen {@code true} to mark the starter as chosen
+     */
     void setChosenStarter(PlayerReference player, boolean chosen);
 
     /**
@@ -100,8 +146,17 @@ public interface PokemonDelegate extends ModProxy {
         return pokemon == null ? this.pc(player).find(uuid) : pokemon;
     }
 
+    /**
+     * Parses a Pokémon spec.
+     *
+     * @param specs the parts of the spec
+     * @return the parsed spec
+     */
     UPokemonSpec<?, ?> spec(String... specs);
 
+    /**
+     * The separator between a key and its value in a spec. This is {@code :} on Pixelmon and {@code =} on Cobblemon.
+     */
     String specDelimiter();
 
     /**
@@ -110,37 +165,109 @@ public interface PokemonDelegate extends ModProxy {
      */
     USpecies<?> species(String name);
 
+    /**
+     * Finds a species by its National Pokédex number. If there is no such species, returns the mod's placeholder species.
+     */
     USpecies<?> species(int dex);
 
+    /**
+     * Checks if a species with the name exists.
+     *
+     * @param name the name of the species
+     * @return {@code true} if the species exists
+     */
     boolean hasSpecies(String name);
 
+    /**
+     * @return all species of the mod
+     */
     List<? extends USpecies<?>> allSpecies();
 
+    /**
+     * Gets a random species.
+     *
+     * @return a random species
+     */
     USpecies<?> randomSpecies();
 
+    /**
+     * Finds an ability by name.
+     *
+     * @param name the name of the ability
+     * @return the ability, or {@code null} if there is no such ability
+     */
     @Nullable UAbility<?> ability(String name);
 
+    /**
+     * @return all abilities of the mod
+     */
     List<? extends UAbility<?>> abilities();
 
+    /**
+     * Finds a move by name.
+     *
+     * @param name the name of the move
+     * @return the move, or {@code null} if there is no such move
+     */
     @Nullable UMoveTemplate<?> move(String name);
 
+    /**
+     * @return all moves of the mod
+     */
     List<? extends UMoveTemplate<?>> moves();
 
+    /**
+     * Finds a Poké Ball by name.
+     *
+     * @param name the name of the Poké Ball
+     * @return the Poké Ball, or {@code null} if there is no such Poké Ball
+     */
     @Nullable UPokeBall<?> pokeBall(String name);
 
+    /**
+     * @return all Poké Balls of the mod
+     */
     List<? extends UPokeBall<?>> pokeBalls();
 
+    /**
+     * Finds an elemental type by name.
+     *
+     * @param name the name of the elemental type
+     * @return the elemental type, or {@code null} if there is no such type
+     */
     @Nullable UElementalType<?> elementalType(String name);
 
+    /**
+     * @return all elemental types of the mod
+     */
     List<? extends UElementalType<?>> elementalTypes();
+
+    /**
+     * Finds a Tera type by name.
+     *
+     * @param name the name of the Tera type
+     * @return the Tera type, or {@code null} if there is no such type
+     */
+    @Nullable UTeraType<?> teraType(String name);
+
+    /**
+     * @return all Tera types of the mod
+     */
+    List<? extends UTeraType<?>> teraTypes();
 
     /**
      * Finds a stat by one of the names in {@link UStat}, such as {@link UStat#ATTACK}.
      */
     @Nullable UStat<?> stat(String name);
 
+    /**
+     * @return all stats of the mod
+     */
     List<? extends UStat<?>> stats();
 
+    /**
+     * Gets all stats except {@link UStat#ACCURACY} and {@link UStat#EVASION}.
+     */
     List<? extends UStat<?>> permanentStats();
 
     /**
@@ -148,8 +275,16 @@ public interface PokemonDelegate extends ModProxy {
      */
     @Nullable UNature<?> nature(String name);
 
+    /**
+     * @return all natures of the mod
+     */
     List<? extends UNature<?>> natures();
 
+    /**
+     * Gets a random nature.
+     *
+     * @return a random nature
+     */
     UNature<?> randomNature();
 
     /**
@@ -157,6 +292,9 @@ public interface PokemonDelegate extends ModProxy {
      */
     @Nullable UGender<?> gender(String name);
 
+    /**
+     * @return all genders of the mod
+     */
     List<? extends UGender<?>> genders();
 
     /**
@@ -164,6 +302,9 @@ public interface PokemonDelegate extends ModProxy {
      */
     @Nullable UStatus<?> status(String name);
 
+    /**
+     * @return all persistent statuses of the mod
+     */
     List<? extends UStatus<?>> statuses();
 
     /**
@@ -171,20 +312,54 @@ public interface PokemonDelegate extends ModProxy {
      */
     @Nullable UMoveCategory<?> moveCategory(String name);
 
+    /**
+     * @return all move categories of the mod
+     */
     List<? extends UMoveCategory<?>> moveCategories();
 
+    /**
+     * If the tag is not valid, logs an error and returns a Pokémon of the mod's placeholder species.
+     */
     UPokemon<?> pokemonFromTag(CompoundTag tag);
 
+    /**
+     * Reads JSON written by {@link UPokemon#toJson()}. If the JSON is not valid, logs an error and returns a Pokémon of
+     * the mod's placeholder species.
+     */
     UPokemon<?> pokemonFromJson(JsonElement json);
 
+    /**
+     * Wraps the entity if it is a Pokémon entity.
+     *
+     * @param entity the entity
+     * @return the Pokémon entity, or {@code null} if the entity is not a Pokémon
+     */
     @Nullable UPokemonEntity<?> pokemonEntity(Entity entity);
 
+    /**
+     * Checks if the entity is a Pokémon entity.
+     *
+     * @param entity the entity
+     * @return {@code true} if {@link #pokemonEntity} returns a Pokémon entity
+     */
     default boolean isPokemonEntity(Entity entity) {
         return this.pokemonEntity(entity) != null;
     }
 
+    /**
+     * Gets the battle that the player is in.
+     *
+     * @param player the player
+     * @return the battle, or {@code null} if the player is not in a battle
+     */
     @Nullable UBattle<?> battle(ServerPlayer player);
 
+    /**
+     * Checks if the player is in a battle.
+     *
+     * @param player the player
+     * @return {@code true} if {@link #battle} returns a battle
+     */
     default boolean isInBattle(ServerPlayer player) {
         return this.battle(player) != null;
     }
@@ -222,16 +397,43 @@ public interface PokemonDelegate extends ModProxy {
      */
     UTrainer<?> spawnTrainer(ServerLevel level, Vec3 position, float yaw, Component name);
 
+    /**
+     * Wraps the entity if it is an NPC trainer.
+     *
+     * @param entity the entity
+     * @return the trainer, or {@code null} if the entity is not a trainer
+     */
     @Nullable UTrainer<?> trainer(Entity entity);
 
+    /**
+     * Checks if the entity is an NPC trainer.
+     *
+     * @param entity the entity
+     * @return {@code true} if {@link #trainer} returns a trainer
+     */
     default boolean isTrainer(Entity entity) {
         return this.trainer(entity) != null;
     }
 
+    /**
+     * Checks if the mod supports the feature.
+     *
+     * @param feature the feature
+     * @return {@code true} if the mod supports the feature
+     */
     boolean supports(PokemonFeature feature);
 
+    /**
+     * @return all battle clauses of the mod
+     */
     List<? extends UBattleClause<?>> battleClauses();
 
+    /**
+     * Finds a battle clause by its id. The case of the id does not matter.
+     *
+     * @param id the id of the clause
+     * @return the clause, or {@code null} if there is no such clause
+     */
     default @Nullable UBattleClause<?> battleClause(String id) {
         for (var clause : this.battleClauses()) {
             if (clause.id().equalsIgnoreCase(id)) {
@@ -269,6 +471,12 @@ public interface PokemonDelegate extends ModProxy {
         return ShowdownFormat.read(this, text, this.showdownFormAliases());
     }
 
+    /**
+     * Writes the team as Showdown team text.
+     *
+     * @param team the Pokémon to write
+     * @return the Showdown team text
+     */
     default String exportShowdown(List<? extends UPokemon<?>> team) {
         return ShowdownFormat.write(team);
     }

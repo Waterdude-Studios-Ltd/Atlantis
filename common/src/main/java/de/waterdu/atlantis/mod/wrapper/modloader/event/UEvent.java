@@ -49,6 +49,12 @@ import net.minecraft.world.InteractionResult;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+/**
+ * Defines a loader-neutral event. The constants are the keys of all Atlantis events. Get an event with
+ * {@code Mods.modLoader().event(KEY)}.
+ *
+ * @param <Payload> the type of the event payload
+ */
 public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Payload> {
 
     public static final Key<UEvent<ActuallyHurtEventPayload>> ACTUALLY_HURT = Key.of(Atlantis.ID, "event/actually_hurt");
@@ -127,33 +133,76 @@ public abstract class UEvent<Payload extends EventPayload> extends ModWrapper<Pa
 
     private final Key<UEvent<Payload>> eventType;
 
+    /**
+     * Creates an event that wraps no object.
+     *
+     * @param type the type of the wrapper
+     * @param eventType the key of the event type
+     */
     protected UEvent(ModObjectKey type, Key<UEvent<Payload>> eventType) {
         super(new ModObject(type, null));
         this.eventType = eventType;
     }
 
+    /**
+     * Always throws, because an event wraps no object.
+     *
+     * @return never returns
+     * @throws IllegalDereferenceException always
+     */
     @Override
     public Payload dereference() {
         throw new IllegalDereferenceException("Event wrappers cannot be dereferenced");
     }
 
+    /**
+     * Always throws, because an event wraps no object.
+     *
+     * @return never returns
+     * @throws IllegalDereferenceException always
+     */
     @Override
     public CompletableFuture<Payload> future() {
         throw new IllegalDereferenceException("Event wrappers cannot be dereferenced");
     }
 
+    /**
+     * @return the key of the event type
+     */
     public Key<UEvent<Payload>> eventType() {
         return this.eventType;
     }
 
+    /**
+     * Calls the listeners in {@link Priority} order. If the payload is
+     * {@link de.waterdu.atlantis.mod.impl.common.event.Cancellable} and becomes canceled, the remaining listeners are not
+     * called.
+     *
+     * @return the same payload, after the listeners changed it
+     */
     public abstract Payload emit(Payload payload);
 
+    /**
+     * Adds a listener with {@link Priority#NORMAL}.
+     *
+     * @param handler return {@link InteractionResult#PASS} to continue. Any other result cancels a
+     *     {@link de.waterdu.atlantis.mod.impl.common.event.Cancellable} payload.
+     */
     public void listen(Function<Payload, InteractionResult> handler) {
         this.listen(Priority.NORMAL, handler);
     }
 
+    /**
+     * Listeners with the same priority are called in the order that they were added.
+     *
+     * @param handler return {@link InteractionResult#PASS} to continue. Any other result cancels a
+     *     {@link de.waterdu.atlantis.mod.impl.common.event.Cancellable} payload.
+     */
     public abstract void listen(Priority priority, Function<Payload, InteractionResult> handler);
 
+    /**
+     * Sets the order in which listeners are called. Listeners with {@link #HIGHEST} are called first.
+     */
     public enum Priority {
 
         HIGHEST,

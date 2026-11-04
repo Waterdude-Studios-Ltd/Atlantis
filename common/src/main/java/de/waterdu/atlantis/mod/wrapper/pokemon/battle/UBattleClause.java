@@ -8,14 +8,31 @@ import net.minecraft.network.chat.Component;
 
 import java.util.List;
 
+/**
+ * Wraps a battle clause of the mod, such as a species clause.
+ *
+ * @param <T> the type of the wrapped clause
+ */
 public abstract class UBattleClause<T> extends ModWrapper<T> {
 
+    /**
+     * Creates a wrapper for the clause.
+     *
+     * @param type the type of the wrapper
+     * @param clause the clause to wrap
+     */
     protected UBattleClause(ModObjectKey type, T clause) {
         super(new ModObject(type, clause));
     }
 
+    /**
+     * @return the id of the clause
+     */
     public abstract String id();
 
+    /**
+     * @return the name of the clause to show to players
+     */
     public abstract Component displayName();
 
     /**

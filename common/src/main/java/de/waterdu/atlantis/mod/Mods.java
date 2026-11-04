@@ -23,7 +23,11 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@Bootstrapped(order = -100)
+/**
+ * Registers the mod extensions, activates the ones that are present, and gives access to their proxies and delegates.
+ * Bootstraps at priority FIRST, before the other entrypoints.
+ */
+@Bootstrapped(Bootstrapped.Priority.FIRST)
 public final class Mods {
 
     private static final Map<ModExtension.Priority, Map<String, ModExtension>> EXTENSIONS = new EnumMap<>(ModExtension.Priority.class) {{
@@ -130,6 +134,11 @@ public final class Mods {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Activates the extensions without the checks of {@link #bootstrap()}. An existing delegate is not replaced.
+     *
+     * @param extensions the extensions to activate
+     */
     @VisibleForTesting
     public static void activateForTesting(ModExtension... extensions) {
         for (var extension : extensions) {
@@ -140,6 +149,9 @@ public final class Mods {
         }
     }
 
+    /**
+     * Deactivates all extensions, removes all registered extensions, and registers the built-in extensions again.
+     */
     @VisibleForTesting
     public static void resetForTesting() {
         ACTIVE.clear();
@@ -148,6 +160,12 @@ public final class Mods {
         BUILT_IN.forEach(Mods::registerExtension);
     }
 
+    /**
+     * Activates each present extension, from the highest priority to the lowest, and calls {@link ModProxy#setup()} on
+     * the ones that are not mod loaders. After the {@link ModExtension.Priority#HIGHEST} extensions activate, emits
+     * REGISTER_MOD_EXTENSIONS so that listeners can add extensions. When two extensions give the same delegate, the
+     * first one keeps it.
+     */
     @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
@@ -174,6 +192,13 @@ public final class Mods {
         }
     }
 
+    /**
+     * Checks if the extension must activate. It must support the active loader and its main class must exist. It must
+     * also be a mod loader, a loaded mod or a loaded plugin.
+     *
+     * @param extension the extension to check
+     * @return {@code true} if the extension must activate
+     */
     private static boolean isActive(ModExtension extension) {
         if (!extension.supports(ACTIVE_LOADER) || !extension.mainClassPresent()) {
             return false;
@@ -181,24 +206,52 @@ public final class Mods {
         return extension.modLoader() || Mods.modLoader().isModLoaded(extension.modId()) || extension.isPluginAndLoaded();
     }
 
+    /**
+     * Registration has no effect after {@code Mods} bootstraps. {@link ModExtension.Builder#build()} already registers the
+     * extension.
+     */
     public static void registerExtensions(ModExtension... extensions) {
         for (var extension : extensions) {
             registerExtension(extension);
         }
     }
 
+    /**
+     * Registration has no effect after {@code Mods} bootstraps. {@link ModExtension.Builder#build()} already registers the
+     * extension.
+     */
     public static void registerExtension(ModExtension extension) {
         EXTENSIONS.get(extension.priority()).put(extension.modId(), extension);
     }
 
+    /**
+     * Checks for an active extension, not for the mod itself. Use {@link ModLoaderDelegate#isModLoaded} for any mod.
+     */
     public static boolean isPresent(String modId) {
         return ACTIVE.containsKey(modId);
     }
 
+    /**
+     * Checks if an active extension gives the delegate.
+     *
+     * @param delegate the delegate interface
+     * @return {@code true} if an active extension gives the delegate
+     */
     public static boolean isDelegatePresent(Class<? extends ModProxy> delegate) {
         return ACTIVE_BY_DELEGATE.containsKey(delegate);
     }
 
+    /**
+     * Applies the mapper to the proxy that gives the delegate. If no active extension gives it, gets the value from
+     * {@code ifNotPresent}.
+     *
+     * @param delegate the delegate interface
+     * @param ifNotPresent gives the value when the delegate is not present
+     * @param mapper maps the proxy to the value
+     * @param <T> the type of the value
+     * @param <D> the type of the delegate
+     * @return the mapped value, or the value from {@code ifNotPresent}
+     */
     public static <T, D extends ModProxy> T mapDelegate(Class<D> delegate, Supplier<T> ifNotPresent, Function<D, T> mapper) {
         var extension = ACTIVE_BY_DELEGATE.get(delegate);
         if (extension == null) {
@@ -207,24 +260,45 @@ public final class Mods {
         return mapper.apply(extension.proxy(ACTIVE_LOADER));
     }
 
+    /**
+     * @return the mod's active extension, or {@link #NONE} if it has none
+     */
     public static ModExtension active(String modId) {
         return ACTIVE.getOrDefault(modId, NONE);
     }
 
+    /**
+     * Runs the action for each active extension.
+     *
+     * @param forEach the action to run
+     */
     public static void forEach(Consumer<ModExtension> forEach) {
         for (var extension : ACTIVE.values()) {
             forEach.accept(extension);
         }
     }
 
+    /**
+     * Runs the action for the proxy of each active extension, for the active loader.
+     *
+     * @param forEach the action to run
+     */
     public static void forEachProxy(Consumer<ModProxy> forEach) {
         forEach(extension -> forEach.accept(extension.proxy(ACTIVE_LOADER)));
     }
 
+    /**
+     * @return the proxy of the mod's active extension. If the mod has no active extension, this is a {@link ModProxy}
+     *     that does nothing, and the cast to {@code P} fails.
+     */
     public static <P extends ModProxy> P proxy(String modId) {
         return active(modId).proxy(ACTIVE_LOADER);
     }
 
+    /**
+     * Throws {@link IllegalStateException} if no active extension provides the delegate. Use
+     * {@link #isDelegatePresent} to check first.
+     */
     public static <P extends ModProxy> P proxy(Class<P> delegate) {
         var extension = ACTIVE_BY_DELEGATE.get(delegate);
         if (extension == null) {
@@ -233,44 +307,95 @@ public final class Mods {
         return extension.proxy(ACTIVE_LOADER);
     }
 
+    /**
+     * Runs the scope with the proxy of the mod's active extension. If the mod has no active extension, the proxy is a
+     * {@link ModProxy} that does nothing.
+     *
+     * @param modId the mod ID
+     * @param scope receives the proxy
+     * @param <P> the type of the proxy
+     */
     public static <P extends ModProxy> void proxyScope(String modId, Consumer<P> scope) {
         scope.accept(active(modId).proxy(ACTIVE_LOADER));
     }
 
+    /**
+     * Runs the scope with the proxy that gives the delegate.
+     *
+     * @param delegate the delegate interface
+     * @param scope receives the proxy
+     * @param <P> the type of the delegate
+     * @throws IllegalStateException if no active extension gives the delegate
+     */
     public static <P extends ModProxy> void proxyScope(Class<P> delegate, Consumer<P> scope) {
         scope.accept(proxy(delegate));
     }
 
+    /**
+     * Gets the delegate of the active mod loader.
+     *
+     * @param <P> the type of the delegate
+     * @return the mod loader delegate
+     */
     @SuppressWarnings("unchecked")
     public static <P extends ModLoaderDelegate> P modLoader() {
         return (P) proxy(ModLoaderDelegate.class);
     }
 
+    /**
+     * Runs the scope with the delegate of the active mod loader.
+     *
+     * @param scope receives the mod loader delegate
+     * @param <P> the type of the delegate
+     */
     @SuppressWarnings("unchecked")
     public static <P extends ModLoaderDelegate> void modLoaderScope(Consumer<P> scope) {
         proxyScope(ModLoaderDelegate.class, (Consumer<ModLoaderDelegate>) scope);
     }
 
+    /**
+     * Throws {@link IllegalStateException} if no supported Pokémon mod is present.
+     */
     @SuppressWarnings("unchecked")
     public static <P extends PokemonDelegate> P pokemon() {
         return (P) proxy(PokemonDelegate.class);
     }
 
+    /**
+     * Runs the scope with the delegate of the active Pokémon mod.
+     *
+     * @param scope receives the Pokémon delegate
+     * @param <P> the type of the delegate
+     * @throws IllegalStateException if no supported Pokémon mod is present
+     */
     @SuppressWarnings("unchecked")
     public static <P extends PokemonDelegate> void pokemonScope(Consumer<P> scope) {
         proxyScope(PokemonDelegate.class, (Consumer<PokemonDelegate>) scope);
     }
 
+    /**
+     * Throws {@link IllegalStateException} if no supported economy mod or plugin is present.
+     */
     @SuppressWarnings("unchecked")
     public static <P extends EconomyDelegate<?>> P economy() {
         return (P) proxy(EconomyDelegate.class);
     }
 
+    /**
+     * Runs the scope with the delegate of the active economy mod or plugin.
+     *
+     * @param scope receives the economy delegate
+     * @param <P> the type of the delegate
+     * @throws IllegalStateException if no supported economy mod or plugin is present
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <P extends EconomyDelegate<?>> void economyScope(Consumer<P> scope) {
         proxyScope(EconomyDelegate.class, (Consumer) scope);
     }
 
+    /**
+     * @return the emitter of the loader-neutral events that mixins fire
+     */
     public static ModEvents events() {
         return ModEvents.INSTANCE;
     }

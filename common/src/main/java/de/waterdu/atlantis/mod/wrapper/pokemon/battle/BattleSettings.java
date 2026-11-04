@@ -27,6 +27,11 @@ public final class BattleSettings {
     private final boolean cloneTeams;
     private final @Nullable String gimmick;
 
+    /**
+     * Creates the settings from the values of the builder. The list of clauses is copied.
+     *
+     * @param builder the builder to copy the values from
+     */
     private BattleSettings(Builder builder) {
         this.levelCap = builder.levelCap;
         this.raiseToCap = builder.raiseToCap;
@@ -42,14 +47,27 @@ public final class BattleSettings {
         this.gimmick = builder.gimmick;
     }
 
+    /**
+     * @return the settings that a new {@link Builder} builds
+     */
     public static BattleSettings defaults() {
         return DEFAULTS;
     }
 
+    /**
+     * Creates a builder with the default values.
+     *
+     * @return a new builder
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Creates a builder with the values of these settings.
+     *
+     * @return a new builder
+     */
     public Builder toBuilder() {
         return new Builder()
                 .levelCap(this.levelCap)
@@ -73,6 +91,11 @@ public final class BattleSettings {
         return this.levelCap;
     }
 
+    /**
+     * Checks if the battle has a level cap.
+     *
+     * @return {@code true} if the level cap is more than {@code 0}
+     */
     public boolean hasLevelCap() {
         return this.levelCap > 0;
     }
@@ -84,10 +107,16 @@ public final class BattleSettings {
         return this.raiseToCap;
     }
 
+    /**
+     * @return whether the Pokémon are fully healed for the battle
+     */
     public boolean fullHeal() {
         return this.fullHeal;
     }
 
+    /**
+     * @return whether the players see the teams of the other side before the battle
+     */
     public boolean teamPreview() {
         return this.teamPreview;
     }
@@ -107,6 +136,9 @@ public final class BattleSettings {
         return this.turnTime;
     }
 
+    /**
+     * @return the format of the battle
+     */
     public UBattleFormat format() {
         return this.format;
     }
@@ -126,6 +158,9 @@ public final class BattleSettings {
         return this.clauses;
     }
 
+    /**
+     * @return whether the Pokémon gain experience from the battle
+     */
     public boolean experience() {
         return this.experience;
     }
@@ -144,6 +179,9 @@ public final class BattleSettings {
         return this.gimmick;
     }
 
+    /**
+     * Builds {@link BattleSettings}. Get one with {@link BattleSettings#builder()} or {@link BattleSettings#toBuilder()}.
+     */
     public static final class Builder {
 
         private int levelCap = NONE;
@@ -159,68 +197,148 @@ public final class BattleSettings {
         private boolean cloneTeams = false;
         private @Nullable String gimmick = null;
 
+        /**
+         * Creates a builder with the default values.
+         */
         private Builder() {}
 
+        /**
+         * Sets the level cap.
+         *
+         * @param levelCap the highest level a Pokémon fights at, or {@link #NONE}
+         * @return this builder
+         */
         public Builder levelCap(int levelCap) {
             this.levelCap = levelCap;
             return this;
         }
 
+        /**
+         * Sets whether Pokémon below the level cap are raised to it.
+         *
+         * @param raiseToCap {@code true} to raise Pokémon to the level cap
+         * @return this builder
+         */
         public Builder raiseToCap(boolean raiseToCap) {
             this.raiseToCap = raiseToCap;
             return this;
         }
 
+        /**
+         * Sets whether the Pokémon are fully healed for the battle.
+         *
+         * @param fullHeal {@code true} to fully heal the Pokémon
+         * @return this builder
+         */
         public Builder fullHeal(boolean fullHeal) {
             this.fullHeal = fullHeal;
             return this;
         }
 
+        /**
+         * Sets whether the players see the teams of the other side before the battle.
+         *
+         * @param teamPreview {@code true} to show the teams
+         * @return this builder
+         */
         public Builder teamPreview(boolean teamPreview) {
             this.teamPreview = teamPreview;
             return this;
         }
 
+        /**
+         * Sets the time to select a team.
+         *
+         * @param teamSelectTime the time in seconds, or {@link #NONE} to skip the team selection screen
+         * @return this builder
+         */
         public Builder teamSelectTime(int teamSelectTime) {
             this.teamSelectTime = teamSelectTime;
             return this;
         }
 
+        /**
+         * Sets the time per turn.
+         *
+         * @param turnTime the time in seconds, or {@link #NONE} for no limit
+         * @return this builder
+         */
         public Builder turnTime(int turnTime) {
             this.turnTime = turnTime;
             return this;
         }
 
+        /**
+         * Sets the format of the battle.
+         *
+         * @param format the format
+         * @return this builder
+         */
         public Builder format(UBattleFormat format) {
             this.format = format;
             return this;
         }
 
+        /**
+         * Sets the maximum number of Pokémon that each side brings.
+         *
+         * @param teamSize the maximum number of Pokémon
+         * @return this builder
+         */
         public Builder teamSize(int teamSize) {
             this.teamSize = teamSize;
             return this;
         }
 
+        /**
+         * Sets the clauses of the battle.
+         *
+         * @param clauses the clause ids
+         * @return this builder
+         */
         public Builder clauses(List<String> clauses) {
             this.clauses = clauses;
             return this;
         }
 
+        /**
+         * Sets whether the Pokémon gain experience from the battle.
+         *
+         * @param experience {@code true} to give experience
+         * @return this builder
+         */
         public Builder experience(boolean experience) {
             this.experience = experience;
             return this;
         }
 
+        /**
+         * Sets whether the battle uses copies of the teams.
+         *
+         * @param cloneTeams {@code true} to use copies of the teams
+         * @return this builder
+         */
         public Builder cloneTeams(boolean cloneTeams) {
             this.cloneTeams = cloneTeams;
             return this;
         }
 
+        /**
+         * Sets the battle gimmick.
+         *
+         * @param gimmick one of {@code PokemonDelegate#battleGimmicks()}, or {@code null} for the mod's default
+         * @return this builder
+         */
         public Builder gimmick(@Nullable String gimmick) {
             this.gimmick = gimmick;
             return this;
         }
 
+        /**
+         * Creates the settings from the values of this builder.
+         *
+         * @return the new settings
+         */
         public BattleSettings build() {
             return new BattleSettings(this);
         }

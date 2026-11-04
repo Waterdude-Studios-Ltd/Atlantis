@@ -16,14 +16,26 @@ import java.util.List;
  */
 public abstract class UTrainer<T extends Entity> extends ModWrapper<T> {
 
+    /**
+     * Creates a wrapper for a trainer entity.
+     *
+     * @param type the key of the mod object type
+     * @param trainer the trainer entity to wrap
+     */
     protected UTrainer(ModObjectKey type, T trainer) {
         super(new ModObject(type, trainer));
     }
 
+    /**
+     * @return the wrapped trainer entity
+     */
     public T entity() {
         return this.dereference();
     }
 
+    /**
+     * @return the Pokémon in the trainer's team
+     */
     public abstract List<? extends UPokemon<?>> team();
 
     /**
@@ -36,14 +48,39 @@ public abstract class UTrainer<T extends Entity> extends ModWrapper<T> {
      */
     public abstract void setSkin(String playerName);
 
+    /**
+     * Sets if the trainer can move.
+     *
+     * @param immovable {@code true} to stop the trainer from moving
+     */
     public abstract void setImmovable(boolean immovable);
 
+    /**
+     * Sets if the trainer can take damage.
+     *
+     * @param invulnerable {@code true} to stop the trainer from taking damage
+     */
     public abstract void setInvulnerable(boolean invulnerable);
 
+    /**
+     * Sets if the name of the trainer shows above it.
+     *
+     * @param visible {@code true} to show the name
+     */
     public abstract void setNameVisible(boolean visible);
 
+    /**
+     * Gets the battle that the trainer is in.
+     *
+     * @return the battle, or {@code null} if the trainer is not in a battle
+     */
     public abstract @Nullable UBattle<?> battle();
 
+    /**
+     * Checks if the trainer is in a battle.
+     *
+     * @return {@code true} if {@link #battle()} is not {@code null}
+     */
     public boolean isInBattle() {
         return this.battle() != null;
     }
