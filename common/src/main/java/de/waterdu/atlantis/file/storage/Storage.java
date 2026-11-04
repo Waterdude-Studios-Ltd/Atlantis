@@ -173,10 +173,16 @@ public interface Storage {
         if (Settings.get().getPlayerDataEvictionAlgorithm().passes(config)) {
             config.evict(player);
         }
-        var clazzOpt = config.classes().<T>playerDataClass();
-        clazzOpt.ifPresent(clazz -> AtlantisConfigProxy.of(config.owner()).get(clazz, player.getUUID()).whenComplete((data, err) -> {
+
+        var clazz = config.classes().<T>playerDataClass();
+        if (clazz == null) {
+            return;
+        }
+
+        AtlantisConfigProxy.of(config.owner()).get(clazz, player.getUUID()).whenComplete((data, err) -> {
             if (data == null) {
-                config.classes().playerDataConstructor().ifPresent(constructor -> {
+                var constructor = config.classes().playerDataConstructor();
+                if (constructor != null) {
                     try {
                         var newData = (PlayerData) constructor.newInstance(player);
                         AtlantisConfigProxy.of(config.owner()).put(clazz, newData);
@@ -185,11 +191,11 @@ public interface Storage {
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                         AtlantisLogger.warn("No valid ServerPlayer constructor for data {}", config.name());
                     }
-                });
+                }
             } else {
                 config.classes().invokeLoginCallback(config, (PlayerData) data, player);
             }
-        }));
+        });
     }
 
     /**
@@ -201,8 +207,12 @@ public interface Storage {
      * @param <T> the configuration type
      */
     default <T extends Configuration> void onPlayerLeave(Config<T> config, ServerPlayer player) {
-        var clazzOpt = config.classes().<T>playerDataClass();
-        clazzOpt.ifPresent(clazz -> AtlantisConfigProxy.of(config.owner()).get(clazz, player.getUUID()).whenComplete((data, err) -> {
+        var clazz = config.classes().<T>playerDataClass();
+        if (clazz == null) {
+            return;
+        }
+
+        AtlantisConfigProxy.of(config.owner()).get(clazz, player.getUUID()).whenComplete((data, err) -> {
             if (data != null) {
                 config.classes().invokeLogoutCallback(config, (PlayerData) data, player);
                 if (config.markSaved(data.uuid())) {
@@ -221,7 +231,7 @@ public interface Storage {
                     }
                 }
             }
-        }));
+        });
     }
 
     /**
