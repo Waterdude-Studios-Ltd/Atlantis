@@ -15,18 +15,37 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Wraps a Pixelmon status type.
+ */
 public class PixelmonStatus extends UStatus<StatusType> {
 
     public static final ModObjectKey TYPE = new ModObjectKey(Pixelmon.MODID, "status");
 
+    /**
+     * Creates a wrapper for a Pixelmon status type.
+     *
+     * @param status the status type to wrap
+     */
     public PixelmonStatus(StatusType status) {
         super(TYPE, status);
     }
 
+    /**
+     * Creates a wrapper for the type of a persistent status.
+     *
+     * @param status the persistent status
+     * @return the wrapper, or {@code null} if the status has no type or is {@link StatusType#None}
+     */
     public static @Nullable PixelmonStatus of(StatusPersist status) {
         return status.type == null || status.type == StatusType.None ? null : new PixelmonStatus(status.type);
     }
 
+    /**
+     * Creates wrappers for all persistent statuses: burn, freeze, paralysis, poison, bad poison and sleep.
+     *
+     * @return the wrappers
+     */
     public static List<PixelmonStatus> all() {
         return List.of(
                 new PixelmonStatus(StatusType.Burn),
@@ -38,6 +57,11 @@ public class PixelmonStatus extends UStatus<StatusType> {
         );
     }
 
+    /**
+     * Gets the name of the status. A status that is not persistent gives its enum name.
+     *
+     * @return the name of the status
+     */
     @Override
     public String name() {
         return switch (this.dereference()) {
@@ -51,6 +75,9 @@ public class PixelmonStatus extends UStatus<StatusType> {
         };
     }
 
+    /**
+     * Returns a new instance on each call. Throws an exception when this status is not one of {@link #all()}.
+     */
     public StatusPersist create() {
         return switch (this.dereference()) {
             case Burn -> new Burn();

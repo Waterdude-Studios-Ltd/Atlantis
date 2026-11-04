@@ -58,12 +58,22 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 
+/**
+ * Forwards Pixelmon events to the loader-neutral Pokémon events in {@link UEvent}.
+ */
 public final class PixelmonEventBridge {
 
     private PixelmonEventBridge() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Subscribes to the Pixelmon events. Each handler emits the matching {@link UEvent}. For cancelable events, a
+     * canceled payload cancels the Pixelmon event. Changed values, such as the new level, go back to the Pixelmon
+     * event.
+     *
+     * @param bus the Pixelmon event bus
+     */
     public static void register(IEventBus bus) {
         bus.addListener(CaptureEvent.StartCapture.class, event -> {
             var payload = emit(UEvent.POKEMON_CAPTURE_START, new CaptureEventPayload.Start(
@@ -194,14 +204,34 @@ public final class PixelmonEventBridge {
         bus.addListener(HeldItemChangedEvent.Post.class, event -> emit(UEvent.POKEMON_HELD_ITEM_POST, new HeldItemEventPayload.Post(event, event.getPlayer(), pokemon(event.getPokemon()), event.getHeldItem())));
     }
 
+    /**
+     * Emits the loader-neutral event.
+     *
+     * @param key the key of the event
+     * @param payload the payload to emit
+     * @param <P> the type of the payload
+     * @return the payload after all listeners ran
+     */
     private static <P extends EventPayload> P emit(Key<UEvent<P>> key, P payload) {
         return Mods.modLoader().event(key).emit(payload);
     }
 
+    /**
+     * Wraps the Pixelmon Pokémon.
+     *
+     * @param pokemon the Pokémon
+     * @return the wrapped Pokémon
+     */
     private static PixelmonPokemon pokemon(Pokemon pokemon) {
         return new PixelmonPokemon(pokemon);
     }
 
+    /**
+     * Gets the entity of the Pokémon.
+     *
+     * @param pokemon the Pokémon
+     * @return the wrapped entity, or {@code null} if the Pokémon has no entity
+     */
     private static @Nullable PixelmonPokemonEntity entity(Pokemon pokemon) {
         return pokemon.getPixelmonEntity().map(PixelmonPokemonEntity::new).orElse(null);
     }

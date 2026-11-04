@@ -12,10 +12,20 @@ public class PixelmonBattleParticipantType extends UBattleParticipantType<Battle
 
     public static final ModObjectKey TYPE = new ModObjectKey(Pixelmon.MODID, "battle_participant_type");
 
+    /**
+     * Creates a wrapper for the type of a Pixelmon battle participant.
+     *
+     * @param participant the participant whose type to wrap
+     */
     public PixelmonBattleParticipantType(BattleParticipant participant) {
         super(TYPE, participant);
     }
 
+    /**
+     * Gets the Atlantis name of the type of the participant.
+     *
+     * @return {@link #PLAYER}, {@link #WILD}, {@link #TRAINER} or {@link #OTHER}
+     */
     @Override
     public String name() {
         var participant = this.dereference();

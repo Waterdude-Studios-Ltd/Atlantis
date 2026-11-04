@@ -63,6 +63,7 @@ import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonNature;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonPokeBall;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonStatus;
+import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonTeraType;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.moves.PixelmonMoveCategory;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.moves.PixelmonMoveTemplate;
 import de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.stats.PixelmonStat;
@@ -108,13 +109,26 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+/**
+ * Implements {@link PokemonDelegate} and {@link EconomyDelegate} with Pixelmon. The economy accounts are the party
+ * storages of the players.
+ */
 public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPartyStorage> {
 
+    /**
+     * Registers the Pixelmon event handlers on the Pixelmon event bus with {@link PixelmonEventBridge#register}.
+     */
     @Override
     public void setup() {
         PixelmonEventBridge.register(Pixelmon.EVENT_BUS);
     }
 
+    /**
+     * Registers config serializers for Pixelmon species, moves, abilities and Poké Balls. A species is read from its
+     * name or its national Pokédex number and is written as its name.
+     *
+     * @param gson the Gson builder to register the serializers with
+     */
     @Override
     public void registerConfigurableContexts(GsonBuilder gson) {
         Configurable.registerContext(gson, Species.class,
@@ -147,11 +161,22 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         );
     }
 
+    /**
+     * Gives the Pixelmon event bus, wrapped in a {@link NeoForgeEventBus}, to the consumer.
+     *
+     * @param consumer the consumer that gets the event bus
+     */
     @Override
     public void registerEventBus(Consumer<UEventBus<?, ?>> consumer) {
         consumer.accept(new NeoForgeEventBus(Pixelmon.EVENT_BUS));
     }
 
+    /**
+     * Creates the default Pokémon item preprocessors, plus one that gets the lid item of a Poké Ball by name. An
+     * unknown name gives the lid of the standard Poké Ball.
+     *
+     * @return the item preprocessors
+     */
     @Override
     public ConfigurableItemStack.Preprocessor[] makeItemPreprocessors() {
         return ArrayUtils.expand(
@@ -162,6 +187,12 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         );
     }
 
+    /**
+     * Creates the item processors that write the {@link UIElementItem} tags, such as the image, text, offsets, size,
+     * scale, rotation and colors. Image names get the {@code .png} extension if they do not have it.
+     *
+     * @return the item processors
+     */
     @Override
     public ConfigurableItemStack.Processor[] makeItemProcessors() {
         return new ConfigurableItemStack.Processor[]{
@@ -223,26 +254,56 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         };
     }
 
+    /**
+     * Gets the party of the player from the Pixelmon storage.
+     *
+     * @param player the player
+     * @return the wrapped party
+     */
     @Override
     public PixelmonParty party(PlayerReference player) {
         return new PixelmonParty(player.uuid(), StorageProxy.getParty(player.uuid()));
     }
 
+    /**
+     * Gets the PC of the player from the Pixelmon storage.
+     *
+     * @param player the player
+     * @return the wrapped PC
+     */
     @Override
     public PixelmonPC pc(PlayerReference player) {
         return new PixelmonPC(player.uuid(), StorageProxy.getPCForPlayer(player.uuid()));
     }
 
+    /**
+     * Gets the Pokédex of the player from the Pixelmon Pokédex storage.
+     *
+     * @param player the player
+     * @return the wrapped Pokédex
+     */
     @Override
     public PixelmonPokedex pokedex(PlayerReference player) {
         return new PixelmonPokedex(PokeDexStorageProxy.getStorage(player.uuid()));
     }
 
+    /**
+     * Checks if the player picked a starter, from the Pixelmon party of the player.
+     *
+     * @param player the player
+     * @return {@code true} if the player picked a starter
+     */
     @Override
     public boolean hasChosenStarter(PlayerReference player) {
         return StorageProxy.getPartyNow(player.uuid()).starterPicked;
     }
 
+    /**
+     * Sets if the player picked a starter, in the Pixelmon party of the player. Marks the party to be saved.
+     *
+     * @param player the player
+     * @param chosen {@code true} to mark the starter as picked
+     */
     @Override
     public void setChosenStarter(PlayerReference player, boolean chosen) {
         var party = StorageProxy.getPartyNow(player.uuid());
@@ -250,16 +311,31 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         party.setNeedsSaving();
     }
 
+    /**
+     * Parses the specs as a Pixelmon Pokémon specification.
+     *
+     * @param specs the parts of the spec
+     * @return the wrapped spec
+     */
     @Override
     public PixelmonPokemonSpec spec(String... specs) {
         return new PixelmonPokemonSpec(PokemonSpecificationProxy.create(specs).get());
     }
 
+    /**
+     * @return {@code :}, the separator between a key and its value in a Pixelmon spec
+     */
     @Override
     public String specDelimiter() {
         return ":";
     }
 
+    /**
+     * Gets a Pixelmon species by name.
+     *
+     * @param name the name of the species
+     * @return the species, or MissingNo. if no species has the name
+     */
     @Override
     public de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies species(String name) {
         return new de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies(
@@ -267,6 +343,12 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         );
     }
 
+    /**
+     * Gets a Pixelmon species by its Pokédex number.
+     *
+     * @param dex the Pokédex number
+     * @return the species, or MissingNo. if no species has the number
+     */
     @Override
     public de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies species(int dex) {
         return new de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies(
@@ -274,6 +356,12 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         );
     }
 
+    /**
+     * Loads a Pokémon from NBT. If the tag is not valid, logs an error and creates a MissingNo.
+     *
+     * @param tag the NBT of the Pokémon
+     * @return the loaded Pokémon, or a MissingNo. Pokémon
+     */
     @Override
     public PixelmonPokemon pokemonFromTag(CompoundTag tag) {
         Pokemon pokemon;
@@ -286,6 +374,13 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return new PixelmonPokemon(pokemon);
     }
 
+    /**
+     * Loads a Pokémon from a JSON string that holds SNBT. If the SNBT is not valid, logs an error and creates a
+     * MissingNo.
+     *
+     * @param json the JSON string with the SNBT of the Pokémon
+     * @return the loaded Pokémon, or a MissingNo. Pokémon
+     */
     @Override
     public PixelmonPokemon pokemonFromJson(JsonElement json) {
         var nbt = json.getAsString();
@@ -297,51 +392,106 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         }
     }
 
+    /**
+     * Checks if a Pixelmon species has the name.
+     *
+     * @param name the name of the species
+     * @return {@code true} if a species has the name
+     */
     @Override
     public boolean hasSpecies(String name) {
         return PixelmonSpecies.has(name);
     }
 
+    /**
+     * Gets every Pixelmon species.
+     *
+     * @return the species
+     */
     @Override
     public List<de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies> allSpecies() {
         return PixelmonSpecies.getAll().stream().map(de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies::new).toList();
     }
 
+    /**
+     * Gets a random species from Pixelmon.
+     *
+     * @return the random species
+     */
     @Override
     public de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies randomSpecies() {
         return new de.waterdu.atlantis.mod.impl.pixelmon.wrapper.pokemon.pokemon.properties.PixelmonSpecies(PixelmonSpecies.getRandomSpecies());
     }
 
+    /**
+     * Gets an ability by name.
+     *
+     * @param name the name of the ability
+     * @return the ability, or {@code null} if no ability has the name
+     */
     @Override
     public @Nullable PixelmonAbility ability(String name) {
         return AbilityRegistry.getAbility(name).map(PixelmonAbility::new).orElse(null);
     }
 
+    /**
+     * Gets every Pixelmon ability.
+     *
+     * @return the abilities
+     */
     @Override
     public List<PixelmonAbility> abilities() {
         return AbilityRegistry.getAllAbilities().stream().map(PixelmonAbility::new).toList();
     }
 
+    /**
+     * Gets a move by name.
+     *
+     * @param name the name of the move
+     * @return the move, or {@code null} if no move has the name
+     */
     @Override
     public @Nullable PixelmonMoveTemplate move(String name) {
         return AttackRegistry.getAttackBase(name).map(PixelmonMoveTemplate::new).orElse(null);
     }
 
+    /**
+     * Gets every Pixelmon move.
+     *
+     * @return the moves
+     */
     @Override
     public List<PixelmonMoveTemplate> moves() {
         return AttackRegistry.getAllAttacks().stream().map(PixelmonMoveTemplate::new).toList();
     }
 
+    /**
+     * Gets a Poké Ball by name.
+     *
+     * @param name the name of the Poké Ball
+     * @return the Poké Ball, or {@code null} if no Poké Ball has the name
+     */
     @Override
     public @Nullable PixelmonPokeBall pokeBall(String name) {
         return PokeBallRegistry.getPokeBall(name).getValue().map(PixelmonPokeBall::new).orElse(null);
     }
 
+    /**
+     * Gets every Pixelmon Poké Ball.
+     *
+     * @return the Poké Balls
+     */
     @Override
     public List<PixelmonPokeBall> pokeBalls() {
         return PokeBallRegistry.getAll().stream().map(PixelmonPokeBall::new).toList();
     }
 
+    /**
+     * Gets an elemental type by name from the Pixelmon type registry. The name is trimmed and put in lower case.
+     *
+     * @param name the name of the type
+     * @return the type, or {@code null} if no type has the name
+     */
     @Override
     public @Nullable PixelmonElementalType elementalType(String name) {
         var key = Type.parseOrNull(name.trim().toLowerCase(Locale.ROOT));
@@ -351,41 +501,109 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).getHolder(key).map(PixelmonElementalType::new).orElse(null);
     }
 
+    /**
+     * Gets every type in the Pixelmon type registry.
+     *
+     * @return the elemental types
+     */
     @Override
     public List<PixelmonElementalType> elementalTypes() {
         return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).holders().map(PixelmonElementalType::new).toList();
     }
 
+    /**
+     * Gets a Tera type by name from the Pixelmon type registry. The name is trimmed and put in lower case.
+     *
+     * @param name the name of the Tera type
+     * @return the Tera type, or {@code null} if no type has the name
+     */
+    @Override
+    public @Nullable PixelmonTeraType teraType(String name) {
+        var key = Type.parseOrNull(name.trim().toLowerCase(Locale.ROOT));
+        if (key == null) {
+            return null;
+        }
+        return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).getHolder(key).map(PixelmonTeraType::new).orElse(null);
+    }
+
+    /**
+     * Gets a Tera type for every type in the Pixelmon type registry.
+     *
+     * @return the Tera types
+     */
+    @Override
+    public List<PixelmonTeraType> teraTypes() {
+        return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.TYPE_REGISTRY).holders().map(PixelmonTeraType::new).toList();
+    }
+
+    /**
+     * Gets a stat by name with {@link PixelmonStat#of}.
+     *
+     * @param name the name of the stat
+     * @return the stat, or {@code null} if no stat has the name
+     */
     @Override
     public @Nullable PixelmonStat stat(String name) {
         return PixelmonStat.of(name);
     }
 
+    /**
+     * Gets every Pixelmon stat.
+     *
+     * @return the stats
+     */
     @Override
     public List<PixelmonStat> stats() {
         return PixelmonStat.all();
     }
 
+    /**
+     * Gets the stats that are permanent.
+     *
+     * @return the stats for which {@link PixelmonStat#isPermanent} is {@code true}
+     */
     @Override
     public List<PixelmonStat> permanentStats() {
         return PixelmonStat.all().stream().filter(PixelmonStat::isPermanent).toList();
     }
 
+    /**
+     * Gets a nature by name.
+     *
+     * @param name the name of the nature
+     * @return the nature, or {@code null} if no nature has the name
+     */
     @Override
     public @Nullable PixelmonNature nature(String name) {
         return Nature.hasNature(name) ? new PixelmonNature(Nature.natureFromString(name)) : null;
     }
 
+    /**
+     * Gets every Pixelmon nature.
+     *
+     * @return the natures
+     */
     @Override
     public List<PixelmonNature> natures() {
         return Arrays.stream(Nature.values()).map(PixelmonNature::new).toList();
     }
 
+    /**
+     * Gets a random nature from Pixelmon.
+     *
+     * @return the random nature
+     */
     @Override
     public PixelmonNature randomNature() {
         return new PixelmonNature(Nature.getRandomNature());
     }
 
+    /**
+     * Gets a gender by name, ignoring case.
+     *
+     * @param name the name of the gender
+     * @return the gender, or {@code null} if no gender has the name
+     */
     @Override
     public @Nullable PixelmonGender gender(String name) {
         for (var gender : this.genders()) {
@@ -396,11 +614,22 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return null;
     }
 
+    /**
+     * Gets every Pixelmon gender.
+     *
+     * @return the genders
+     */
     @Override
     public List<PixelmonGender> genders() {
         return Arrays.stream(Gender.values()).map(PixelmonGender::new).toList();
     }
 
+    /**
+     * Gets a status by name, ignoring case.
+     *
+     * @param name the name of the status
+     * @return the status, or {@code null} if no status has the name
+     */
     @Override
     public @Nullable PixelmonStatus status(String name) {
         for (var status : PixelmonStatus.all()) {
@@ -411,38 +640,84 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return null;
     }
 
+    /**
+     * Gets every status from {@link PixelmonStatus#all()}.
+     *
+     * @return the statuses
+     */
     @Override
     public List<PixelmonStatus> statuses() {
         return PixelmonStatus.all();
     }
 
+    /**
+     * Gets a move category by name.
+     *
+     * @param name the name of the category
+     * @return the category, or {@code null} if no category has the name
+     */
     @Override
     public @Nullable PixelmonMoveCategory moveCategory(String name) {
         var category = AttackCategory.parseOrNull(name);
         return category == null ? null : new PixelmonMoveCategory(category);
     }
 
+    /**
+     * Gets every Pixelmon move category.
+     *
+     * @return the move categories
+     */
     @Override
     public List<PixelmonMoveCategory> moveCategories() {
         return Arrays.stream(AttackCategory.values()).map(PixelmonMoveCategory::new).toList();
     }
 
+    /**
+     * Wraps the entity if it is a Pixelmon entity.
+     *
+     * @param entity the entity
+     * @return the wrapped entity, or {@code null} if the entity is not a Pokémon
+     */
     @Override
     public @Nullable PixelmonPokemonEntity pokemonEntity(Entity entity) {
         return entity instanceof PixelmonEntity pixelmon ? new PixelmonPokemonEntity(pixelmon) : null;
     }
 
+    /**
+     * Gets the battle that the player takes part in, from the Pixelmon battle registry.
+     *
+     * @param player the player
+     * @return the battle, or {@code null} if the player is not in a battle
+     */
     @Override
     public @Nullable PixelmonBattle battle(ServerPlayer player) {
         var battle = BattleRegistry.getBattle(player);
         return battle == null ? null : new PixelmonBattle(battle);
     }
 
+    /**
+     * Starts a battle between the player and the wild Pokémon.
+     *
+     * @param player the player
+     * @param wild the wild Pokémon entity. It must be a Pixelmon entity.
+     * @return the battle, or {@code null} if the battle did not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startWildBattle(ServerPlayer player, UPokemonEntity<?> wild) {
         return this.start(BattleBuilder.builder().registryAccess(ServerUtils.registryAccess()).teamOne(new PlayerParticipant(player)).teamTwo(new WildPixelmonParticipant((PixelmonEntity) wild.dereference())));
     }
 
+    /**
+     * Starts a battle between two players. If the settings have a team select time and neither team is given, the
+     * players select their teams first, and they cannot close the selection.
+     *
+     * @param player1 the first player
+     * @param team1 the team of the first player, or {@code null} for their party
+     * @param player2 the second player
+     * @param team2 the team of the second player, or {@code null} for their party
+     * @param settings the battle settings
+     * @return the battle, or {@code null} if the battle did not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, @Nullable List<? extends UPokemon<?>> team1, ServerPlayer player2, @Nullable List<? extends UPokemon<?>> team2, BattleSettings settings) {
         var builder = this.battleBuilder(settings)
@@ -454,6 +729,18 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return this.start(builder);
     }
 
+    /**
+     * Starts a battle between the player and the trainer. The trainer battles with healed copies of its party, trimmed
+     * to the team size. Sets the boss tier, the AI and the Mega and Dynamax gimmicks of the trainer from the settings.
+     *
+     * @param player the player
+     * @param team the team of the player, or {@code null} for their party
+     * @param trainer the trainer
+     * @param trainerSettings the trainer settings
+     * @param settings the battle settings
+     * @return the battle, or {@code null} if the trainer is not a Pixelmon trainer, is in a battle, has no Pokémon, or
+     *     the battle did not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startTrainerBattle(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, UTrainer<?> trainer, TrainerSettings trainerSettings, BattleSettings settings) {
         if (!(trainer instanceof PixelmonTrainer pixelmonTrainer) || trainer.isInBattle()) {
@@ -486,6 +773,16 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
                 .teamTwo(participant));
     }
 
+    /**
+     * Spawns a persistent NPC with a player model. The NPC cannot move, be pushed or take damage, shows its name, and
+     * has no interactions or tracking.
+     *
+     * @param level the level to spawn in
+     * @param position the position of the NPC
+     * @param yaw the yaw of the body and the head
+     * @param name the name of the NPC
+     * @return the spawned trainer
+     */
     @Override
     public PixelmonTrainer spawnTrainer(ServerLevel level, Vec3 position, float yaw, Component name) {
         var npc = NPC.builder()
@@ -503,41 +800,77 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return new PixelmonTrainer(npc);
     }
 
+    /**
+     * Wraps the entity if it is a Pixelmon NPC.
+     *
+     * @param entity the entity
+     * @return the wrapped trainer, or {@code null} if the entity is not an NPC
+     */
     @Override
     public @Nullable PixelmonTrainer trainer(Entity entity) {
         return entity instanceof NPC npc ? new PixelmonTrainer(npc) : null;
     }
 
+    /**
+     * Checks if Pixelmon supports the feature. Pixelmon supports every feature.
+     *
+     * @param feature the feature to check
+     * @return {@code true}
+     */
     @Override
     public boolean supports(PokemonFeature feature) {
         return true;
     }
 
+    /**
+     * @return a clause for every rule in the Pixelmon battle rule registry
+     */
     @Override
     public List<PixelmonBattleClause> battleClauses() {
         return ServerUtils.registryAccess().registryOrThrow(PixelmonRegistry.BATTLE_RULE_REGISTRY).holders().map(PixelmonBattleClause::new).toList();
     }
 
+    /**
+     * @return the IDs of the battle AIs in the registry. IDs in the Pixelmon namespace have no namespace.
+     */
     @Override
     public List<String> trainerAIs() {
         return ServerUtils.registryAccess().registryOrThrow(BattleAI.REGISTRY).holders().map(holder -> this.shortId(holder.key().location())).toList();
     }
 
+    /**
+     * @return the IDs of the Pixelmon boss tiers
+     */
     @Override
     public List<String> bossTiers() {
         return BossTierRegistry.getBossTiers().stream().map(BossTier::getID).toList();
     }
 
+    /**
+     * @return the names of the {@link EnumOldGenMode} values, in lower case
+     */
     @Override
     public List<String> battleGimmicks() {
         return Arrays.stream(EnumOldGenMode.values()).map(mode -> mode.name().toLowerCase(Locale.ROOT)).toList();
     }
 
+    /**
+     * Finds a held item by its Showdown name, first in the Pixelmon namespace, then in the Minecraft namespace.
+     *
+     * @param name the Showdown name of the item
+     * @return the item
+     */
     @Override
     public ItemStack showdownItem(String name) {
         return ShowdownFormat.item(name, Pixelmon.MODID, "minecraft");
     }
 
+    /**
+     * Gets the items stored inside an item. Adds the items in a Pixelmon Poké Bag to the default items.
+     *
+     * @param stack the item that holds the items
+     * @return the items that are not empty
+     */
     @Override
     public List<ItemStack> containedItems(ItemStack stack) {
         var items = PokemonDelegate.super.containedItems(stack);
@@ -556,33 +889,65 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         return items;
     }
 
+    /**
+     * Gets the ID of the location without the namespace if the namespace is Pixelmon.
+     *
+     * @param location the resource location
+     * @return the path for the Pixelmon namespace, otherwise the full location
+     */
     private String shortId(ResourceLocation location) {
         return location.getNamespace().equals(Pixelmon.MODID) ? location.getPath() : location.toString();
     }
 
+    /**
+     * Gets the registry key of a battle AI. An ID without a namespace uses the Pixelmon namespace and is put in lower
+     * case.
+     *
+     * @param ai the ID of the battle AI, or {@code null} for none
+     * @return the key, or {@link BattleAI#RANDOM} if the ID is {@code null}, blank, not valid or not registered
+     */
     private ResourceKey<BattleAI> battleAI(@Nullable String ai) {
         if (ai == null || ai.isBlank()) {
             return BattleAI.RANDOM;
         }
+
         var location = ai.contains(":") ? ResourceLocation.tryParse(ai) : ResourceLocation.tryBuild(Pixelmon.MODID, ai.toLowerCase(Locale.ROOT));
         if (location == null || !ServerUtils.registryAccess().registryOrThrow(BattleAI.REGISTRY).containsKey(location)) {
             return BattleAI.RANDOM;
         }
+
         return ResourceKey.create(BattleAI.REGISTRY, location);
     }
 
+    /**
+     * Gets the {@link EnumOldGenMode} with the name, ignoring case.
+     *
+     * @param gimmick the name of the gimmick, or {@code null} for none
+     * @return the mode, or {@code null} if the name is {@code null} or no mode has the name
+     */
     private @Nullable EnumOldGenMode gimmick(@Nullable String gimmick) {
         if (gimmick == null) {
             return null;
         }
+
         for (var mode : EnumOldGenMode.values()) {
             if (mode.name().equalsIgnoreCase(gimmick)) {
                 return mode;
             }
         }
+
         return null;
     }
 
+    /**
+     * Gets the Pokémon that a player battles with, trimmed to the team size. If the settings clone the teams, the
+     * Pokémon are copies.
+     *
+     * @param player the player
+     * @param team the team of the player, or {@code null} for the team of their party
+     * @param settings the battle settings
+     * @return the Pokémon of the team
+     */
     private List<Pokemon> battleTeam(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, BattleSettings settings) {
         var members = team == null ? StorageProxy.getPartyNow(player).getTeam() : team.stream().map(PixelmonPokemon::unwrap).toList();
         var result = new ArrayList<Pokemon>();
@@ -591,9 +956,17 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
                 result.add(settings.cloneTeams() ? PokemonFactory.copy(pokemon) : pokemon);
             }
         }
+
         return result;
     }
 
+    /**
+     * Creates a battle builder that starts in sync and applies the settings. These are the full heal, team preview,
+     * format, level cap, turn time, gimmick, experience and battle clauses.
+     *
+     * @param settings the battle settings
+     * @return the battle builder, without participants
+     */
     private BattleBuilder battleBuilder(BattleSettings settings) {
         var builder = BattleBuilder.builder()
                 .registryAccess(ServerUtils.registryAccess())
@@ -605,27 +978,39 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
                     case DOUBLES -> BattleType.DOUBLE;
                     case TRIPLES -> BattleType.TRIPLE;
                 });
+
         if (settings.hasLevelCap()) {
             builder.set(ContextKeys.LEVEL_CAP, settings.levelCap()).set(ContextKeys.RAISE_TO_CAP, settings.raiseToCap());
         }
+
         if (settings.turnTime() > 0) {
             builder.set(ContextKeys.TURN_TIME, settings.turnTime());
         }
+
         var gimmick = this.gimmick(settings.gimmick());
         if (gimmick != null) {
             builder.set(ContextKeys.GEN_MODE, gimmick);
         }
+
         if (!settings.experience()) {
             builder.disableExp();
         }
+
         for (var id : settings.clauses()) {
             if (this.battleClause(id) instanceof PixelmonBattleClause clause) {
                 builder.withRule(clause.dereference().value());
             }
         }
+
         return builder;
     }
 
+    /**
+     * Starts the battle and wraps it. If the start throws, logs an error.
+     *
+     * @param builder the battle builder
+     * @return the battle, or {@code null} if the battle did not start
+     */
     private CompletableFuture<@Nullable UBattle<?>> start(BattleBuilder builder) {
         try {
             return builder.start()
@@ -637,26 +1022,59 @@ public class PixelmonProxy implements PokemonDelegate, EconomyDelegate<PlayerPar
         }
     }
 
+    /**
+     * Gets the Pixelmon party of the player, which holds the balance.
+     *
+     * @param player the player to get the account of
+     * @return the party storage
+     */
     @Override
     public CompletableFuture<PlayerPartyStorage> account(PlayerReference player) {
         return StorageProxy.getParty(player.uuid());
     }
 
+    /**
+     * Gets the balance of the player from their Pixelmon party.
+     *
+     * @param player the player to get the balance of
+     * @return the balance
+     */
     @Override
     public CompletableFuture<BigDecimal> balance(PlayerReference player) {
         return this.account(player).thenApply(PlayerPartyStorage::getBalance);
     }
 
+    /**
+     * Checks if the Pixelmon party of the player has at least the amount.
+     *
+     * @param player the player
+     * @param amount the amount to check
+     * @return a successful result if the player has at least the amount. The result records no transactions.
+     */
     @Override
     public CompletableFuture<Transaction.Result> hasBalance(PlayerReference player, BigDecimal amount) {
         return this.account(player).thenApply(account -> Transaction.Result.ofBoolean(account.hasBalance(amount)));
     }
 
+    /**
+     * Takes the amount from the Pixelmon party of the player.
+     *
+     * @param player the player to withdraw from
+     * @param amount the amount to withdraw
+     * @return on success, the result records the withdrawal as a negative change
+     */
     @Override
     public CompletableFuture<Transaction.Result> withdraw(PlayerReference player, BigDecimal amount) {
         return this.account(player).thenApply(account -> Transaction.Result.ofBoolean(account.take(amount), player, amount.negate()));
     }
 
+    /**
+     * Adds the amount to the Pixelmon party of the player.
+     *
+     * @param player the player to deposit to
+     * @param amount the amount to deposit
+     * @return on success, the result records the deposit as a positive change
+     */
     @Override
     public CompletableFuture<Transaction.Result> deposit(PlayerReference player, BigDecimal amount) {
         return this.account(player).thenApply(account -> Transaction.Result.ofBoolean(account.add(amount), player, amount));

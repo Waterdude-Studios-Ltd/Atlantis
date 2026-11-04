@@ -20,14 +20,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Wraps a Pixelmon NPC that acts as a trainer.
+ */
 public class PixelmonTrainer extends UTrainer<NPC> {
 
     public static final ModObjectKey TYPE = new ModObjectKey(Pixelmon.MODID, "trainer");
 
+    /**
+     * Creates a wrapper for a Pixelmon NPC.
+     *
+     * @param trainer the NPC to wrap
+     */
     public PixelmonTrainer(NPC trainer) {
         super(TYPE, trainer);
     }
 
+    /**
+     * Gets a new wrapper for each Pokémon in the party of the NPC.
+     *
+     * @return the team
+     */
     @Override
     public List<PixelmonPokemon> team() {
         var team = new ArrayList<PixelmonPokemon>();
@@ -37,6 +50,11 @@ public class PixelmonTrainer extends UTrainer<NPC> {
         return team;
     }
 
+    /**
+     * Fills the party of the NPC with copies of the team. Slots after the end of the team become empty.
+     *
+     * @param team the Pixelmon Pokémon to copy into the party
+     */
     @Override
     public void setTeam(List<? extends UPokemon<?>> team) {
         var party = this.dereference().getParty();
@@ -45,6 +63,12 @@ public class PixelmonTrainer extends UTrainer<NPC> {
         }
     }
 
+    /**
+     * Looks up the skin of the player asynchronously, then sets a player model with that skin on the server thread.
+     * If no skin is found, nothing changes.
+     *
+     * @param playerName the name of the player whose skin to use
+     */
     @Override
     public void setSkin(String playerName) {
         var npc = this.dereference();
@@ -56,22 +80,42 @@ public class PixelmonTrainer extends UTrainer<NPC> {
         });
     }
 
+    /**
+     * Sets if the NPC cannot move.
+     *
+     * @param immovable {@code true} to stop the NPC from moving
+     */
     @Override
     public void setImmovable(boolean immovable) {
         this.dereference().setImmovable(immovable);
     }
 
+    /**
+     * Sets if the NPC cannot take damage.
+     *
+     * @param invulnerable {@code true} to make the NPC invulnerable
+     */
     @Override
     public void setInvulnerable(boolean invulnerable) {
         this.dereference().setInvulnerable(invulnerable);
     }
 
+    /**
+     * Sets if the name plate of the NPC shows.
+     *
+     * @param visible {@code true} to show the name plate
+     */
     @Override
     public void setNameVisible(boolean visible) {
         var npc = this.dereference();
         npc.setEntityProperties(npc.getProperties().withNamePlate(visible));
     }
 
+    /**
+     * Gets the battle of the NPC from the Pixelmon battle registry.
+     *
+     * @return the battle, or {@code null} if the NPC is in no battle or the battle has ended
+     */
     @Override
     public @Nullable PixelmonBattle battle() {
         var battle = BattleRegistry.getBattle(this.dereference());

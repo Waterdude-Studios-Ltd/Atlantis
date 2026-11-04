@@ -5,10 +5,18 @@ import com.pixelmonmod.pixelmon.api.pokemon.stats.EVStore;
 import de.waterdu.atlantis.mod.object.ModObjectKey;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.stats.UEVs;
 
+/**
+ * Wraps the Pixelmon {@link EVStore} of a Pokémon.
+ */
 public class PixelmonEVs extends UEVs<EVStore, PixelmonStat> implements PixelmonStatsStore<EVStore> {
 
     public static final ModObjectKey TYPE = new ModObjectKey(Pixelmon.MODID, "evs");
 
+    /**
+     * Creates a wrapper for the Pixelmon EVs.
+     *
+     * @param evs the Pixelmon EV store
+     */
     public PixelmonEVs(EVStore evs) {
         super(TYPE, evs);
     }
