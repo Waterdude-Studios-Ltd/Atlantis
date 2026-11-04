@@ -11,26 +11,43 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Gets the UUID of a player name from the Mojang API.
+ */
 public class UUIDQuery implements Query<UUID> {
 
     private AtlantisPlayer pd;
     private final String name;
     private final CompletableFuture<UUID> result;
 
+    /**
+     * Creates a query for the UUID of a player name.
+     *
+     * @param name the name of the player
+     */
     private UUIDQuery(String name) {
         this.name = name;
         this.result = new CompletableFuture<>();
     }
 
+    /**
+     * The query completes with null if the request fails.
+     */
     public static UUIDQuery from(String name) {
         return new UUIDQuery(name);
     }
 
+    /**
+     * Sets the UUID in the player data and saves it when the request succeeds.
+     */
     public UUIDQuery to(AtlantisPlayer pd) {
         this.pd = pd;
         return this;
     }
 
+    /**
+     * Requests the profile of the name from the Mojang API and completes the future with its {@code id}.
+     */
     @Override
     public void run() {
         UUID uuid = null;
@@ -54,6 +71,9 @@ public class UUIDQuery implements Query<UUID> {
         }
     }
 
+    /**
+     * @return the future that completes with the UUID, or with {@code null} if the request fails
+     */
     @Override
     public CompletableFuture<UUID> future() {
         return this.result;

@@ -11,26 +11,44 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Gets the signed skin of a player from the Mojang session server.
+ */
 public class SkinQuery implements Query<Skin> {
 
     private AtlantisPlayer pd;
     private final UUID uuid;
     private final CompletableFuture<Skin> result;
 
+    /**
+     * Creates a query for the skin of a player.
+     *
+     * @param uuid the UUID of the player
+     */
     private SkinQuery(UUID uuid) {
         this.uuid = uuid;
         this.result = new CompletableFuture<>();
     }
 
+    /**
+     * The query completes with an empty {@link Skin} if the request fails.
+     */
     public static SkinQuery from(UUID uuid) {
         return new SkinQuery(uuid);
     }
 
+    /**
+     * Stores the skin in the player data and saves it when the request succeeds.
+     */
     public SkinQuery to(AtlantisPlayer pd) {
         this.pd = pd;
         return this;
     }
 
+    /**
+     * Requests the profile from the session server and reads its {@code textures} property. Then completes the
+     * future with a {@link Skin} that holds only the skin URL and the signature.
+     */
     @Override
     public void run() {
         var skin = "";
@@ -56,7 +74,7 @@ public class SkinQuery implements Query<Skin> {
                 if (!value.isEmpty()) {
                     obj = JsonParser.parseString(new String(Base64.getDecoder().decode(value))).getAsJsonObject();
                     var skinURL = obj.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
-                    var skinByte = ("{\"signatureRequired\":" + (signature.isEmpty() ? "false" : "true") + ",\"textures\":{\"SKIN\":{\"url\":\"" + skinURL + "\"}}}").getBytes();
+                    var skinByte = ("{\"signatureRequired\":" + (!signature.isEmpty()) + ",\"textures\":{\"SKIN\":{\"url\":\"" + skinURL + "\"}}}").getBytes();
                     skin = new String(Base64.getEncoder().encode(skinByte));
                 }
             }
@@ -76,6 +94,9 @@ public class SkinQuery implements Query<Skin> {
         }
     }
 
+    /**
+     * @return the future that completes with the skin, or with an empty {@link Skin} if the request fails
+     */
     @Override
     public CompletableFuture<Skin> future() {
         return this.result;

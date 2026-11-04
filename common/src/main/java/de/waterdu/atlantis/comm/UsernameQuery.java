@@ -10,26 +10,43 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Gets the current name of a player from the Mojang session server.
+ */
 public class UsernameQuery implements Query<String> {
 
     private AtlantisPlayer pd;
     private final UUID uuid;
     private final CompletableFuture<String> result;
 
+    /**
+     * Creates a query for the name of a player.
+     *
+     * @param uuid the UUID of the player
+     */
     private UsernameQuery(UUID uuid) {
         this.uuid = uuid;
         this.result = new CompletableFuture<>();
     }
 
+    /**
+     * The query completes with an empty string if the request fails.
+     */
     public static UsernameQuery from(UUID uuid) {
         return new UsernameQuery(uuid);
     }
 
+    /**
+     * Updates the name in the player data and saves it when the request succeeds.
+     */
     public UsernameQuery to(AtlantisPlayer pd) {
         this.pd = pd;
         return this;
     }
 
+    /**
+     * Requests the profile from the session server and completes the future with its {@code name}.
+     */
     @Override
     public void run() {
         var name = "";
@@ -53,6 +70,9 @@ public class UsernameQuery implements Query<String> {
         }
     }
 
+    /**
+     * @return the future that completes with the name, or with an empty string if the request fails
+     */
     @Override
     public CompletableFuture<String> future() {
         return this.result;
