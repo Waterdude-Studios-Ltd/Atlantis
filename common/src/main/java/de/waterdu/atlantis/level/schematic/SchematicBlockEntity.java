@@ -9,8 +9,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
+/**
+ * Holds the data of one block entity in a {@link Schematic}.
+ */
 public class SchematicBlockEntity {
 
     private static final String ID_TAG = "Id";
@@ -20,6 +23,13 @@ public class SchematicBlockEntity {
     private final BlockEntityType<?> type;
     private final BlockPos position;
 
+    /**
+     * Reads the type and the position from the tag. If they are not valid, logs a warning and leaves them
+     * {@code null}.
+     *
+     * @param schematic the id of the schematic, used in the warning
+     * @param tag the block entity tag from the schematic
+     */
     private SchematicBlockEntity(String schematic, CompoundTag tag) throws IllegalArgumentException {
         CompoundTag tempTag = null;
         BlockEntityType<?> tempType = null;
@@ -42,6 +52,13 @@ public class SchematicBlockEntity {
         this.position = tempPosition;
     }
 
+    /**
+     * Creates a block entity from a tag of the schematic.
+     *
+     * @param schematic the id of the schematic, used in warnings
+     * @param tag the block entity tag from the schematic
+     * @return the block entity, or {@code null} if its type is not valid
+     */
     @Nullable
     protected static SchematicBlockEntity fromTag(String schematic, CompoundTag tag) {
         var blockEntity = new SchematicBlockEntity(schematic, tag);
@@ -51,10 +68,21 @@ public class SchematicBlockEntity {
         return blockEntity;
     }
 
+    /**
+     * @return the position relative to the schematic origin, or {@code null} if the tag has no valid position
+     */
     public BlockPos position() {
         return this.position;
     }
 
+    /**
+     * Loads the tag into the block entity at the position, with the coordinates changed to the position. Creates the
+     * block entity first if there is none.
+     *
+     * @param level the level of the block entity
+     * @param pos the position of the block entity in the level
+     * @param state the block state at the position
+     */
     public void place(ServerLevel level, BlockPos pos, BlockState state) {
         if (this.type == null) {
             return;
