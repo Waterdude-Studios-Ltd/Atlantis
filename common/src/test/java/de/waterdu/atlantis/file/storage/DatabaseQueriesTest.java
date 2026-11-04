@@ -1,5 +1,6 @@
 package de.waterdu.atlantis.file.storage;
 
+import de.waterdu.atlantis.file.DatabaseEncoders.QuoteMarks;
 import de.waterdu.atlantis.file.StorageTestConfigs;
 import de.waterdu.atlantis.file.storage.DatabaseFixtures.AutoIncrementRecord;
 import de.waterdu.atlantis.file.storage.DatabaseFixtures.Record;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Checks the SQL that Database generates, without a database.
@@ -49,8 +51,8 @@ class DatabaseQueriesTest {
     void createStatements() {
         var queries = queries(Record.class);
 
-        assertThat(queries.prepare(queries.CREATE_DATABASE)).isEqualTo("CREATE DATABASE IF NOT EXISTS " + DB);
-        var create = queries.prepare(queries.CREATE_TABLE);
+        assertThat(queries.prepare(queries.createDatabase)).isEqualTo("CREATE DATABASE IF NOT EXISTS " + DB);
+        var create = queries.prepare(queries.createTable);
         assertThat(create).startsWith("CREATE TABLE IF NOT EXISTS " + DB + ".mod_records (").endsWith(")");
         assertThat(create)
                 .contains("uuid VARCHAR(36) NOT NULL PRIMARY KEY")
@@ -69,7 +71,7 @@ class DatabaseQueriesTest {
         var queries = queries(Record.class);
         var record = record();
 
-        var insert = queries.prepare(queries.INSERT_ELEMENT, "", config, record, schema(Record.class));
+        var insert = queries.prepare(queries.insertElement, "", config, record, schema(Record.class));
 
         assertThat(insert).startsWith("INSERT INTO " + DB + ".mod_records (");
         assertThat(insert).contains("(uuid, name, level, score, flag, note, payload, tags)");
@@ -91,7 +93,7 @@ class DatabaseQueriesTest {
         var record = record();
         record.note = "O'Brien said \\' OR 1=1 -- \\";
 
-        var insert = queries.prepare(queries.INSERT_ELEMENT, "", config, record, schema(Record.class));
+        var insert = queries.prepare(queries.insertElement, "", config, record, schema(Record.class));
 
         assertThat(insert).contains("'O''Brien said \\\\'' OR 1=1 -- \\\\'");
     }
@@ -108,19 +110,50 @@ class DatabaseQueriesTest {
     }
 
     /**
+     * Checks that values in double quotes and backticks are escaped for their quote mark.
+     */
+    @Test
+    void doubleQuotedAndBacktickValuesAreEscaped() {
+        assertThat(Database.Queries.escape(QuoteMarks.SINGLE, "it's")).isEqualTo("it''s");
+        assertThat(Database.Queries.escape(QuoteMarks.DOUBLE, "say \"hi\" \\")).isEqualTo("say \"\"hi\"\" \\\\");
+        assertThat(Database.Queries.escape(QuoteMarks.BACKTICK, "a`b")).isEqualTo("a``b");
+    }
+
+    /**
+     * Checks that a value without quote marks must be a number, {@code NULL}, {@code TRUE} or {@code FALSE}.
+     */
+    @Test
+    void unquotedValuesMustBeLiterals() {
+        assertThat(Database.Queries.escape(QuoteMarks.NONE, "12")).isEqualTo("12");
+        assertThat(Database.Queries.escape(QuoteMarks.NONE, "-2.5E-3")).isEqualTo("-2.5E-3");
+        assertThat(Database.Queries.escape(QuoteMarks.NONE, "null")).isEqualTo("null");
+        assertThat(Database.Queries.escape(QuoteMarks.NONE, "TRUE")).isEqualTo("TRUE");
+        assertThatThrownBy(() -> Database.Queries.escape(QuoteMarks.NONE, "1; DROP TABLE x")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Database.Queries.escape(QuoteMarks.NONE, "NaN")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> Database.Queries.escape(QuoteMarks.NONE, "")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /**
+     * Checks that a quote mark that is not one of {@link QuoteMarks} is rejected.
+     */
+    @Test
+    void unknownQuoteMarksAreRejected() {
+        assertThatThrownBy(() -> Database.Queries.escape("$$", "value")).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /**
      * Checks that an auto-increment column is declared in the table but left out of the insert statement.
      */
     @Test
     void autoIncrementColumnsAreLeftToTheDatabase() {
         var config = StorageTestConfigs.register(AutoIncrementRecord.class, "auto", new Volatile());
         var schema = Database.Schema.of("mod", "auto", AutoIncrementRecord.class);
-        var queries = new Database.Queries();
-        queries.init(DB, schema);
+        var queries = Database.Queries.of(DB, schema);
         var record = new AutoIncrementRecord();
 
         assertThat(schema.autoIncrementElements()).isEqualTo(1);
-        assertThat(queries.prepare(queries.CREATE_TABLE)).contains("id INT NOT NULL AUTO_INCREMENT PRIMARY KEY");
-        var insert = queries.prepare(queries.INSERT_ELEMENT, "", config, record, schema);
+        assertThat(queries.prepare(queries.createTable)).contains("id INT NOT NULL AUTO_INCREMENT PRIMARY KEY");
+        var insert = queries.prepare(queries.insertElement, "", config, record, schema);
         assertThat(insert).startsWith("INSERT INTO " + DB + ".mod_auto (uuid, name) VALUES ('" + record.uuid() + "', '')");
         assertThat(insert).endsWith("ON DUPLICATE KEY UPDATE uuid = '" + record.uuid() + "', name = ''");
     }
@@ -133,10 +166,10 @@ class DatabaseQueriesTest {
         var queries = queries(Record.class);
         var uuid = UUID.randomUUID();
 
-        assertThat(queries.prepare(queries.SELECT_ELEMENT_UUID, uuid.toString())).isEqualTo("SELECT * FROM " + DB + ".mod_records WHERE uuid = '" + uuid + "'");
-        assertThat(queries.prepare(queries.DELETE_ELEMENT_UUID, uuid.toString())).isEqualTo("DELETE FROM " + DB + ".mod_records WHERE uuid = '" + uuid + "'");
-        assertThat(queries.prepare(queries.SELECT_ELEMENT_NAME, "Steve")).isEqualTo("SELECT * FROM " + DB + ".mod_records WHERE name = 'Steve'");
-        assertThat(queries.prepare(queries.SELECT_ALL)).isEqualTo("SELECT * FROM " + DB + ".mod_records");
+        assertThat(queries.prepare(queries.selectElementUUID, uuid.toString())).isEqualTo("SELECT * FROM " + DB + ".mod_records WHERE uuid = '" + uuid + "'");
+        assertThat(queries.prepare(queries.deleteElementUUID, uuid.toString())).isEqualTo("DELETE FROM " + DB + ".mod_records WHERE uuid = '" + uuid + "'");
+        assertThat(queries.prepare(queries.selectElementName, "Steve")).isEqualTo("SELECT * FROM " + DB + ".mod_records WHERE name = 'Steve'");
+        assertThat(queries.prepare(queries.selectAll)).isEqualTo("SELECT * FROM " + DB + ".mod_records");
     }
 
     /**
@@ -171,9 +204,7 @@ class DatabaseQueriesTest {
      * @return the initialized queries
      */
     private static Database.Queries queries(Class<?> type) {
-        var queries = new Database.Queries();
-        queries.init(DB, schema(type));
-        return queries;
+        return Database.Queries.of(DB, schema(type));
     }
 
     /**

@@ -17,8 +17,9 @@ public @interface DatabaseSerializable {
     String type() default DatabaseEncoders.Defaults.JSON;
 
     /**
-     * The mark around the encoded value in SQL queries. Only {@link DatabaseEncoders.QuoteMarks#SINGLE} escapes the
-     * value.
+     * The mark around the encoded value in SQL queries. It must be one of {@link DatabaseEncoders.QuoteMarks}. The
+     * value is escaped for the mark. With {@link DatabaseEncoders.QuoteMarks#NONE}, the value must be a number,
+     * {@code NULL}, {@code TRUE} or {@code FALSE}, or the write fails.
      */
     String quoteMark() default DatabaseEncoders.QuoteMarks.SINGLE;
 

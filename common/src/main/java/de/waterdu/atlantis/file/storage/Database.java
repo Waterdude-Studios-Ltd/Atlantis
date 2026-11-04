@@ -20,6 +20,7 @@ import de.waterdu.atlantis.mod.Mods;
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 import de.waterdu.atlantis.util.text.IncompleteString;
 import de.waterdu.atlantis.util.text.TextUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.InvalidClassException;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 
 /**
  * Database {@link Storage} implementation for AquaConfig.
@@ -62,7 +64,7 @@ public class Database implements Storage {
     private final HikariConfig config;
     private HikariDataSource hikari;
     private Schema schema;
-    private final Queries queries = new Queries();
+    private @Nullable Queries queries;
 
     /**
      * @param properties data source properties in the form {@code key=value}
@@ -215,15 +217,15 @@ public class Database implements Storage {
             }
         }
         this.schema = Schema.of(originalModId, path.toLowerCase(), clazz);
-        this.queries.init(modId, this.schema);
+        this.queries = Queries.of(modId, this.schema);
         try (var connection = this.connection()) {
             try (var stmt = this.createStatement(connection)) {
-                stmt.execute(this.queries.prepare(this.queries.CREATE_DATABASE));
+                stmt.execute(this.queries.prepare(this.queries.createDatabase));
             } catch (SQLException e) {
                 AtlantisLogger.debug("Database probably present already, skipping {}: {}", config.name(), e.getMessage());
             }
             try (var stmt = this.createStatement(connection)) {
-                stmt.execute(this.queries.prepare(this.queries.CREATE_TABLE));
+                stmt.execute(this.queries.prepare(this.queries.createTable));
             } catch (SQLException e) {
                 AtlantisLogger.debug("Table probably present already, skipping {}: {}", config.name(), e.getMessage());
             }
@@ -292,13 +294,12 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.INSERT_ELEMENT, "", config, data, this.schema);
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
-                    stmt.execute(query);
+                    stmt.execute(this.queries.prepare(this.queries.insertElement, "", config, data, this.schema));
                     result.complete(true);
                 }
-            } catch (SQLException e) {
+            } catch (SQLException | IllegalArgumentException e) {
                 AtlantisLogger.error("SQL error in writeSpecific on {}: {}", config.name(), e.getMessage());
                 result.complete(false);
             }
@@ -348,7 +349,7 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.SELECT_ALL);
+            var query = this.queries.prepare(this.queries.selectAll);
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
                     try (var rs = stmt.executeQuery(query)) {
@@ -394,7 +395,7 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.SELECT_ELEMENT_UUID, uuid.toString());
+            var query = this.queries.prepare(this.queries.selectElementUUID, uuid.toString());
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
                     try (var rs = stmt.executeQuery(query)) {
@@ -448,7 +449,7 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.SELECT_ELEMENT_NAME, Queries.escape(name));
+            var query = this.queries.prepare(this.queries.selectElementName, Queries.escape(name));
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
                     try (var rs = stmt.executeQuery(query)) {
@@ -515,7 +516,7 @@ public class Database implements Storage {
             return result;
         }
         Atlantis.THREAD_POOL.submit(() -> {
-            var query = this.queries.prepare(this.queries.DELETE_ELEMENT_UUID, uuid.toString());
+            var query = this.queries.prepare(this.queries.deleteElementUUID, uuid.toString());
             try (var connection = this.connection()) {
                 try (var stmt = this.createStatement(connection)) {
                     stmt.execute(query);
@@ -572,9 +573,10 @@ public class Database implements Storage {
     }
 
     /**
-     * @return the queries of this storage, completed for its database and table after {@link #init}
+     * @return the queries of this storage, completed for its database and table, or {@code null} before
+     *     {@link #init}
      */
-    public Queries queries() {
+    public @Nullable Queries queries() {
         return this.queries;
     }
 
@@ -672,6 +674,13 @@ public class Database implements Storage {
                 boolean notNull
         ) {
 
+            private static final Set<String> QUOTE_MARKS = Set.of(
+                    DatabaseEncoders.QuoteMarks.NONE,
+                    DatabaseEncoders.QuoteMarks.SINGLE,
+                    DatabaseEncoders.QuoteMarks.DOUBLE,
+                    DatabaseEncoders.QuoteMarks.BACKTICK
+            );
+
             /**
              * Creates the column from the field and its annotation.
              *
@@ -679,8 +688,12 @@ public class Database implements Storage {
              * @param annotation the annotation of the field
              * @return the column
              * @throws NullPointerException if the annotation names an encoder that does not exist
+             * @throws IllegalArgumentException if the quote mark is not one of {@link DatabaseEncoders.QuoteMarks}
              */
             public static Element of(Field field, DatabaseSerializable annotation) {
+                if (!QUOTE_MARKS.contains(annotation.quoteMark())) {
+                    throw new IllegalArgumentException("Invalid quote mark " + annotation.quoteMark() + " on " + field.getName());
+                }
                 return new Element(
                         FieldHolder.of(field),
                         field.getName().toLowerCase(),
@@ -698,30 +711,42 @@ public class Database implements Storage {
     }
 
     /**
-     * Holds the SQL queries of a {@link Database}. The {@code %} tokens are replaced in {@link #init}, and the
-     * placeholders are filled in by {@link #prepare}.
+     * Holds the SQL queries of a {@link Database}, completed for one database and table. The placeholders are filled
+     * in by {@link #prepare}.
      */
     public static final class Queries {
 
-        public IncompleteString CREATE_DATABASE = IncompleteString.of("CREATE DATABASE IF NOT EXISTS %d");
-        public IncompleteString CREATE_TABLE = IncompleteString.of("CREATE TABLE IF NOT EXISTS %d.%t (%c)");
-        public IncompleteString INSERT_ELEMENT = IncompleteString.builder().string("INSERT INTO %d.%t (%n) VALUES (%v) ON DUPLICATE KEY UPDATE %u").build();
-        public IncompleteString UPDATE_ELEMENT_UUID = IncompleteString.builder().string("UPDATE %d.%t SET %u WHERE uuid = '").placeholder().string("'").build();
-        public IncompleteString SELECT_ELEMENT_UUID = IncompleteString.builder().string("SELECT * FROM %d.%t WHERE uuid = '").placeholder().string("'").build();
-        public IncompleteString DELETE_ELEMENT_UUID = IncompleteString.builder().string("DELETE FROM %d.%t WHERE uuid = '").placeholder().string("'").build();
-        public IncompleteString UPDATE_ELEMENT_NAME = IncompleteString.builder().string("UPDATE %d.%t SET %u WHERE name = '").placeholder().string("'").build();
-        public IncompleteString SELECT_ELEMENT_NAME = IncompleteString.builder().string("SELECT * FROM %d.%t WHERE name = '").placeholder().string("'").build();
-        public IncompleteString DELETE_ELEMENT_NAME = IncompleteString.builder().string("DELETE FROM %d.%t WHERE name = '").placeholder().string("'").build();
-        public IncompleteString SELECT_ALL = IncompleteString.of("SELECT * FROM %d.%t");
+        private static final Pattern UNQUOTED_LITERAL = Pattern.compile("-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?|NULL|TRUE|FALSE", Pattern.CASE_INSENSITIVE);
+
+        private static final IncompleteString CREATE_DATABASE_TEMPLATE = IncompleteString.of("CREATE DATABASE IF NOT EXISTS %d");
+        private static final IncompleteString CREATE_TABLE_TEMPLATE = IncompleteString.of("CREATE TABLE IF NOT EXISTS %d.%t (%c)");
+        private static final IncompleteString INSERT_ELEMENT_TEMPLATE = IncompleteString.builder().string("INSERT INTO %d.%t (%n) VALUES (%v) ON DUPLICATE KEY UPDATE %u").build();
+        private static final IncompleteString UPDATE_ELEMENT_UUID_TEMPLATE = IncompleteString.builder().string("UPDATE %d.%t SET %u WHERE uuid = '").placeholder().string("'").build();
+        private static final IncompleteString SELECT_ELEMENT_UUID_TEMPLATE = IncompleteString.builder().string("SELECT * FROM %d.%t WHERE uuid = '").placeholder().string("'").build();
+        private static final IncompleteString DELETE_ELEMENT_UUID_TEMPLATE = IncompleteString.builder().string("DELETE FROM %d.%t WHERE uuid = '").placeholder().string("'").build();
+        private static final IncompleteString UPDATE_ELEMENT_NAME_TEMPLATE = IncompleteString.builder().string("UPDATE %d.%t SET %u WHERE name = '").placeholder().string("'").build();
+        private static final IncompleteString SELECT_ELEMENT_NAME_TEMPLATE = IncompleteString.builder().string("SELECT * FROM %d.%t WHERE name = '").placeholder().string("'").build();
+        private static final IncompleteString DELETE_ELEMENT_NAME_TEMPLATE = IncompleteString.builder().string("DELETE FROM %d.%t WHERE name = '").placeholder().string("'").build();
+        private static final IncompleteString SELECT_ALL_TEMPLATE = IncompleteString.of("SELECT * FROM %d.%t");
+
+        public final IncompleteString createDatabase;
+        public final IncompleteString createTable;
+        public final IncompleteString insertElement;
+        public final IncompleteString updateElementUUID;
+        public final IncompleteString selectElementUUID;
+        public final IncompleteString deleteElementUUID;
+        public final IncompleteString updateElementName;
+        public final IncompleteString selectElementName;
+        public final IncompleteString deleteElementName;
+        public final IncompleteString selectAll;
 
         /**
-         * Replaces the {@code %d}, {@code %t}, {@code %c}, {@code %u}, {@code %n} and {@code %v} tokens of every
-         * query with the database name, the table name and the column lists of the schema.
+         * Completes every query template for the database and the schema.
          *
          * @param database the database name
          * @param schema the schema of the table
          */
-        public void init(String database, Schema schema) {
+        private Queries(String database, Schema schema) {
             var create = IncompleteString.builder();
             var update = IncompleteString.builder();
             var names = IncompleteString.builder();
@@ -764,26 +789,34 @@ public class Database implements Storage {
                 }
             }
 
-            try {
-                var createBuilt = create.build();
-                var updateBuilt = update.build();
-                var namesBuilt = names.build();
-                var valuesBuilt = values.build();
-                for (var field : this.getClass().getDeclaredFields()) {
-                    var value = (IncompleteString) field.get(this);
-                    field.set(this, value.replace("%d", database)
-                            .replace("%t", schema.table)
-                            .replace("%c", createBuilt)
-                            .replace("%u", updateBuilt)
-                            .replace("%n", namesBuilt)
-                            .replace("%v", valuesBuilt)
-                    );
-                }
-            } catch (IllegalAccessException ignored) {}
+            var tokens = new Tokens(database, schema.table, create.build(), update.build(), names.build(), values.build());
+            this.createDatabase = tokens.apply(CREATE_DATABASE_TEMPLATE);
+            this.createTable = tokens.apply(CREATE_TABLE_TEMPLATE);
+            this.insertElement = tokens.apply(INSERT_ELEMENT_TEMPLATE);
+            this.updateElementUUID = tokens.apply(UPDATE_ELEMENT_UUID_TEMPLATE);
+            this.selectElementUUID = tokens.apply(SELECT_ELEMENT_UUID_TEMPLATE);
+            this.deleteElementUUID = tokens.apply(DELETE_ELEMENT_UUID_TEMPLATE);
+            this.updateElementName = tokens.apply(UPDATE_ELEMENT_NAME_TEMPLATE);
+            this.selectElementName = tokens.apply(SELECT_ELEMENT_NAME_TEMPLATE);
+            this.deleteElementName = tokens.apply(DELETE_ELEMENT_NAME_TEMPLATE);
+            this.selectAll = tokens.apply(SELECT_ALL_TEMPLATE);
         }
 
         /**
-         * Fills in the placeholders of the query with the arguments, in order.
+         * Creates the queries for a table. The {@code %d}, {@code %t}, {@code %c}, {@code %u}, {@code %n} and
+         * {@code %v} tokens of every query are replaced with the database name, the table name and the column lists
+         * of the schema.
+         *
+         * @param database the database name
+         * @param schema the schema of the table
+         * @return the completed queries
+         */
+        public static Queries of(String database, Schema schema) {
+            return new Queries(database, schema);
+        }
+
+        /**
+         * Fills in the placeholders of the query with the arguments, in order. The arguments are not escaped.
          *
          * @param query the query to complete
          * @param args the values of the placeholders
@@ -804,8 +837,39 @@ public class Database implements Storage {
         }
 
         /**
+         * Makes the value safe to put between the quote mark in a query.
+         * <ul>
+         *     <li>{@link DatabaseEncoders.QuoteMarks#SINGLE}: backslashes and single quotes are escaped.</li>
+         *     <li>{@link DatabaseEncoders.QuoteMarks#DOUBLE}: backslashes and double quotes are escaped.</li>
+         *     <li>{@link DatabaseEncoders.QuoteMarks#BACKTICK}: backticks are escaped.</li>
+         *     <li>{@link DatabaseEncoders.QuoteMarks#NONE}: the value must be a number, {@code NULL}, {@code TRUE}
+         *     or {@code FALSE}.</li>
+         * </ul>
+         *
+         * @param quoteMark the quote mark around the value
+         * @param value the value to escape
+         * @return the escaped value
+         * @throws IllegalArgumentException if the quote mark is not one of {@link DatabaseEncoders.QuoteMarks}, or
+         *     if the value is not safe without quote marks
+         */
+        static String escape(String quoteMark, String value) {
+            return switch (quoteMark) {
+                case DatabaseEncoders.QuoteMarks.SINGLE -> Queries.escape(value);
+                case DatabaseEncoders.QuoteMarks.DOUBLE -> value.replace("\\", "\\\\").replace("\"", "\"\"");
+                case DatabaseEncoders.QuoteMarks.BACKTICK -> value.replace("`", "``");
+                case DatabaseEncoders.QuoteMarks.NONE -> {
+                    if (!UNQUOTED_LITERAL.matcher(value).matches()) {
+                        throw new IllegalArgumentException("Value without quote marks must be a number, NULL, TRUE or FALSE: " + value);
+                    }
+                    yield value;
+                }
+                default -> throw new IllegalArgumentException("Unknown quote mark: " + quoteMark);
+            };
+        }
+
+        /**
          * Fills in the placeholders of the query with the encoded field values of the data. Auto-increment columns
-         * are skipped, and values in single quotes are escaped.
+         * are skipped. Each value is escaped for its quote mark with {@link #escape(String, String)}.
          *
          * @param query the query to complete
          * @param key the value of the last placeholder, or an empty string to fill in the update values of the
@@ -815,20 +879,14 @@ public class Database implements Storage {
          * @param schema the schema of the table
          * @param <T> the configuration type
          * @return the complete query
+         * @throws IllegalArgumentException if an encoded value is not safe for the quote mark of its column
          */
         public <T extends Configuration> String prepare(IncompleteString query, String key, Config<T> config, Object data, Schema schema) {
             var args = new String[schema.elements.size() + (key.isEmpty() ? schema.elements.size() - 1 : 1) - schema.autoIncrementElements];
             var i = 0;
             for (var element : schema.elements) {
                 if (!element.autoIncrement) {
-                    try {
-                        args[i] = element.encoder.encode(config, element.field, element.field.field().get(data));
-                        if (element.surround.equalsIgnoreCase(DatabaseEncoders.QuoteMarks.SINGLE)) {
-                            args[i] = Queries.escape(args[i]);
-                        }
-                    } catch (IllegalAccessException e) {
-                        AtlantisLogger.error("Failed to get field when preparing query on {}", config.name());
-                    }
+                    args[i] = Queries.encode(element, config, data);
                     i++;
                 }
             }
@@ -837,19 +895,58 @@ public class Database implements Storage {
             } else {
                 for (var element : schema.elements) {
                     if (!element.primaryKey && !element.autoIncrement) {
-                        try {
-                            args[i] = element.encoder.encode(config, element.field, element.field.field().get(data));
-                            if (element.surround.equalsIgnoreCase(DatabaseEncoders.QuoteMarks.SINGLE)) {
-                                args[i] = Queries.escape(args[i]);
-                            }
-                        } catch (IllegalAccessException e) {
-                            AtlantisLogger.error("Failed to get field when preparing query on {}", config.name());
-                        }
+                        args[i] = Queries.encode(element, config, data);
                         i++;
                     }
                 }
             }
             return query.complete(args);
+        }
+
+        /**
+         * Encodes the field value of the data for the column and escapes it for the quote mark of the column.
+         *
+         * @param element the column
+         * @param config the config of the data
+         * @param data the data instance
+         * @return the escaped value, or {@code null} if the field cannot be read
+         * @throws IllegalArgumentException if the encoded value is not safe for the quote mark of the column
+         */
+        private static @Nullable String encode(Schema.Element element, Config<?> config, Object data) {
+            try {
+                return Queries.escape(element.surround, element.encoder.encode(config, element.field, element.field.field().get(data)));
+            } catch (IllegalAccessException e) {
+                AtlantisLogger.error("Failed to get field when preparing query on {}", config.name());
+                return null;
+            }
+        }
+
+        /**
+         * Holds the replacements of the {@code %} tokens in the query templates.
+         *
+         * @param database the database name
+         * @param table the table name
+         * @param create the column definitions
+         * @param update the column assignments for updates
+         * @param names the column names for inserts
+         * @param values the column values for inserts
+         */
+        private record Tokens(String database, String table, IncompleteString create, IncompleteString update, IncompleteString names, IncompleteString values) {
+
+            /**
+             * Replaces every token in a copy of the template. The template does not change.
+             *
+             * @param template the query template
+             * @return the completed query
+             */
+            IncompleteString apply(IncompleteString template) {
+                return template.copy().replace("%d", this.database)
+                        .replace("%t", this.table)
+                        .replace("%c", this.create)
+                        .replace("%u", this.update)
+                        .replace("%n", this.names)
+                        .replace("%v", this.values);
+            }
         }
     }
 
@@ -858,10 +955,10 @@ public class Database implements Storage {
      */
     public static final class Keywords {
 
-        public static String PRIMARY_KEY = "PRIMARY KEY";
-        public static String UNIQUE_KEY = "UNIQUE";
-        public static String NOT_NULL = "NOT NULL";
-        public static String AUTO_INCREMENT = "AUTO_INCREMENT";
+        public static final String PRIMARY_KEY = "PRIMARY KEY";
+        public static final String UNIQUE_KEY = "UNIQUE";
+        public static final String NOT_NULL = "NOT NULL";
+        public static final String AUTO_INCREMENT = "AUTO_INCREMENT";
 
         private Keywords() {
             ExceptionUtils.throwCannotInstantiateClassException();
