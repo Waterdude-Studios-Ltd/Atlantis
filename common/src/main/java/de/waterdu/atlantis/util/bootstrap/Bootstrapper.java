@@ -94,6 +94,7 @@ public final class Bootstrapper {
                 }
             }
         }
+
         var bootstrapped = ANNOTATED_CLASSES.get(Bootstrapped.class);
         if (bootstrapped != null) {
             bootstrapped.sort(Comparator.comparingInt(annotated -> ((Bootstrapped) annotated.annotation()).value().ordinal()));
