@@ -27,6 +27,7 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 
+import org.jspecify.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,9 +49,24 @@ public final class AtlantisLevelRegistry {
     private static final Map<ResourceLocation, ChunkGeneratorFunction> CHUNK_GENERATORS = new HashMap<>();
     private static final Map<ResourceLocation, LevelElementFunction<DimensionType>> DIMENSION_TYPES = new HashMap<>();
 
+    /**
+     * Five layers of one block in the void biome, without structures.
+     * The optional argument is the block id. The default is stone.
+     */
     public static final ResourceLocation SUPERFLAT_CHUNK_GENERATOR;
+    /**
+     * Void that places one structure in a grid.
+     * The arguments are the distance between structures in chunks, then the structure id.
+     */
     public static final ResourceLocation VOID_STRUCTURE_GRID_CHUNK_GENERATOR;
+    /**
+     * Uses the vanilla overworld dimension type. It takes no arguments.
+     */
     public static final ResourceLocation OVERWORLD_DIMENSION_TYPE;
+    /**
+     * Registers a new dimension type with the id of the level. It uses overworld effects and builds from Y 0 to Y 255.
+     * It takes no arguments.
+     */
     public static final ResourceLocation UNIQUE_OVERWORLD_DIMENSION_TYPE;
 
     static {
@@ -76,6 +92,13 @@ public final class AtlantisLevelRegistry {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Creates a key from the namespace and the path, both in lower case.
+     *
+     * @param namespace the namespace of the key
+     * @param path the path of the key
+     * @return the new key
+     */
     private static ResourceLocation makeKey(String namespace, String path) {
         return ResourceLocation.fromNamespaceAndPath(namespace.toLowerCase(Locale.ROOT), path.toLowerCase(Locale.ROOT));
     }
@@ -84,10 +107,10 @@ public final class AtlantisLevelRegistry {
      * Registers a new {@link ChunkGenerator}.
      * Do this during mod initialization.
      *
-     * @param namespace The namespace of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
-     * @param path The path of the {@link ResourceLocation} key of this {@link ChunkGenerator}.
-     * @param chunkGenerator Function that converts {@link String} arguments to the {@link ChunkGenerator}.
-     * @return The {@link ResourceLocation} key of this {@link ChunkGenerator}.
+     * @param namespace the namespace of the {@link ResourceLocation} key of this {@link ChunkGenerator}
+     * @param path the path of the {@link ResourceLocation} key of this {@link ChunkGenerator}
+     * @param chunkGenerator function that converts {@link String} arguments to the {@link ChunkGenerator}
+     * @return the {@link ResourceLocation} key of this {@link ChunkGenerator}
      */
     public static ResourceLocation registerChunkGenerator(String namespace, String path, ChunkGeneratorFunction chunkGenerator) {
         var key = AtlantisLevelRegistry.makeKey(namespace, path);
@@ -96,17 +119,17 @@ public final class AtlantisLevelRegistry {
     }
 
     /**
-     * Gets a registered {@link ChunkGenerator} if present, or an empty optional if not.
+     * Gets a registered {@link ChunkGenerator} if present, or null if not.
      * You can supply arguments if the {@link ChunkGenerator} supports them.
      *
-     * @param key The {@link ResourceLocation} key of a {@link ChunkGenerator}.
-     * @param level The {@link AtlantisLevel} to get it for.
-     * @param args The {@link String} arguments to pass to the {@link ChunkGenerator}.
-     * @return A new {@link ChunkGenerator}, if present.
+     * @param key the {@link ResourceLocation} key of a {@link ChunkGenerator}
+     * @param level the {@link AtlantisLevel} to get it for
+     * @param args the {@link String} arguments to pass to the {@link ChunkGenerator}
+     * @return a new {@link ChunkGenerator}, if present
      */
-    public static Optional<ChunkGenerator> getChunkGenerator(ResourceLocation key, AtlantisLevel level, RegistryOps.RegistryInfo<Biome> biomes, String... args) throws InvalidAtlantisLevelException {
+    public static @Nullable ChunkGenerator getChunkGenerator(ResourceLocation key, AtlantisLevel level, RegistryOps.RegistryInfo<Biome> biomes, String... args) throws InvalidAtlantisLevelException {
         try {
-            return Optional.ofNullable(AtlantisLevelRegistry.CHUNK_GENERATORS.getOrDefault(key, AtlantisLevelRegistry.NULL_CHUNK_GENERATOR_FUNCTION).apply(level, biomes, args));
+            return AtlantisLevelRegistry.CHUNK_GENERATORS.getOrDefault(key, AtlantisLevelRegistry.NULL_CHUNK_GENERATOR_FUNCTION).apply(level, biomes, args);
         } catch (Exception e) {
             throw new InvalidAtlantisLevelException("ChunkGenerator", key, e);
         }
@@ -116,10 +139,10 @@ public final class AtlantisLevelRegistry {
      * Registers a new {@link DimensionType}.
      * Do this during mod initialization.
      *
-     * @param namespace The namespace of the {@link ResourceLocation} key of this {@link DimensionType}.
-     * @param path The path of the {@link ResourceLocation} key of this {@link DimensionType}.
-     * @param dimensionType Function that converts {@link String} arguments to the {@link DimensionType}.
-     * @return The {@link ResourceLocation} key of this {@link DimensionType}.
+     * @param namespace the namespace of the {@link ResourceLocation} key of this {@link DimensionType}
+     * @param path the path of the {@link ResourceLocation} key of this {@link DimensionType}
+     * @param dimensionType function that converts {@link String} arguments to the {@link DimensionType}
+     * @return the {@link ResourceLocation} key of this {@link DimensionType}
      */
     public static ResourceLocation registerDimensionType(String namespace, String path, LevelElementFunction<DimensionType> dimensionType) {
         var key = AtlantisLevelRegistry.makeKey(namespace, path);
@@ -127,6 +150,9 @@ public final class AtlantisLevelRegistry {
         return key;
     }
 
+    /**
+     * Registers every level in {@link AtlantisLevelStorage} for registry injection.
+     */
     @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
@@ -134,17 +160,17 @@ public final class AtlantisLevelRegistry {
     }
 
     /**
-     * Gets a registered {@link DimensionType} if present, or an empty optional if not.
+     * Gets a registered {@link DimensionType} if present, or null if not.
      * You can supply arguments if the {@link DimensionType} supports them.
      *
-     * @param key The {@link ResourceLocation} key of a {@link DimensionType}.
-     * @param level The {@link AtlantisLevel} to get it for.
-     * @param args The {@link String} arguments to pass to the {@link DimensionType}.
-     * @return A new {@link DimensionType}, if present.
+     * @param key the {@link ResourceLocation} key of a {@link DimensionType}
+     * @param level the {@link AtlantisLevel} to get it for
+     * @param args the {@link String} arguments to pass to the {@link DimensionType}
+     * @return a new {@link DimensionType}, if present
      */
-    public static Optional<Pair<ResourceKey<DimensionType>, DimensionType>> getDimensionType(ResourceLocation key, AtlantisLevel level, String... args) throws InvalidAtlantisLevelException {
+    public static @Nullable Pair<ResourceKey<DimensionType>, DimensionType> getDimensionType(ResourceLocation key, AtlantisLevel level, String... args) throws InvalidAtlantisLevelException {
         try {
-            return Optional.ofNullable(AtlantisLevelRegistry.DIMENSION_TYPES.getOrDefault(key, AtlantisLevelRegistry.NULL_DIMENSION_TYPE_FUNCTION).apply(level, args));
+            return AtlantisLevelRegistry.DIMENSION_TYPES.getOrDefault(key, AtlantisLevelRegistry.NULL_DIMENSION_TYPE_FUNCTION).apply(level, args);
         } catch (Exception e) {
             throw new InvalidAtlantisLevelException("DimensionType", key, e);
         }

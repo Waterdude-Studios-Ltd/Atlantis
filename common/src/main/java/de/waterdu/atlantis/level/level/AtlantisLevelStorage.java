@@ -9,10 +9,14 @@ import de.waterdu.atlantis.util.text.MessageUtils;
 import de.waterdu.atlantis.util.text.Text;
 import net.minecraft.ChatFormatting;
 
+import org.jspecify.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Stores the Atlantis levels in {@code levels.json}, by their full level id.
+ */
 @FileBackedObject(mod = Atlantis.ID, path = "levels.json")
 public final class AtlantisLevelStorage implements Configuration {
 
@@ -20,10 +24,17 @@ public final class AtlantisLevelStorage implements Configuration {
 
     private Map<String, AtlantisLevel> levels = new HashMap<>();
 
+    /**
+     * Creates an empty storage.
+     */
     public AtlantisLevelStorage() {
         // noop
     }
 
+    /**
+     * Adds the superflat level {@code atlantis:example} if the settings enable the default level and the storage is
+     * empty.
+     */
     public void addDefaults() {
         if (Settings.get().isCreateDefaultAtlantisLevel() && this.levels.isEmpty()) {
             this.addLevel(AtlantisLevel.builder("atlantis", "example")
@@ -34,24 +45,41 @@ public final class AtlantisLevelStorage implements Configuration {
         }
     }
 
+    /**
+     * Saves the level and tells operators to restart the server. The level exists only after the restart.
+     */
     public void addLevel(AtlantisLevel level) {
         this.levels.put(level.id(), level);
         this.save();
         MessageUtils.sendToMatching(WARNING_MESSAGE, Permissions::isOperator);
     }
 
-    public Optional<AtlantisLevel> level(String id) {
-        return Optional.ofNullable(this.levels.get(id));
+    /**
+     * @param id the full level id, with its namespace
+     */
+    public @Nullable AtlantisLevel level(String id) {
+        return this.levels.get(id);
     }
 
+    /**
+     * @return the levels, by their full level id
+     */
     public Map<String, AtlantisLevel> levels() {
         return this.levels;
     }
 
+    /**
+     * Sets the levels. This does not save the file.
+     *
+     * @param worlds the new levels, by their full level id
+     */
     public void setLevels(Map<String, AtlantisLevel> worlds) {
         this.levels = worlds;
     }
 
+    /**
+     * Before the configs are ready, this loads the file immediately.
+     */
     public static AtlantisLevelStorage instance() {
         if (!Atlantis.CONFIG.internal().ready()) {
             Atlantis.CONFIG.forcedImmediate(Settings.class, FileBackedObject.class, ___ -> {});
