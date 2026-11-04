@@ -15,6 +15,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+/**
+ * Converts configs between JSON and Atlantis Object Notation, and adds the {@link AonComment} comments.
+ */
 public final class AonCommenter {
 
     private static final String NEWLINE = "\n";
@@ -29,6 +32,10 @@ public final class AonCommenter {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Converts JSON to Atlantis Object Notation and adds the {@link AonComment} comments of the type.
+     * Returns the JSON unchanged if the config is not AON or the type has no {@link AonComment}.
+     */
     public static String comment(Config<?> config, String json, Class<? extends Configuration> type) {
         if (!config.isAON()) {
             return json;
@@ -53,6 +60,10 @@ public final class AonCommenter {
         return info.comment(json);
     }
 
+    /**
+     * Converts Atlantis Object Notation back to JSON.
+     * Returns the input unchanged if the config is not AON or the input starts with <code>{</code>.
+     */
     public static String uncomment(Config<?> config, String json, Class<? extends Configuration> type) {
         if (!config.isAON()) {
             return json;
@@ -87,6 +98,14 @@ public final class AonCommenter {
         return builder.toString();
     }
 
+    /**
+     * Checks if the next line that is not empty and not a comment holds another element, and does not close an array
+     * or an object.
+     *
+     * @param lines the AON lines
+     * @param index the index of the current line
+     * @return {@code true} if a comma must follow the current line
+     */
     private static boolean nextIsElement(List<String> lines, int index) {
         if (index + 1 >= lines.size()) {
             return false;
@@ -100,6 +119,12 @@ public final class AonCommenter {
         return false;
     }
 
+    /**
+     * Converts a camel case Java field name to a snake case JSON field name.
+     *
+     * @param field the Java field name, for example {@code maxPlayerCount}
+     * @return the JSON field name, for example {@code max_player_count}
+     */
     private static String javaToJsonField(String field) {
         while (true) {
             var matcher = JAVA_TO_JSON_FIELD.matcher(field);
@@ -111,6 +136,12 @@ public final class AonCommenter {
         return field;
     }
 
+    /**
+     * Converts a snake case JSON field name to a camel case Java field name.
+     *
+     * @param field the JSON field name, for example {@code max_player_count}
+     * @return the Java field name, for example {@code maxPlayerCount}
+     */
     private static String jsonToJavaField(String field) {
         while (true) {
             var matcher = JSON_TO_JAVA_FIELD.matcher(field);
@@ -122,11 +153,20 @@ public final class AonCommenter {
         return field;
     }
 
+    /**
+     * Holds the {@link AonComment} comments of a configuration class and of its fields.
+     */
     private static final class Info {
 
         private final CommentHolder root;
         private final Map<String, Optional<CommentHolder>> comments = new HashMap<>();
 
+        /**
+         * Reads the comment of the class and the comments of its declared fields.
+         *
+         * @param root the comment on the configuration class
+         * @param type the configuration class
+         */
         private Info(AonComment root, Class<? extends Configuration> type) {
             this.root = new CommentHolder(root);
             for (var field : type.getDeclaredFields()) {
@@ -137,22 +177,47 @@ public final class AonCommenter {
             }
         }
 
+        /**
+         * @return the comment on the configuration class
+         */
         public CommentHolder root() {
             return this.root;
         }
 
+        /**
+         * @return the field comments, keyed by JSON field name
+         */
         public Map<String, Optional<CommentHolder>> comments() {
             return this.comments;
         }
 
+        /**
+         * Stores the comment of a field under its JSON field name.
+         *
+         * @param field the Java field name
+         * @param comment the comment on the field
+         */
         public void putComment(String field, AonComment comment) {
             this.comments.put(AonCommenter.javaToJsonField(field), Optional.of(new CommentHolder(comment)));
         }
 
+        /**
+         * Gets the comment of a field.
+         *
+         * @param field the JSON field name
+         * @return the comment, or an empty optional if the field has no comment
+         */
         public Optional<CommentHolder> getComment(String field) {
             return this.comments.getOrDefault(field, Optional.empty());
         }
 
+        /**
+         * Converts JSON to AON. Removes the outer braces, the quotes around top-level keys and the trailing commas, and
+         * adds the class comment and the field comments.
+         *
+         * @param json the JSON of the configuration
+         * @return the AON text
+         */
         public String comment(String json) {
             var builder = new StringBuilder();
             this.root.apply(builder);
@@ -184,22 +249,36 @@ public final class AonCommenter {
             return builder.toString();
         }
 
+        /**
+         * Holds the lines and the indents of one {@link AonComment}.
+         */
         private static final class CommentHolder {
 
             private final String[] lines;
             private final int[] indents;
 
+            /**
+             * Copies the lines and the indents of the comment.
+             *
+             * @param comment the comment to hold
+             */
             private CommentHolder(AonComment comment) {
                 this.lines = comment.value();
                 this.indents = comment.indents();
             }
 
+            /**
+             * Appends each line, prefixed with {@code #} characters. The indent of the line gives the number of
+             * {@code #} characters, and the default is {@code 1}. An empty line becomes a blank line.
+             *
+             * @param builder the builder to append to
+             */
             private void apply(StringBuilder builder) {
                 for (var i = 0; i < this.lines.length; i++) {
                     var indent = this.indents.length > i ? this.indents[i] : 1;
                     var line = this.lines[i];
                     if (!line.isEmpty()) {
-                        builder.append("#".repeat(Math.max(0, indent))).append(" ").append(line);
+                        builder.repeat("#", Math.max(0, indent)).append(" ").append(line);
                     }
                     builder.append(AonCommenter.NEWLINE);
                 }

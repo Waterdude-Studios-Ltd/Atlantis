@@ -8,12 +8,18 @@ import de.waterdu.atlantis.file.datatypes.NamedData;
 import de.waterdu.atlantis.file.datatypes.PlayerData;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Optional;
 
+/**
+ * Holds the configuration class of a config, the data kinds that it implements, and its player data constructor and
+ * callbacks.
+ *
+ * @param <T> the configuration type
+ */
 public class ClassHolder<T extends Configuration> {
 
     private final Class<T> configuration;
@@ -28,6 +34,13 @@ public class ClassHolder<T extends Configuration> {
     private final String simpleName;
     private final String canonicalName;
 
+    /**
+     * Checks which data kinds the class implements. For player data, finds the constructor that takes a
+     * {@link ServerPlayer} and the {@code onLogin} and {@code onLogout} methods, and logs a warning for each one that
+     * is missing.
+     *
+     * @param clazz the configuration class
+     */
     @SuppressWarnings("unchecked")
     public ClassHolder(Class<T> clazz) {
         Constructor<? extends PlayerData> playerDataConstructor;
@@ -87,38 +100,73 @@ public class ClassHolder<T extends Configuration> {
         this.playerDataOnLogoutCallback = playerDataOnLogoutCallback;
     }
 
+    /**
+     * @return the configuration class
+     */
     public Class<T> getConfigurationClass() {
         return this.configuration;
     }
 
+    /**
+     * @param <V> the type to cast the class to
+     * @return the class if it implements {@link Data}, or else {@code null}
+     */
     @SuppressWarnings("unchecked")
-    public <V extends Configuration> Optional<Class<V>> dataClass() {
-        return Optional.ofNullable((Class<V>) this.data);
+    public <V extends Configuration> @Nullable Class<V> dataClass() {
+        return (Class<V>) this.data;
     }
 
+    /**
+     * @param <V> the type to cast the class to
+     * @return the class if it implements {@link NamedData}, or else {@code null}
+     */
     @SuppressWarnings("unchecked")
-    public <V extends Configuration> Optional<Class<V>> namedDataClass() {
-        return Optional.ofNullable((Class<V>) this.namedData);
+    public <V extends Configuration> @Nullable Class<V> namedDataClass() {
+        return (Class<V>) this.namedData;
     }
 
+    /**
+     * @param <V> the type to cast the class to
+     * @return the class if it implements {@link PlayerData}, or else {@code null}
+     */
     @SuppressWarnings("unchecked")
-    public <V extends Configuration> Optional<Class<V>> playerDataClass() {
-        return Optional.ofNullable((Class<V>) this.playerData);
+    public <V extends Configuration> @Nullable Class<V> playerDataClass() {
+        return (Class<V>) this.playerData;
     }
 
+    /**
+     * @return the constructor that takes a {@link ServerPlayer}. Null if the class is not player data or has no such
+     *     constructor.
+     */
     @SuppressWarnings("unchecked")
-    public <V extends Configuration> Optional<Constructor<V>> playerDataConstructor() {
-        return Optional.ofNullable((Constructor<V>) this.playerDataConstructor);
+    public <V extends Configuration> @Nullable Constructor<V> playerDataConstructor() {
+        return (Constructor<V>) this.playerDataConstructor;
     }
 
-    public Optional<Method> playerDataOnLoginCallback() {
-        return Optional.ofNullable(this.playerDataOnLoginCallback);
+    /**
+     * @return the public {@code onLogin(ServerPlayer)} method. Null if the class is not player data or has no such
+     *     method.
+     */
+    public @Nullable Method playerDataOnLoginCallback() {
+        return this.playerDataOnLoginCallback;
     }
 
-    public Optional<Method> playerDataOnLogoutCallback() {
-        return Optional.ofNullable(this.playerDataOnLogoutCallback);
+    /**
+     * @return the public {@code onLogout(ServerPlayer)} method. Null if the class is not player data or has no such
+     *     method.
+     */
+    public @Nullable Method playerDataOnLogoutCallback() {
+        return this.playerDataOnLogoutCallback;
     }
 
+    /**
+     * Calls the {@code onLogin} method of the data, if the class has one. Logs a message at the
+     * {@link Settings#getMissingCallbacksSeverity()} level if the call fails.
+     *
+     * @param config the config of the data
+     * @param data the player data
+     * @param player the player that logged in
+     */
     @ApiStatus.Internal
     public void invokeLoginCallback(Config<T> config, PlayerData data, ServerPlayer player) {
         if (this.playerDataOnLoginCallback != null) {
@@ -133,6 +181,14 @@ public class ClassHolder<T extends Configuration> {
         }
     }
 
+    /**
+     * Calls the {@code onLogout} method of the data, if the class has one. Logs a message at the
+     * {@link Settings#getMissingCallbacksSeverity()} level if the call fails.
+     *
+     * @param config the config of the data
+     * @param data the player data
+     * @param player the player that logged out
+     */
     @ApiStatus.Internal
     public void invokeLogoutCallback(Config<T> config, PlayerData data, ServerPlayer player) {
         if (this.playerDataOnLogoutCallback != null) {
@@ -147,10 +203,16 @@ public class ClassHolder<T extends Configuration> {
         }
     }
 
+    /**
+     * @return the simple name of the configuration class
+     */
     public String simpleName() {
         return this.simpleName;
     }
 
+    /**
+     * @return the canonical name of the configuration class
+     */
     public String canonicalName() {
         return this.canonicalName;
     }

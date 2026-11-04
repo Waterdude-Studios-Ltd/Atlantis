@@ -26,7 +26,7 @@ public @interface BasicData {
     /**
      * The {@link AtlantisConfig} that this file is accessible from.
      *
-     * @return The mod ID of the owner of this configuration.
+     * @return the mod ID of the owner of this configuration
      */
     String mod();
 }

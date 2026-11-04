@@ -36,7 +36,7 @@ public @interface FileBackedObject {
     /**
      * The {@link AtlantisConfig} that this file is accessible from.
      *
-     * @return The owner of this configuration's mod ID.
+     * @return the owner of this configuration's mod ID
      */
     String mod();
 
@@ -46,7 +46,7 @@ public @interface FileBackedObject {
      * If {@link Data}, {@link NamedData}, or {@link PlayerData} are implemented instead, this should not contain a file
      * extension. Instead, this is the path of the directory for these data files, for example "dir".
      *
-     * @return The path of this configuration.
+     * @return the path of this configuration
      */
     String path();
 
@@ -57,7 +57,7 @@ public @interface FileBackedObject {
      * If {@link FileBackedObject#providerMethod()} and
      * {@link FileBackedObject#providerClass()} are set, this value is ignored.
      *
-     * @return The class of the {@link Storage} type of this configuration.
+     * @return the class of the {@link Storage} type of this configuration
      */
     Class<? extends Storage> storage() default Flatfile.class;
 
@@ -65,7 +65,7 @@ public @interface FileBackedObject {
      * The load order of this file, relative to other configurations registered with the same mod ID.
      * If multiple instances have the same order, they load in the order in which they are found.
      *
-     * @return The {@link LoadOrder} of this configuration, relative to others of the same mod ID.
+     * @return the {@link LoadOrder} of this configuration, relative to others of the same mod ID
      */
     LoadOrder order() default LoadOrder.NORMAL;
 
@@ -73,7 +73,7 @@ public @interface FileBackedObject {
      * Whether to force this data type to load. This applies only to player data. It loads all player data into memory
      * slowly over time.
      *
-     * @return Whether to force this configuration to load on start.
+     * @return whether to force this configuration to load on start
      */
     boolean force() default false;
 
@@ -81,7 +81,7 @@ public @interface FileBackedObject {
      * Whether this data type is an i18n file. If true, it is mapped as an i18n file, and the i18n file access methods
      * become available.
      *
-     * @return Whether this configuration is an i18n file.
+     * @return whether this configuration is an i18n file
      */
     boolean i18n() default false;
 
@@ -92,7 +92,7 @@ public @interface FileBackedObject {
      * This configuration instance then uses that {@link Storage}. It does not try to instantiate the storage through
      * {@link FileBackedObject#storage()}.
      *
-     * @return The {@link Configuration} class that contains a method that provides the {@link Storage} for this.
+     * @return the {@link Configuration} class that contains a method that provides the {@link Storage} for this
      */
     Class<? extends Configuration> providerClass() default NoConfiguration.class;
 
@@ -104,8 +104,8 @@ public @interface FileBackedObject {
      * This configuration instance then uses that {@link Storage}. It does not try to instantiate the storage through
      * {@link FileBackedObject#storage()}.
      *
-     * @return The name of the method that provides the {@link Storage} for this, in the class that
-     * {@link FileBackedObject#providerClass()} specifies.
+     * @return the name of the method that provides the {@link Storage} for this, in the class that
+     *     {@link FileBackedObject#providerClass()} specifies
      */
     String providerMethod() default "";
 
@@ -115,7 +115,7 @@ public @interface FileBackedObject {
      * This also controls whether to convert this file from JSON to AON if the JSON file exists.
      * If the path of this configuration instance ends in .aon, this value is automatically true.
      *
-     * @return Whether this configuration is an Atlantis Object Notation file.
+     * @return whether this configuration is an Atlantis Object Notation file
      */
     boolean aon() default false;
 }

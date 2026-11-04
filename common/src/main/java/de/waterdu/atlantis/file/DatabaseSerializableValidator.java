@@ -16,6 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Checks at compile time that the field type of each {@link DatabaseSerializable} field is allowed for its SQL type.
+ * Only the SQL types in {@link DatabaseEncoders.Defaults} that have {@link AllowedTypes} with at least one type are
+ * checked.
+ */
 @SupportedAnnotationTypes({
         "de.waterdu.atlantis.file.DatabaseSerializable",
         "de.waterdu.atlantis.file.AllowedTypes"
@@ -23,10 +28,21 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public class DatabaseSerializableValidator extends AbstractProcessor {
 
+    /**
+     * Creates the processor.
+     */
     public DatabaseSerializableValidator() {
         super();
     }
 
+    /**
+     * Reports an error for each {@link DatabaseSerializable} field whose erased type is not in the allowed types of
+     * its SQL type.
+     *
+     * @param annotations the annotation types of this round
+     * @param roundEnv the environment of this round
+     * @return {@code true}, so that no other processor claims the annotations
+     */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         var messager = this.processingEnv.getMessager();
@@ -54,6 +70,13 @@ public class DatabaseSerializableValidator extends AbstractProcessor {
         return true;
     }
 
+    /**
+     * Finds the constant in {@link DatabaseEncoders.Defaults} whose value is the SQL type, and gets its allowed types.
+     *
+     * @param type the SQL type. Case does not matter.
+     * @return the types in {@link AllowedTypes} of the constant, or {@code null} if no constant has the value or the
+     *     class is not found
+     */
     private List<TypeMirror> getAllowedTypes(String type) {
         var defaults = this.processingEnv.getElementUtils().getTypeElement("de.waterdu.atlantis.file.DatabaseEncoders.Defaults");
         if (defaults == null) {
@@ -67,6 +90,14 @@ public class DatabaseSerializableValidator extends AbstractProcessor {
         return null;
     }
 
+    /**
+     * Gets the classes of a class array parameter of an annotation on the element.
+     *
+     * @param element the annotated element
+     * @param annotation the annotation type
+     * @param paramName the name of the parameter
+     * @return the classes, or an empty list if the element has no such annotation or the parameter is not set
+     */
     @SuppressWarnings("unchecked")
     private List<TypeMirror> getClassArrayValueFromAnnotation(Element element, Class<? extends Annotation> annotation, String paramName) {
         var elements = this.processingEnv.getElementUtils();

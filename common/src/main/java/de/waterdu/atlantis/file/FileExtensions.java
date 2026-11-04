@@ -2,6 +2,9 @@ package de.waterdu.atlantis.file;
 
 import de.waterdu.atlantis.util.java.ExceptionUtils;
 
+/**
+ * Holds common file extensions, each with its leading {@code .}.
+ */
 public final class FileExtensions {
 
     public static final String JSON = ".json";

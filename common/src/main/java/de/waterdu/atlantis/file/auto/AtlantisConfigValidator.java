@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Checks at compile time that each class with a config annotation implements
+ * {@link de.waterdu.atlantis.file.datatypes.Configuration}. Data classes must also override {@code hashCode},
+ * {@code equals} and {@code toString}.
+ */
 @SupportedAnnotationTypes({
         "de.waterdu.atlantis.file.auto.FileBackedObject",
         "de.waterdu.atlantis.file.auto.BasicConfiguration",
@@ -27,10 +32,21 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_21)
 public final class AtlantisConfigValidator extends AbstractProcessor {
 
+    /**
+     * Creates the processor.
+     */
     public AtlantisConfigValidator() {
         super();
     }
 
+    /**
+     * Tests every element with {@link FileBackedObject}, {@link BasicConfiguration}, {@link BasicData} or
+     * {@link I18nFile}.
+     *
+     * @param annotations the annotation types of this round
+     * @param roundEnv the environment of this round
+     * @return {@code true}, so that no other processor claims the annotations
+     */
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         var elements = this.processingEnv.getElementUtils();
@@ -57,6 +73,18 @@ public final class AtlantisConfigValidator extends AbstractProcessor {
         return true;
     }
 
+    /**
+     * Reports an error if the element is not assignable to one of the interfaces. If it is a data type, also checks
+     * its {@link Object} methods.
+     *
+     * @param element the annotated element
+     * @param elements the element utilities
+     * @param interfaces the configuration interfaces
+     * @param types the type utilities
+     * @param dataType the type of {@code Data}
+     * @param messager reports the errors
+     * @param kind the simple name of the annotation, for the error message
+     */
     private void testElement(Element element, Elements elements, List<TypeMirror> interfaces, Types types, TypeMirror dataType, Messager messager, String kind) {
         var type = element.asType();
         for (var tm : interfaces) {
@@ -70,6 +98,15 @@ public final class AtlantisConfigValidator extends AbstractProcessor {
         messager.printMessage(Diagnostic.Kind.ERROR, "invalid " + kind + " implementation, must implement one of Configuration, Data, NamedData, PlayerData", element);
     }
 
+    /**
+     * Checks that the class has non-abstract {@code hashCode}, {@code equals} and {@code toString} methods that do
+     * not come from {@link Object}. Reports an error that names the missing methods.
+     *
+     * @param elements the element utilities
+     * @param element the class to check
+     * @param messager reports the error
+     * @return {@code true} if the class has all three methods
+     */
     private boolean validateObjectMethods(Elements elements, Element element, Messager messager) {
         boolean hashCode = false;
         boolean equals = false;
@@ -109,6 +146,13 @@ public final class AtlantisConfigValidator extends AbstractProcessor {
         }
     }
 
+    /**
+     * Checks if the list contains the same type.
+     *
+     * @param types the types to search
+     * @param type the type to find
+     * @return {@code true} if a type in the list is the same type
+     */
     private boolean containsType(List<TypeMirror> types, TypeMirror type) {
         for (var other : types) {
             if (this.processingEnv.getTypeUtils().isSameType(type, other)) {

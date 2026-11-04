@@ -22,6 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Registers the configs of Atlantis and gives access to its player data and page decorations.
+ */
 public final class AtlantisData {
 
     private static final AtomicBoolean REGISTERED = new AtomicBoolean(false);
@@ -31,6 +34,10 @@ public final class AtlantisData {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Registers the configs of Atlantis and loads the fonts. Runs only once. When the configs are ready, sets the
+     * thread pool size, schedules the async autosave and the leaderboard recalculation, and maps the decorations.
+     */
     public static void register() {
         if (!AtlantisData.REGISTERED.get()) {
             AtlantisConfigFinder.init(false);
@@ -67,10 +74,19 @@ public final class AtlantisData {
         }
     }
 
+    /**
+     * Gets the thread count to use when the settings do not set one.
+     *
+     * @param atlantisMods the number of mods that use Atlantis
+     * @return two threads for each mod plus one, and at least {@link Atlantis#DEFAULT_THREADS}
+     */
     public static int automaticThreadCount(int atlantisMods) {
         return Math.max(Atlantis.DEFAULT_THREADS, atlantisMods * 2 + 1);
     }
 
+    /**
+     * Maps each {@link Decorations} config to the page class that it is for. Replaces the old mapping.
+     */
     public static void mapDecorations() {
         AtlantisData.MAPPED_DECORATIONS.clear();
         for (var def : Atlantis.CONFIG.all(Decorations.class)) {
@@ -80,18 +96,33 @@ public final class AtlantisData {
         }
     }
 
+    /**
+     * @return {@code null} if no decorations are set for the class of the page
+     */
     public static Decorations decorations(Page page) {
         return AtlantisData.MAPPED_DECORATIONS.get(page.getClass());
     }
 
+    /**
+     * @return {@code null} if no decorations are set for the class
+     */
     public static Decorations decorations(Class<? extends Page> page) {
         return AtlantisData.MAPPED_DECORATIONS.get(page);
     }
 
+    /**
+     * Gets the data with {@link #get(Player)} if the player is online, or else with {@link #get(UUID)}.
+     *
+     * @param player the player
+     * @return a future of the data
+     */
     public static CompletableFuture<AtlantisPlayer> get(PlayerReference player) {
         return player.entity().map(AtlantisData::get).orElseGet(() -> AtlantisData.get(player.uuid()));
     }
 
+    /**
+     * Same as {@link #get(UUID)}. Also updates the stored name of the player.
+     */
     public static CompletableFuture<AtlantisPlayer> get(Player player) {
         return AtlantisData.get(player.getUUID()).whenComplete((p, err) -> {
             if (p != null) {
@@ -100,14 +131,27 @@ public final class AtlantisData {
         });
     }
 
+    /**
+     * Creates and saves the data if it does not exist.
+     */
     public static CompletableFuture<AtlantisPlayer> get(UUID uuid) {
         return Atlantis.CONFIG.getForOrPut(AtlantisPlayer.class, uuid, () -> new AtlantisPlayer(uuid));
     }
 
+    /**
+     * Unlike {@link #get(UUID)}, this does not create the data.
+     *
+     * @return a future of {@code null} if the name is not known
+     */
     public static CompletableFuture<AtlantisPlayer> get(String name) {
         return Atlantis.CONFIG.get(AtlantisPlayer.class, name);
     }
 
+    /**
+     * Does not wait for storage. Creates the data if it does not exist, as {@link #get(UUID)} does.
+     *
+     * @return a plain player head if the data is not available yet
+     */
     public static ItemStack headItem(UUID uuid) {
         var pd = AtlantisData.get(uuid).getNow(null);
         return pd == null ? new ItemStack(Items.PLAYER_HEAD) : pd.headItem();

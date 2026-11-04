@@ -14,8 +14,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Registers the encoders and decoders that convert fields to and from SQL values for database storage.
+ */
 public final class DatabaseEncoders {
 
+    /**
+     * Holds the names of the built-in SQL types and encoders. {@link AllowedTypes} on each name lists the Java types
+     * that {@link DatabaseSerializableValidator} accepts for it.
+     */
     public static class Defaults {
 
         @AllowedTypes({})
@@ -96,11 +103,21 @@ public final class DatabaseEncoders {
             ExceptionUtils.throwCannotInstantiateClassException();
         }
 
+        /**
+         * Gets the name of a {@code varchar} type with the length.
+         *
+         * @param len the maximum length
+         * @return {@code varchar(len)}
+         */
         public static String varchar(int len) {
             return VARCHAR + "(" + len + ")";
         }
     }
 
+    /**
+     * Holds the marks that can go around an encoded value in SQL queries. See
+     * {@link DatabaseSerializable#quoteMark()}.
+     */
     public static class QuoteMarks {
 
         public static final String NONE = "";
@@ -182,47 +199,116 @@ public final class DatabaseEncoders {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Replaces an encoder that has the same name. Register it before the database storage that uses it initializes.
+     *
+     * @param name the name for {@link DatabaseSerializable#encoder()}. Case does not matter.
+     */
     public static void register(String name, Encoder<?> encoder, Decoder<?> decoder) {
         DatabaseEncoders.ENCODERS.put(name.toLowerCase(Locale.ROOT), encoder);
         DatabaseEncoders.DECODERS.put(name.toLowerCase(Locale.ROOT), decoder);
     }
 
+    /**
+     * Registers the same encoder and decoder under each name. See {@link #register(String, Encoder, Decoder)}.
+     *
+     * @param encoder the encoder
+     * @param decoder the decoder
+     * @param names the names for {@link DatabaseSerializable#encoder()}. Case does not matter.
+     */
     public static void register(Encoder<?> encoder, Decoder<?> decoder, String... names) {
         for (var name : names) {
             DatabaseEncoders.register(name, encoder, decoder);
         }
     }
 
+    /**
+     * Gets the encoder that has the name.
+     *
+     * @param name the name of the encoder. Case does not matter.
+     * @return the encoder, or an empty optional if no encoder has the name
+     */
     public static Optional<Encoder<?>> getEncoder(String name) {
         return Optional.ofNullable(DatabaseEncoders.ENCODERS.get(name.toLowerCase(Locale.ROOT)));
     }
 
+    /**
+     * Gets the decoder that has the name.
+     *
+     * @param name the name of the decoder. Case does not matter.
+     * @return the decoder, or an empty optional if no decoder has the name
+     */
     public static Optional<Decoder<?>> getDecoder(String name) {
         return Optional.ofNullable(DatabaseEncoders.DECODERS.get(name.toLowerCase(Locale.ROOT)));
     }
 
+    /**
+     * Converts a field value to the string that goes in an SQL query.
+     *
+     * @param <T> the type of the field value
+     * @param encoder converts the config, the field and the value to the string
+     */
     public record Encoder<T>(TriFunction<Config<?>, FieldHolder, T, String> encoder) {
 
+        /**
+         * Creates an encoder that uses {@link String#valueOf(Object)}.
+         */
         public Encoder() {
             this((config, field, data) -> String.valueOf(data));
         }
 
+        /**
+         * Encodes the value without a type check.
+         *
+         * @param config the config that owns the field
+         * @param field the field of the value
+         * @param data the value. It must be of type {@code T}.
+         * @return the encoded string
+         */
         @SuppressWarnings("unchecked")
         public String encode(Config<?> config, FieldHolder field, Object data) {
             return this.encoder.apply(config, field, (T) data);
         }
     }
 
+    /**
+     * Reads a column from an SQL result and converts it to a field value.
+     *
+     * @param <T> the type that the extractor reads from the result
+     * @param extractor reads the value of a column from the result
+     * @param decoder converts the config, the field and the read value to the field value
+     */
     public record Decoder<T>(SQLBiFunction<ResultSet, String, T> extractor, TriFunction<Config<?>, FieldHolder, T, ?> decoder) {
 
+        /**
+         * Creates a decoder that uses the read value as the field value.
+         *
+         * @param extractor reads the value of a column from the result
+         */
         public Decoder(SQLBiFunction<ResultSet, String, T> extractor) {
             this(extractor, (config, field, data) -> data);
         }
 
+        /**
+         * Reads the value of the column from the current row of the result.
+         *
+         * @param rs the SQL result
+         * @param column the name of the column
+         * @return the read value
+         * @throws SQLException if the result cannot read the column
+         */
         public T extract(ResultSet rs, String column) throws SQLException {
             return this.extractor.apply(rs, column);
         }
 
+        /**
+         * Decodes the read value without a type check.
+         *
+         * @param config the config that owns the field
+         * @param field the field to decode for
+         * @param data the read value. It must be of type {@code T}.
+         * @return the field value
+         */
         @SuppressWarnings("unchecked")
         public Object decode(Config<?> config, FieldHolder field, Object data) {
             return this.decoder.apply(config, field, (T) data);

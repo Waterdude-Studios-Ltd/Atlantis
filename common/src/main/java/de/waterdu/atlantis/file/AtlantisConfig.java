@@ -69,10 +69,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-@Bootstrapped
+/**
+ * Holds the configs of one mod, its config directory and its {@link Gson}. The static methods find the instance of a
+ * mod by its ID. Most code uses {@link Atlantis#CONFIG} instead.
+ */
+@Bootstrapped(Bootstrapped.Priority.HIGH)
 public final class AtlantisConfig {
 
-    private static final AtomicBoolean INIT = new AtomicBoolean(false);
     private static final Map<String, AtlantisConfig> INSTANCES = new ConcurrentHashMap<>();
     private static final Map<Class<?>, String> CLASS_TO_MOD = new ConcurrentHashMap<>();
     private static final List<Config<? extends PlayerData>> PLAYER_CONFIGS = new ArrayList<>();
@@ -131,6 +134,10 @@ public final class AtlantisConfig {
     final Map<String, Config<? extends Configuration>> configs = new ConcurrentHashMap<>();
     private File dir;
 
+    /**
+     * Creates the {@link GsonBuilder} with the default settings, the Atlantis type adapters, the type adapters of the
+     * mod proxies and the default {@link Configurable} contexts.
+     */
     private AtlantisConfig() {
         this.gsonBuilder = new GsonBuilder().setPrettyPrinting()
                 .disableHtmlEscaping()
@@ -147,6 +154,10 @@ public final class AtlantisConfig {
         Configurable.registerDefaultContexts(this.gsonBuilder);
     }
 
+    /**
+     * Collects the type adapters that listeners add with {@link GatherTypeAdaptersEventPayload}, and rebuilds the
+     * {@link Gson} of each instance.
+     */
     @Entrypoint
     @SuppressWarnings("unused")
     private static void bootstrap() {
@@ -156,40 +167,75 @@ public final class AtlantisConfig {
         }
     }
 
+    /**
+     * Changes the {@link GsonBuilder} and then rebuilds the {@link Gson}.
+     *
+     * @param scope changes the builder
+     */
     private void gsonBuilder(Consumer<GsonBuilder> scope) {
         scope.accept(gsonBuilder);
         rebuildGson();
     }
 
+    /**
+     * Adds type adapters to the {@link Gson} of the mod.
+     * Configs that are already registered keep their old {@link Gson}. Call this before the configs of the mod
+     * register.
+     */
     public static void registerTypeAdapters(String mod, Consumer<GsonBuilder> consumer) {
         AtlantisConfig.of(mod).registerTypeAdapters(consumer);
     }
 
+    /**
+     * Adds type adapters to the {@link Gson} of the mod.
+     * Configs that are already registered keep their old {@link Gson}. Call this before the configs of the mod
+     * register.
+     */
     public void registerTypeAdapters(Consumer<GsonBuilder> consumer) {
         this.gsonBuilder(consumer);
     }
 
+    /**
+     * Builds the {@link Gson} if it is not built yet.
+     */
     public void ensureGsonBuilt() {
         if (this.gson == null) {
             this.rebuildGson();
         }
     }
 
+    /**
+     * Builds a new {@link Gson} from the current {@link GsonBuilder}.
+     */
     public void rebuildGson() {
         this.gson = this.gsonBuilder.create();
     }
 
+    /**
+     * @return the {@link Gson} of the mod. It is built on the first call.
+     */
     public Gson gson() {
         this.ensureGsonBuilt();
         return this.gson;
     }
 
+    /**
+     * Creates a new instance for the mod and replaces the old instance.
+     *
+     * @param mod the mod ID
+     */
     @SuppressWarnings("all")
     @ApiStatus.Internal
     static void preRegistration(String mod) {
         INSTANCES.put(mod, preRegistration0(mod));
     }
 
+    /**
+     * Creates a new instance for the mod and creates its config directory. The instance is not stored.
+     *
+     * @param mod the mod ID
+     * @return the new instance
+     */
     @SuppressWarnings("all")
     @ApiStatus.Internal
     static AtlantisConfig preRegistration0(String mod) {
@@ -198,6 +244,12 @@ public final class AtlantisConfig {
         return instance;
     }
 
+    /**
+     * Creates the config directory of the loader and the directory of the mod in it, if they do not exist.
+     *
+     * @param mod the mod ID
+     * @return the config directory of the mod
+     */
     private static File resolveDir(String mod) {
         var all = Mods.modLoader().configDir().toFile();
         if (all.mkdir()) {
@@ -208,6 +260,10 @@ public final class AtlantisConfig {
         return dir;
     }
 
+    /**
+     * Removes the configs, the scheduled tasks and the directory of each instance, and marks each instance as not
+     * ready. The instances stay registered.
+     */
     @VisibleForTesting
     public static void resetForTesting() {
         for (var instance : INSTANCES.values()) {
@@ -216,11 +272,19 @@ public final class AtlantisConfig {
             instance.ready.set(false);
             instance.dir = null;
         }
-        INIT.set(false);
         CLASS_TO_MOD.clear();
         PLAYER_CONFIGS.clear();
     }
 
+    /**
+     * Reads the configuration from storage and blocks until the read completes. If storage has no value, writes the
+     * default configuration.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param <T> the configuration type
+     * @return the configuration, or {@code null} if the read fails
+     */
     @SuppressWarnings("unchecked")
     @ApiStatus.Internal
     static <T extends Configuration> T getDuringRegistration(String mod, Class<? extends T> clazz) {
@@ -238,10 +302,16 @@ public final class AtlantisConfig {
         }
     }
 
+    /**
+     * Starts to read each config of the mod in load order, and writes each config after its read. Player data is
+     * read only if it is force loaded. Then marks the mod as ready.
+     *
+     * @param modId the mod ID
+     */
     @ApiStatus.Internal
-    static void postRegistration(String mod) {
-        var instance = AtlantisConfig.of(mod);
-        List<Config<?>> configs = Lists.newArrayList(instance.configs.values());
+    static void postRegistration(String modId) {
+        var instance = AtlantisConfig.of(modId);
+        var configs = Lists.newArrayList(instance.configs.values());
         configs.sort(Comparator.comparingInt(config -> config.order().ordinal()));
         for (final var config : configs) {
             if (!config.isPlayerData() || config.shouldForceLoad()) {
@@ -250,38 +320,56 @@ public final class AtlantisConfig {
         }
         if (instance.readyLock.tryLock()) {
             instance.ready.set(true);
-            if (Atlantis.ID.equalsIgnoreCase(mod)) {
-                AtlantisConfig.INIT.set(true);
-            }
             instance.readyLock.unlock();
         }
     }
 
+    /**
+     * Marks the mod as not ready and calls {@link AtlantisConfigFinder#restoreFromBackup()}, so that the configs can
+     * register again.
+     *
+     * @param mod the mod ID
+     */
     @ApiStatus.Internal
     public static void markUnready(String mod) {
         var instance = AtlantisConfig.of(mod);
         if (instance.readyLock.tryLock()) {
             instance.ready.set(false);
-            if (Atlantis.ID.equalsIgnoreCase(mod)) {
-                AtlantisConfig.INIT.set(false);
-            }
             AtlantisConfigFinder.restoreFromBackup();
             instance.readyLock.unlock();
         }
     }
 
+    /**
+     * @return {@code true} after all configs of the mod register. The reads that start then can still be in progress.
+     */
     public boolean ready() {
         return this.ready.get();
     }
 
+    /**
+     * Gets the instance of the mod, and creates it if it does not exist.
+     *
+     * @param mod the mod ID
+     * @return the instance of the mod
+     */
     static AtlantisConfig of(String mod) {
         return AtlantisConfig.INSTANCES.computeIfAbsent(mod, key -> AtlantisConfig.preRegistration0(mod));
     }
 
+    /**
+     * @return the instances of all mods
+     */
     public static Collection<AtlantisConfig> allInstances() {
         return AtlantisConfig.INSTANCES.values();
     }
 
+    /**
+     * Gets the config directory of the mod, and creates it if it is not known yet.
+     *
+     * @param mod the mod ID
+     * @return the config directory of the mod
+     */
     public static File dirOf(String mod) {
         var instance = AtlantisConfig.of(mod);
         if (instance.dir == null) {
@@ -290,10 +378,35 @@ public final class AtlantisConfig {
         return instance.dir;
     }
     
+    /**
+     * Creates a {@link Config} for the configuration class and adds it to the mod. Fires
+     * {@link UEvent#REGISTER_CONFIG}, whose listeners can change the path. Logs an error if the config fails to
+     * initialize.
+     *
+     * @param mod the mod ID
+     * @param path the path of the file or directory, relative to the config directory of the mod
+     * @param clazz the configuration class
+     * @param instance the default configuration instance
+     * @param storage the storage that reads and writes the configuration
+     * @param forceLoad reads player data from storage when the configs of the mod load
+     * @param lang maps the fields of the configuration to messages
+     * @param aon writes the files in the AON format instead of JSON
+     * @param order the load order relative to the other configs of the mod
+     * @param <T> the configuration type
+     */
     @SuppressWarnings("unchecked")
     @ApiStatus.Internal
-    static <T extends Configuration> void register(String mod, String path, Class<? extends Configuration> clazz, Configuration instance,
-                                                   Storage storage, boolean forceLoad, boolean lang, boolean aon, LoadOrder order) {
+    static <T extends Configuration> void register(
+            String mod,
+            String path,
+            Class<? extends Configuration> clazz,
+            Configuration instance,
+            Storage storage,
+            boolean forceLoad,
+            boolean lang,
+            boolean aon,
+            LoadOrder order
+    ) {
         try {
             var config = AtlantisConfig.of(mod);
             var specific = new Config<>(config, mod, clazz.getCanonicalName(), config.gson(), (T) instance, (Class<T>) clazz, storage, forceLoad, lang, aon, order);
@@ -309,6 +422,15 @@ public final class AtlantisConfig {
         }
     }
 
+    /**
+     * Gets the configuration. If the mod is not ready, reads it from storage with
+     * {@link #getDuringRegistration(String, Class)}.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param <T> the configuration type
+     * @return the configuration
+     */
     @ApiStatus.Internal
     static <T extends Configuration> T get(String mod, Class<? extends T> clazz) {
         var instance = AtlantisConfig.of(mod);
@@ -319,6 +441,15 @@ public final class AtlantisConfig {
         return config.get();
     }
 
+    /**
+     * Gets the configuration if the mod is ready.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param orElse the value to return if the mod is not ready or the configuration is {@code null}
+     * @param <T> the configuration type
+     * @return the configuration, or {@code orElse}
+     */
     @ApiStatus.Internal
     static <T extends Configuration> T getOrElse(String mod, Class<? extends T> clazz, T orElse) {
         var instance = AtlantisConfig.of(mod);
@@ -329,26 +460,64 @@ public final class AtlantisConfig {
         return result == null ? orElse : result;
     }
 
+    /**
+     * @param mod the mod ID
+     * @param clazz the data class
+     * @param <T> the data type
+     * @return a copy of all instances in memory
+     */
     @ApiStatus.Internal
     static <T extends Configuration> Collection<T> getAll(String mod, Class<? extends T> clazz) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).all();
     }
 
+    /**
+     * Runs the task now if the configs of the mod are ready. If not, the task runs when they are ready.
+     *
+     * @param mod the mod ID
+     * @param task the task to run
+     */
     @ApiStatus.Internal
     static void enqueue(final String mod, final Runnable task) {
         AtlantisConfig.of(mod).enqueue(task);
     }
 
+    /**
+     * Runs the task with {@link Config#runTask(Consumer)}.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param task receives a copy of all instances
+     * @param <T> the configuration type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void enqueue(String mod, Class<? extends T> clazz, Consumer<Collection<T>> task) {
         AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).runTask(task);
     }
 
+    /**
+     * Puts the instance in memory with {@link Config#put(Configuration)}.
+     *
+     * @param mod the mod ID
+     * @param clazz the data class
+     * @param instance the instance to put
+     * @param <T> the data type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void put(String mod, Class<? extends T> clazz, T instance) {
         AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).put(instance);
     }
 
+    /**
+     * Formats a message of an i18n config.
+     *
+     * @param mod the mod ID
+     * @param clazz the i18n class
+     * @param key the Java field name in the i18n class
+     * @param args the values for {@code %1}, {@code %2} and so on
+     * @param <T> the i18n type
+     * @return the formatted message, or empty text if the config is not an i18n config
+     */
     @ApiStatus.Internal
     static <T extends Configuration> Text format(String mod, Class<T> clazz, String key, Object... args) {
         var config = AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName());
@@ -358,11 +527,31 @@ public final class AtlantisConfig {
         return Text.empty();
     }
 
+    /**
+     * Loads the player data from storage if it is not in memory.
+     *
+     * @param mod the mod ID
+     * @param clazz the player data class
+     * @param uuid the UUID of the player
+     * @param <T> the player data type
+     * @return a future of the instance, or of {@code null} if there is none
+     */
     @ApiStatus.Internal
     static <T extends Configuration> CompletableFuture<T> getFor(String mod, Class<? extends T> clazz, UUID uuid) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).get(AtlantisConfig.copyUUID(uuid));
     }
 
+    /**
+     * Loads the player data from storage if it is not in memory. If there is none, puts and saves the instance from
+     * {@code orElse}.
+     *
+     * @param mod the mod ID
+     * @param clazz the player data class
+     * @param uuid the UUID of the player
+     * @param orElse supplies a new instance
+     * @param <T> the player data type
+     * @return a future of the existing or the new instance
+     */
     @ApiStatus.Internal
     static <T extends Configuration> CompletableFuture<T> getForOrPut(String mod, Class<? extends T> clazz, UUID uuid, Supplier<T> orElse) {
         var config = AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName());
@@ -376,41 +565,107 @@ public final class AtlantisConfig {
         });
     }
 
+    /**
+     * Removes the player data with {@link Config#remove(UUID)}.
+     *
+     * @param mod the mod ID
+     * @param clazz the player data class
+     * @param uuid the UUID of the player
+     * @param <T> the player data type
+     * @return the future that {@link Config#remove(UUID)} returns
+     */
     @ApiStatus.Internal
     static <T extends Configuration> CompletableFuture<T> remove(String mod, Class<? extends T> clazz, UUID uuid) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).remove(AtlantisConfig.copyUUID(uuid));
     }
 
+    /**
+     * Removes the named data with {@link Config#remove(String)}.
+     *
+     * @param mod the mod ID
+     * @param clazz the named data class
+     * @param name the name of the instance
+     * @param <T> the named data type
+     * @return the future that {@link Config#remove(String)} returns
+     */
     @ApiStatus.Internal
     static <T extends Configuration> CompletableFuture<T> remove(String mod, Class<? extends T> clazz, String name) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).remove(name);
     }
 
+    /**
+     * Gets the named data from memory.
+     *
+     * @param mod the mod ID
+     * @param clazz the named data class
+     * @param name the name of the instance
+     * @param <T> the named data type
+     * @return the instance, or {@code null} if it is not in memory
+     */
     @ApiStatus.Internal
     static <T extends Configuration> T getFor(String mod, Class<? extends T> clazz, String name) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).get(name);
     }
 
+    /**
+     * Gets the player data from memory.
+     *
+     * @param mod the mod ID
+     * @param clazz the player data class
+     * @param player the player
+     * @param <T> the player data type
+     * @return the instance, or {@code null} if it is not in memory
+     */
     @ApiStatus.Internal
     static <T extends Configuration> T getFor(String mod, Class<? extends T> clazz, Player player) {
         return AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).get(player);
     }
 
+    /**
+     * Starts to read the config from storage.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param <T> the configuration type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void load(String mod, Class<? extends T> clazz) {
         AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).read();
     }
 
+    /**
+     * Writes the whole config on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param mod the mod ID
+     * @param clazz the configuration class
+     * @param <T> the configuration type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void save(final String mod, final Class<? extends T> clazz) {
         Atlantis.THREAD_POOL.submit(() -> AtlantisConfig.of(mod).<T>config(clazz.getCanonicalName()).write());
     }
 
+    /**
+     * Writes the instance without {@code immediate}. Player data waits for the next async save.
+     *
+     * @param mod the mod ID
+     * @param data the instance to write
+     * @param <T> the configuration type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void save(final String mod, final T data) {
         AtlantisConfig.save(mod, data, false);
     }
 
+    /**
+     * Writes the instance with {@link Config#write(Configuration, boolean)}. Player data is written on the current
+     * thread, and other types on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param mod the mod ID
+     * @param data the instance to write
+     * @param immediate writes player data now. If not set, player data waits for the next async save.
+     * @param <T> the configuration type
+     */
     @ApiStatus.Internal
     static <T extends Configuration> void save(final String mod, final T data, final boolean immediate) {
         Runnable writeTask = () -> AtlantisConfig.of(mod).<T>config(data.getClass().getName()).write(data, immediate);
@@ -421,6 +676,12 @@ public final class AtlantisConfig {
         }
     }
 
+    /**
+     * Starts to read each config of the mod that matches the type.
+     *
+     * @param mod the mod ID
+     * @param type selects the configs to read
+     */
     @ApiStatus.Internal
     static void loadAll(String mod, DataType type) {
         for (var config : AtlantisConfig.of(mod).configs.values()) {
@@ -430,6 +691,12 @@ public final class AtlantisConfig {
         }
     }
 
+    /**
+     * Writes each config of the mod that matches the type, on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param mod the mod ID
+     * @param type selects the configs to write
+     */
     @ApiStatus.Internal
     static void saveAll(final String mod, final DataType type) {
         Atlantis.THREAD_POOL.submit(() -> {
@@ -441,49 +708,85 @@ public final class AtlantisConfig {
         });
     }
 
+    /**
+     * @param key the canonical name of the configuration class
+     * @return the config. Throws {@link NullPointerException} if no config has this key.
+     */
     @SuppressWarnings("unchecked")
     public <T extends Configuration> Config<T> config(String key) {
         return Objects.requireNonNull((Config<T>) this.configs.get(key), "Invalid configuration type " + key);
     }
 
+    /**
+     * Lets the storage of each config of the mod release its resources.
+     */
     public void destruct() {
         for (var config : this.configs.values()) {
             config.destruct();
         }
     }
 
+    /**
+     * @param uuid the UUID to copy
+     * @return a new UUID with the same value
+     */
     static UUID copyUUID(UUID uuid) {
         return new UUID(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
+    /**
+     * @return the mod ID, or {@code null} if the class is not registered
+     */
     public static String findOwnerMod(Class<? extends Configuration> clazz) {
         return AtlantisConfig.CLASS_TO_MOD.get(clazz);
     }
 
+    /**
+     * Tells the storage of each player data config that the player joined.
+     *
+     * @param player the player that joined
+     */
     public static void onPlayerJoin(ServerPlayer player) {
         for (var config : AtlantisConfig.PLAYER_CONFIGS) {
             config.storage().onPlayerJoin(config, player);
         }
     }
 
+    /**
+     * Tells the storage of each player data config that the player left.
+     *
+     * @param player the player that left
+     */
     public static void onPlayerLeave(ServerPlayer player) {
         for (var config : AtlantisConfig.PLAYER_CONFIGS) {
             config.storage().onPlayerLeave(config, player);
         }
     }
 
+    /**
+     * Writes the queued player data of all mods with {@link #asyncSaveInner()}.
+     */
     static void asyncSave() {
         for (var instance : AtlantisConfig.INSTANCES.values()) {
             instance.asyncSaveInner();
         }
     }
 
+    /**
+     * Writes the queued player data of each config of the mod with {@link Config#asyncSave()}.
+     */
     public void asyncSaveInner() {
         for (var config : this.configs.values()) {
             config.asyncSave();
         }
     }
 
+    /**
+     * Runs the task now if the configs of the mod are ready. If not, schedules it. The scheduled tasks run on
+     * {@link Atlantis#THREAD_POOL} when the configs are ready, in the order that they were added.
+     *
+     * @param task the task to run
+     */
     void enqueue(final Runnable task) {
         if (this.ready.get() && this.lock.tryLock()) {
             this.lock.unlock();

@@ -55,14 +55,30 @@ public class Redis implements Storage {
 
     private String channel;
 
+    /**
+     * Connects to Redis immediately.
+     *
+     * @param url the format is {@code redis://[user:]password@host:port/}. The credentials are optional.
+     */
     public Redis(String url) throws InvalidRedisUrlException {
         this(Redis.toURIArray(url));
     }
 
+    /**
+     * Connects to Redis immediately.
+     *
+     * @param uriArray the host, port, username and password from {@link #toURIArray}
+     */
     private Redis(Object[] uriArray) {
         this((String) uriArray[0], (Integer) uriArray[1], (String) uriArray[2], (char[]) uriArray[3]);
     }
 
+    /**
+     * Connects to Redis immediately.
+     *
+     * @param username empty for no username
+     * @param password empty for no password
+     */
     public Redis(String ip, int port, String username, char[] password) {
         RedisURI.Builder builder = RedisURI.builder().withHost(ip).withPort(port);
         if (!username.isEmpty()) {
@@ -78,11 +94,23 @@ public class Redis implements Storage {
         this.pub = this.client.connectPubSub();
     }
 
+    /**
+     * Subscribes to the channel {@code modId:path} and sends a {@code HI} message to the other servers on it.
+     *
+     * @param config the config that uses this storage
+     * @param modId the ID of the mod that owns the config
+     * @param key the key of the config
+     * @param path the path of the config, used in the channel name
+     * @param gson the Gson instance of the config
+     * @param configuration the default configuration instance
+     * @param classes the classes of the config
+     * @param <T> the configuration type
+     */
     @Override
-    public <T extends Configuration> void init(Config<T> config, String modID, String key, String path, Gson gson,
+    public <T extends Configuration> void init(Config<T> config, String modId, String key, String path, Gson gson,
                                                T configuration, ClassHolder<T> classes) {
         this.config = config;
-        this.channel = modID + ":" + path;
+        this.channel = modId + ":" + path;
         this.sub.sync().subscribe(this.channel);
         this.sub.addListener(new RedisPubSubAdapter<>() {
             @Override
@@ -93,6 +121,12 @@ public class Redis implements Storage {
         this.publishAsync(Message.HI.prepare(this));
     }
 
+    /**
+     * Closes both connections and shuts down the client.
+     *
+     * @param config the config that uses this storage
+     * @param <T> the configuration type
+     */
     @Override
     public <T extends Configuration> void destruct(Config<T> config) {
         this.sub.close();
@@ -100,6 +134,14 @@ public class Redis implements Storage {
         this.client.shutdown();
     }
 
+    /**
+     * Publishes every data instance in memory, or publishes the configuration under the zeroed UUID. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config to publish
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the publish was successful, or of {@code false} if the server is not alive
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> write(Config<T> config) {
         var result = new CompletableFuture<Boolean>();
@@ -144,11 +186,28 @@ public class Redis implements Storage {
         return result;
     }
 
+    /**
+     * Publishes the data instance on the channel.
+     *
+     * @param config the config of the data
+     * @param data the data instance to publish
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the publish was successful
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> writeSpecific(Config<T> config, T data) {
         return this.writeSpecific(config, data, this.updateTimestamps.get());
     }
 
+    /**
+     * Publishes the data instance on the channel on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param data the data instance to publish
+     * @param updateTimestamps sets the timestamp of the instance to the current time before the publish
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the publish was successful, or of {@code false} if the server is not alive
+     */
     private  <T extends Configuration> CompletableFuture<Boolean> writeSpecific(Config<T> config, T data, boolean updateTimestamps) {
         var result = new CompletableFuture<Boolean>();
         if (!this.isServerAlive()) {
@@ -172,31 +231,82 @@ public class Redis implements Storage {
         return result;
     }
 
+    /**
+     * Reads nothing, because the instances arrive as messages from other servers.
+     *
+     * @param config the config to read
+     * @param skipNulls ignored
+     * @param <T> the configuration type
+     * @return a completed future of {@code false}
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> read(Config<T> config, boolean skipNulls) {
         return CompletableFuture.completedFuture(false);
     }
 
+    /**
+     * Reads nothing, because the instances arrive as messages from other servers.
+     *
+     * @param config the config to read
+     * @param dir ignored
+     * @param names ignored
+     * @param <T> the configuration type
+     * @return a completed future of {@code false}
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> readAll(Config<T> config, File dir, Set<String> names) {
         return CompletableFuture.completedFuture(false);
     }
 
+    /**
+     * Reads nothing, because the instances arrive as messages from other servers.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a completed future of {@code null}
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromUUID(Config<T> config, UUID uuid) {
         return CompletableFuture.completedFuture(null);
     }
 
+    /**
+     * Reads nothing, because the instances arrive as messages from other servers.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a completed future of {@code null}
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromName(Config<T> config, String name) {
         return CompletableFuture.completedFuture(null);
     }
 
+    /**
+     * Removes the data instance from memory and sends a {@code DEL} message to the other servers.
+     *
+     * @param config the config of the data
+     * @param data the data instance to delete
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> delete(Config<T> config, T data) {
         return this.delete(config, data, true);
     }
 
+    /**
+     * Removes the data instance from the UUID, file name and name maps of the config on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param data the data instance to delete
+     * @param sendMessage sends a {@code DEL} message to the other servers
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if the server is not alive or the removal failed
+     */
     private <T extends Configuration> CompletableFuture<T> delete(Config<T> config, T data, boolean sendMessage) {
         var result = new CompletableFuture<T>();
         if (!this.isServerAlive()) {
@@ -222,11 +332,29 @@ public class Redis implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the data instance with the given UUID and sends a {@code DEL} message to the other servers.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromUUID(Config<T> config, UUID uuid) {
         return this.deleteFromUUID(config, uuid, true);
     }
 
+    /**
+     * Deletes the data instance with the given UUID with {@link #delete(Config, Configuration, boolean)}. The
+     * instance must already be loaded.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param sendMessage sends a {@code DEL} message to the other servers
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if the server is not alive or nothing was removed
+     */
     private <T extends Configuration> CompletableFuture<T> deleteFromUUID(Config<T> config, UUID uuid, boolean sendMessage) {
         var result = new CompletableFuture<T>();
         if (!this.isServerAlive()) {
@@ -243,6 +371,14 @@ public class Redis implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the named data instance with the given name with {@link #delete(Config, Configuration)}.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromName(Config<T> config, String name) {
         var data = config.get(name);
@@ -252,22 +388,51 @@ public class Redis implements Storage {
         return this.delete(config, data);
     }
 
+    /**
+     * Publishes a {@code JSON} message with the stored timestamp of the UUID, or {@code 0} if it has none.
+     *
+     * @param uuid the UUID of the instance
+     * @param json the serialized instance
+     */
     private void publishJson(UUID uuid, String json) {
         this.publish(Message.JSON + " " + this.timestamps.getOrDefault(uuid, 0L) + " " + json);
     }
 
+    /**
+     * Sends the message on the channel of this storage and blocks until Redis replies.
+     * Use it only after the storage initializes.
+     */
     public void publish(String message) {
         this.pub.sync().publish(this.channel, message);
     }
 
+    /**
+     * Sends the message on the channel of this storage and does not wait for Redis to reply. Use it only after the
+     * storage initializes.
+     *
+     * @param message the message to send
+     */
     public void publishAsync(String message) {
         this.pub.async().publish(this.channel, message);
     }
 
+    /**
+     * Processes a message from the channel and logs its type.
+     *
+     * @param message the received message
+     */
     private void receive(String message) {
         Message.process(this, message).ifPresent(msg -> AtlantisLogger.debug("Received Redis message of type {} on channel {}", msg.toString(), this.channel));
     }
 
+    /**
+     * Puts the received instance in memory if its timestamp is not older than the stored one. Data goes in the
+     * config, and a configuration replaces the current one.
+     *
+     * @param timestamp the time of the change, in milliseconds
+     * @param json the serialized instance
+     * @param <T> the configuration type
+     */
     @SuppressWarnings("unchecked")
     private <T extends Configuration> void put(long timestamp, String json) {
         var config = (Config<T>) this.config;
@@ -282,25 +447,49 @@ public class Redis implements Storage {
         }
     }
 
+    /**
+     * Thrown when a Redis URL is not in the format {@code redis://[user:]password@host:port/}.
+     */
     public static class InvalidRedisUrlException extends RuntimeException {
 
         private final String uri;
 
+        /**
+         * Creates the exception for the given URL.
+         *
+         * @param uri the invalid URL
+         */
         public InvalidRedisUrlException(String uri) {
             super(uri);
             this.uri = uri;
         }
 
+        /**
+         * @return the invalid URL
+         */
         public String getURI() {
             return this.uri;
         }
 
+        /**
+         * Gets a message that shows the expected format, instead of the URL.
+         *
+         * @return the message
+         */
         @Override
         public String getMessage() {
             return "URI must be in the format \"redis://password@ip:port/\".";
         }
     }
 
+    /**
+     * Splits a Redis URL into its parts.
+     *
+     * @param uri the URL in the format {@code redis://[user:]password@host:port/}
+     * @return the host, the port as an {@link Integer}, the username and the password as a {@code char[]}. The
+     *     username and password are empty if the URL has none.
+     * @throws InvalidRedisUrlException if the URL is not in the expected format
+     */
     @VisibleForTesting
     static Object[] toURIArray(String uri) throws InvalidRedisUrlException {
         var original = uri;
@@ -337,6 +526,10 @@ public class Redis implements Storage {
         return new Object[]{addr[0], port, username, password.toCharArray()};
     }
 
+    /**
+     * Lists the message types that the servers send on a channel. Each message starts with the type and the UUID of
+     * the sender. Some types also hold a target UUID.
+     */
     private enum Message {
 
         SYNC((redis, uuid, ack, msg) -> {
@@ -398,10 +591,22 @@ public class Redis implements Storage {
 
         private final QuadConsumer<Redis, UUID, UUID, String> consumer;
 
+        /**
+         * Creates the message type.
+         *
+         * @param consumer handles the message with the storage, the sender UUID, the target UUID and the raw message
+         */
         Message(QuadConsumer<Redis, UUID, UUID, String> consumer) {
             this.consumer = consumer;
         }
 
+        /**
+         * Parses the message and handles it. A {@code JSON} message puts its instance in memory.
+         *
+         * @param redis the storage that received the message
+         * @param string the raw message
+         * @return the type of the message, or an empty optional if the message is not valid
+         */
         private static Optional<Message> process(Redis redis, String string) {
             if (string.isEmpty()) {
                 return Optional.empty();
@@ -429,14 +634,30 @@ public class Redis implements Storage {
             return Optional.of(message);
         }
 
+        /**
+         * Creates a message of this type from the storage.
+         *
+         * @param redis the storage that sends the message
+         * @return the type and the UUID of the storage, separated by a space
+         */
         private String prepare(Redis redis) {
             return this.name() + " " + redis.uuid;
         }
 
+        /**
+         * Creates a message of this type from the storage to a target.
+         *
+         * @param redis the storage that sends the message
+         * @param ack the target UUID
+         * @return the type, the UUID of the storage and the target UUID, separated by spaces
+         */
         private String prepare(Redis redis, UUID ack) {
             return this.prepare(redis) + " " + ack.toString();
         }
 
+        /**
+         * @return the name of the message type
+         */
         @Override
         public String toString() {
             return this.name();

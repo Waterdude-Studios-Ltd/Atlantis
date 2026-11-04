@@ -26,7 +26,7 @@ public @interface I18nFile {
     /**
      * The {@link AtlantisConfig} that gives access to this file.
      *
-     * @return The mod ID of the owner of this configuration.
+     * @return the mod ID of the owner of this configuration
      */
     String mod();
 }

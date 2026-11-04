@@ -17,7 +17,7 @@ public @interface AonComment {
      * Comments to apply to the annotated element.
      * An empty string gives a blank line.
      *
-     * @return The comments to apply to the annotated element.
+     * @return the comments to apply to the annotated element
      */
     String[] value();
 
@@ -25,7 +25,7 @@ public @interface AonComment {
      * The number of # characters to put before each comment line.
      * If there is no value for a {@link AonComment#value()} index, the number is 1.
      *
-     * @return The number of # characters to put before each comment line.
+     * @return the number of # characters to put before each comment line
      */
     int[] indents() default 1;
 }

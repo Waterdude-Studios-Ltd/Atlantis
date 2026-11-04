@@ -22,6 +22,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+/**
+ * Serializes a list of numbers. A {@link CompactJsonArrayList} is written as one string such as {@code "1-3,5"},
+ * where ranges are used only for whole-number types. Other lists are written as JSON arrays.
+ *
+ * @param <T> the number type
+ */
 public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<List<T>>, JsonDeserializer<List<T>> {
 
     protected static final Set<Class<?>> CARDINALS = Sets.newHashSet(
@@ -46,6 +52,14 @@ public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<L
     private final boolean cardinal;
     private final TypeToken<?> typeToken;
 
+    /**
+     * Creates an adapter for lists of the number type.
+     *
+     * @param type the number type
+     * @param decoder parses one number from a string
+     * @param converter converts a {@code long} in a range to the number type
+     * @param encoder writes one number as a string
+     */
     public NumberListTypeAdapter(
             Class<T> type, Function<String, T> decoder, Function<Long, T> converter, Function<T, String> encoder
     ) {
@@ -57,14 +71,29 @@ public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<L
         this.typeToken = TypeToken.getParameterized(List.class, type);
     }
 
+    /**
+     * @return the type token of the {@code List<T>} type that this adapter handles
+     */
     public TypeToken<?> typeToken() {
         return this.typeToken;
     }
 
+    /**
+     * @return the {@code List<T>} type that this adapter handles
+     */
     public Type type() {
         return this.typeToken().getType();
     }
 
+    /**
+     * Reads a JSON array, or a comma-separated string with ranges such as {@code 1-3} for whole-number types. Values
+     * that fail to parse are skipped.
+     *
+     * @param json the JSON array or string
+     * @param typeOfT the type to read
+     * @param context the deserialization context
+     * @return the list, which is empty if the element is neither an array nor a primitive
+     */
     @Override
     public List<T> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
         if (json.isJsonArray()) {
@@ -91,6 +120,15 @@ public class NumberListTypeAdapter<T extends Number> implements JsonSerializer<L
         }
     }
 
+    /**
+     * Sorts a {@link CompactJsonArrayList} and writes it as one comma-separated string, with consecutive whole
+     * numbers joined into ranges. Writes other lists as JSON arrays.
+     *
+     * @param src the list to write
+     * @param typeOfSrc the type to write
+     * @param context the serialization context
+     * @return the JSON string or array
+     */
     @Override
     public JsonElement serialize(List<T> src, Type typeOfSrc, JsonSerializationContext context) {
         if (src instanceof CompactJsonArrayList) {

@@ -33,6 +33,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Stores a configuration in one file, or data in one file per instance inside a directory.
+ */
 public class Flatfile implements Storage {
 
     private static final String INVALID_EXT = ".invalid";
@@ -42,14 +45,30 @@ public class Flatfile implements Storage {
     private File jsonFile = null;
     private Config<? extends Configuration> config;
 
+    /**
+     * Creates a file storage. {@link #init} sets the file or directory.
+     */
     public Flatfile() {
         // noop
     }
 
+    /**
+     * Sets the file of the config if {@code path} has a file extension. If not, it sets and creates the directory of
+     * the data. For AON configs, it also keeps the old JSON file so that a new AON file can take its content.
+     *
+     * @param config the config that uses this storage
+     * @param modId the ID of the mod that owns the config
+     * @param key the key of the config
+     * @param path the path of the file or directory, relative to the directory of the mod
+     * @param gson the Gson instance of the config
+     * @param configuration the default configuration instance
+     * @param classes the classes of the config
+     * @param <T> the configuration type
+     */
     @Override
     public <T extends Configuration> void init(
             Config<T> config,
-            String modID,
+            String modId,
             String key,
             String path,
             Gson gson,
@@ -58,23 +77,37 @@ public class Flatfile implements Storage {
     ) {
         this.config = config;
         if (path.contains(".")) {
-            this.file = new File(AtlantisConfig.dirOf(modID), path);
+            this.file = new File(AtlantisConfig.dirOf(modId), path);
             if (config.isAON()) {
-                this.jsonFile = new File(AtlantisConfig.dirOf(modID), path.split("\\.")[0] + FileExtensions.JSON);
+                this.jsonFile = new File(AtlantisConfig.dirOf(modId), path.split("\\.")[0] + FileExtensions.JSON);
             }
         } else {
-            this.file = new File(AtlantisConfig.dirOf(modID) + File.separator + path);
+            this.file = new File(AtlantisConfig.dirOf(modId) + File.separator + path);
             if (this.file.mkdir()) {
                 AtlantisLogger.log(Settings.get().getLogLoadMessages(), "Creating new directory for {}", config.name());
             }
         }
     }
 
+    /**
+     * Does nothing, because this storage holds no resources.
+     *
+     * @param config the config that uses this storage
+     * @param <T> the configuration type
+     */
     @Override
     public <T extends Configuration> void destruct(Config<T> config) {
 
     }
 
+    /**
+     * Writes every data instance in memory with {@link #writeAll}, or writes the configuration to its file on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config to write
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the write was successful, or of {@code false} if the server is not alive
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> write(Config<T> config) {
         var result = new CompletableFuture<Boolean>();
@@ -90,6 +123,14 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Schedules a {@link #writeSpecific} for every data instance in memory. Each write starts one data save delay
+     * after the one before it.
+     *
+     * @param config the config to write
+     * @param result completes with {@code true} after the last write
+     * @param <T> the configuration type
+     */
     private <T extends Configuration> void writeAll(Config<T> config, CompletableFuture<Boolean> result) {
         var delay = Settings.get().getDataSaveDelay();
         var writes = new AtomicInteger(0);
@@ -116,6 +157,14 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Writes the configuration to its file, with comments for AON configs. If the AON file is new and an old JSON
+     * file exists, it writes to the JSON file instead. It deletes the old JSON file after the write.
+     *
+     * @param config the config to write
+     * @param result completes with {@code true} if the write was successful
+     * @param <T> the configuration type
+     */
     private <T extends Configuration> void writeSingle(Config<T> config, CompletableFuture<Boolean> result) {
         try {
             var newFile = this.file;
@@ -143,6 +192,16 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Writes the data instance to a temporary file on {@link Atlantis#THREAD_POOL}, then moves it over the file of the
+     * instance. If another write of the same instance is in progress, it tries again after the duplicate save delay.
+     *
+     * @param config the config of the data
+     * @param data the data instance to write
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the write was successful, or of {@code false} if it failed or must try
+     *     again
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> writeSpecific(Config<T> config, T data) throws InterruptedException {
         var result = new CompletableFuture<Boolean>();
@@ -207,6 +266,13 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Moves the source file over the target file. It uses an atomic move if the file system supports it.
+     *
+     * @param source the file to move
+     * @param target the file to replace
+     * @return {@code true} if the move was successful
+     */
     static boolean replace(File source, File target) {
         try {
             try {
@@ -220,6 +286,17 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Creates the temporary file. If it already exists, it deletes it and schedules a new {@link #writeSpecific}
+     * after the duplicate save delay.
+     *
+     * @param config the config of the data
+     * @param data the data instance to write
+     * @param temp the temporary file
+     * @param <T> the configuration type
+     * @return {@code true} if the temporary file was created and the write can continue
+     * @throws IOException if the file system cannot create or delete the file
+     */
     private <T extends Configuration> boolean checkTempFile(Config<T> config, T data, File temp) throws IOException {
         if (!temp.createNewFile()) {
             AtlantisLogger.debug("Temp file already exists called {} for file {}, delaying save attempt", config.name(), data.identifier());
@@ -236,6 +313,16 @@ public class Flatfile implements Storage {
         return true;
     }
 
+    /**
+     * Clears the data in memory and reads every file of the directory again, or reads the configuration from its
+     * file. A configuration file that fails to read is marked as invalid. The read runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config to read
+     * @param skipNulls keeps the current configuration if the file holds {@code null}
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the read was successful and set a value
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> read(Config<T> config, boolean skipNulls) {
         var result = new CompletableFuture<Boolean>();
@@ -286,6 +373,16 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Reads every data file in the directory and its subdirectories and puts the instances in memory. It skips hidden
+     * and invalid files. If {@code names} is not empty, it writes again each instance whose file name is not in it.
+     *
+     * @param config the config to read
+     * @param dir the directory to read
+     * @param names the file names of the instances that were in memory before the read
+     * @param <T> the configuration type
+     * @return a completed future of {@code true}, or of {@code false} if the server is not alive
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> readAll(Config<T> config, File dir, Set<String> names) {
         var result = new CompletableFuture<Boolean>();
@@ -323,6 +420,15 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Reads the file named after the UUID in the data directory and puts the instance in memory. A file that fails
+     * to read is marked as invalid.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a future of the instance, or of {@code null} if there is none or the config is not data
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromUUID(Config<T> config, UUID uuid) {
         var result = new CompletableFuture<T>();
@@ -355,6 +461,14 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Reads the file named after the name in the data directory and puts the instance in memory.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a future of the instance, or of {@code null} if there is none or the config is not named data
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromName(Config<T> config, String name) {
         var result = new CompletableFuture<T>();
@@ -386,6 +500,15 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Removes the data instance from memory and moves its file to the error bin. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param data the data instance to delete, or {@code null}
+     * @param <T> the configuration type
+     * @return a future of the instance removed from the UUID map, or of {@code null}
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> delete(Config<T> config, T data) {
         var result = new CompletableFuture<T>();
@@ -410,6 +533,14 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the data instance with the given UUID with {@link #delete}. The instance must already be loaded.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if the server is not alive or nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromUUID(Config<T> config, UUID uuid) {
         var result = new CompletableFuture<T>();
@@ -427,6 +558,14 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the named data instance with the given name with {@link #delete}.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if the server is not alive or nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromName(Config<T> config, String name) {
         var result = new CompletableFuture<T>();
@@ -442,11 +581,24 @@ public class Flatfile implements Storage {
         return result;
     }
 
+    /**
+     * @param <T> the configuration type
+     * @return the config that this storage was initialized with
+     */
     @SuppressWarnings("unchecked")
     public <T extends Configuration> Config<T> getConfig() {
         return (Config<T>) this.config;
     }
 
+    /**
+     * Gets the file of the data instance. It creates the subdirectories from {@link Configuration#dir()} if they do
+     * not exist.
+     *
+     * @param config the config of the data
+     * @param data the data instance
+     * @param <T> the configuration type
+     * @return the file of the instance
+     */
     private <T extends Configuration> File resolveFile(Config<T> config, Configuration data) {
         String directory = data.dir();
         if (directory.isEmpty()) {
@@ -463,6 +615,15 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Goes through the directory and its subdirectories to remove the files of instances that are not in memory. It
+     * moves them to the error bin or marks them as invalid. The file check uses {@code startsWith("")}, which is
+     * always {@code true}, so no file is removed at the moment.
+     *
+     * @param config the config of the data
+     * @param file the directory to clean
+     * @param <T> the configuration type
+     */
     private <T extends Configuration> void cleanFolder(Config<T> config, File file) {
         if (!this.isServerAlive()) {
             return;
@@ -490,6 +651,13 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Moves the file to the error bin on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param file the file to delete
+     * @param <T> the configuration type
+     */
     private <T extends Configuration> void deleteFile(Config<T> config, File file) {
         if (!this.isServerAlive()) {
             return;
@@ -505,6 +673,15 @@ public class Flatfile implements Storage {
         }
     }
 
+    /**
+     * Renames the file with the {@code .invalid} extension, so that reads skip it. It adds a number if the name is
+     * already used.
+     *
+     * @param config the config of the data
+     * @param file the file to mark
+     * @param <T> the configuration type
+     * @return {@code true} if the rename was successful
+     */
     private <T extends Configuration> boolean markAsError(Config<T> config, File file) {
         var i = 1;
         var parent = file.getParentFile();
@@ -515,10 +692,22 @@ public class Flatfile implements Storage {
         return file.renameTo(dest);
     }
 
+    /**
+     * @return the {@code bin} directory in the config directory of Atlantis
+     */
     private static File errorBin() {
         return new File(AtlantisConfig.dirOf(Atlantis.ID), "bin");
     }
 
+    /**
+     * Moves the file to the error bin with the {@code .backup} extension. The new name holds the owner and key of the
+     * config, and a number if the name is already used.
+     *
+     * @param config the config of the data
+     * @param file the file to move
+     * @param <T> the configuration type
+     * @return {@code true} if the move was successful
+     */
     private <T extends Configuration> boolean moveToBin(Config<T> config, File file) {
         var errorBin = Flatfile.errorBin();
         if (!errorBin.exists()) {

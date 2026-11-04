@@ -64,6 +64,9 @@ public class Database implements Storage {
     private Schema schema;
     private final Queries queries = new Queries();
 
+    /**
+     * @param properties data source properties in the form {@code key=value}
+     */
     public Database(
             String poolName,
             String ip,
@@ -76,6 +79,9 @@ public class Database implements Storage {
         this(poolName, ip, port, username, password, 5, maxPoolSize, 10000, 600000, 600000, properties);
     }
 
+    /**
+     * @param properties data source properties in the form {@code key=value}
+     */
     public Database(
             String poolName,
             String ip,
@@ -106,10 +112,16 @@ public class Database implements Storage {
         );
     }
 
+    /**
+     * @param properties data source properties in the form {@code key=value}
+     */
     public Database(String jdbc, String poolName, int maxPoolSize, String... properties) {
         this(jdbc, poolName, 5, maxPoolSize, 10000, 600000, 600000, properties);
     }
 
+    /**
+     * @param properties data source properties in the form {@code key=value}
+     */
     public Database(
             String jdbc,
             String poolName,
@@ -140,10 +152,26 @@ public class Database implements Storage {
         this.config.setConnectionTestQuery("SELECT 1");
     }
 
+    /**
+     * Opens the connection pool, builds the {@link Schema} and the {@link Queries}, and creates the database and the
+     * table if they do not exist.
+     *
+     * @param config the config that uses this storage
+     * @param modId the ID of the mod that owns the config. The settings can map it to a different database name.
+     * @param key the key of the config
+     * @param path the table name, in lower case
+     * @param gson the Gson instance of the config
+     * @param configuration the default configuration instance
+     * @param classes the classes of the config
+     * @param <T> the configuration type
+     * @throws InvalidClassException if the configuration is not {@link Data}
+     * @throws SQLException if the test query fails
+     * @throws NoSuchFieldException if the configuration type has no {@code uuid} or {@code name} field
+     */
     @Override
     public <T extends Configuration> void init(
             Config<T> config,
-            String modID,
+            String modId,
             String key,
             String path,
             Gson gson,
@@ -152,8 +180,8 @@ public class Database implements Storage {
     ) throws InvalidClassException, SQLException, NoSuchFieldException {
         var clazz = classes.getConfigurationClass();
 
-        var originalModID = modID;
-        modID = Settings.get().getDatabaseName(modID);
+        var originalModId = modId;
+        modId = Settings.get().getDatabaseName(modId);
 
         if (!(configuration instanceof Data)) {
             throw new InvalidClassException("Only data configuration types can be written to database");
@@ -179,15 +207,15 @@ public class Database implements Storage {
             }
         }
 
-        this.config.addDataSourceProperty("databaseName", modID);
+        this.config.addDataSourceProperty("databaseName", modId);
         this.hikari = new HikariDataSource(this.config);
         try (var connection = this.connection()) {
             try (var stmt = this.createStatement(connection)) {
                 stmt.execute(this.hikari.getConnectionTestQuery());
             }
         }
-        this.schema = Schema.of(originalModID, path.toLowerCase(), clazz);
-        this.queries.init(modID, this.schema);
+        this.schema = Schema.of(originalModId, path.toLowerCase(), clazz);
+        this.queries.init(modId, this.schema);
         try (var connection = this.connection()) {
             try (var stmt = this.createStatement(connection)) {
                 stmt.execute(this.queries.prepare(this.queries.CREATE_DATABASE));
@@ -204,6 +232,12 @@ public class Database implements Storage {
         }
     }
 
+    /**
+     * Closes the connection pool, but only on a dedicated server.
+     *
+     * @param config the config that uses this storage
+     * @param <T> the configuration type
+     */
     @Override
     public <T extends Configuration> void destruct(Config<T> config) {
         if (Mods.modLoader().isDedicatedServer()) {
@@ -211,6 +245,14 @@ public class Database implements Storage {
         }
     }
 
+    /**
+     * Writes every data instance in memory with {@link #writeSpecific} on {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config to write
+     * @param <T> the configuration type
+     * @return a future of {@code true} after the writes start, or of {@code false} if the server is not alive or the
+     *     config is not data
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> write(Config<T> config) {
         var result = new CompletableFuture<Boolean>();
@@ -233,6 +275,15 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Inserts the data instance into the table, or updates the row if the key already exists. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param data the data instance to write
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the query was successful
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> writeSpecific(Config<T> config, T data) {
         var result = new CompletableFuture<Boolean>();
@@ -255,6 +306,14 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Clears the data in memory and reads all rows again with {@link #readAll}.
+     *
+     * @param config the config to read
+     * @param skipNulls ignored
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the read was successful, or of {@code false} if the config is not data
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> read(Config<T> config, boolean skipNulls) {
         var result = new CompletableFuture<Boolean>();
@@ -271,6 +330,16 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Reads every row of the table and puts the decoded instances in memory. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config to read
+     * @param dir ignored
+     * @param names ignored
+     * @param <T> the configuration type
+     * @return a future of {@code true} if the query was successful
+     */
     @Override
     public <T extends Configuration> CompletableFuture<Boolean> readAll(Config<T> config, File dir, Set<String> names) {
         var result = new CompletableFuture<Boolean>();
@@ -308,6 +377,15 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Reads the row with the given UUID and puts the decoded instance in memory. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a future of the instance, or of {@code null} if there is none
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromUUID(Config<T> config, UUID uuid) {
         var result = new CompletableFuture<T>();
@@ -353,6 +431,15 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Reads the row with the given name and puts the decoded instance in memory. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a future of the instance, or of {@code null} if there is none
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> readFromName(Config<T> config, String name) {
         var result = new CompletableFuture<T>();
@@ -395,6 +482,14 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the data instance with {@link #deleteFromUUID}.
+     *
+     * @param config the config of the data
+     * @param data the data instance to delete, or {@code null}
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> delete(Config<T> config, T data) {
         if (data == null) {
@@ -403,6 +498,15 @@ public class Database implements Storage {
         return this.deleteFromUUID(config, data.uuid());
     }
 
+    /**
+     * Deletes the row with the given UUID and removes the instance from memory. This runs on
+     * {@link Atlantis#THREAD_POOL}.
+     *
+     * @param config the config of the data
+     * @param uuid the UUID of the instance
+     * @param <T> the configuration type
+     * @return a future of the instance removed from memory, or of {@code null} if there was none
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromUUID(Config<T> config, UUID uuid) {
         var result = new CompletableFuture<T>();
@@ -432,6 +536,14 @@ public class Database implements Storage {
         return result;
     }
 
+    /**
+     * Deletes the named data instance with the given name with {@link #delete}. The instance must be in memory.
+     *
+     * @param config the config of the data
+     * @param name the name of the instance
+     * @param <T> the configuration type
+     * @return a future of the removed instance, or of {@code null} if nothing was removed
+     */
     @Override
     public <T extends Configuration> CompletableFuture<T> deleteFromName(Config<T> config, String name) {
         var data = config.get(name);
@@ -441,18 +553,40 @@ public class Database implements Storage {
         return this.delete(config, data);
     }
 
+    /**
+     * Borrows a connection from the pool. Close it after use. Use it only after the storage initializes.
+     */
     public Connection connection() throws SQLException {
         return this.hikari.getConnection();
     }
 
+    /**
+     * Creates a scroll-insensitive, read-only statement on the connection.
+     *
+     * @param connection the connection to use
+     * @return the statement
+     * @throws SQLException if the connection cannot create the statement
+     */
     public Statement createStatement(Connection connection) throws SQLException {
         return connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
     }
 
+    /**
+     * @return the queries of this storage, completed for its database and table after {@link #init}
+     */
     public Queries queries() {
         return this.queries;
     }
 
+    /**
+     * Describes the table of a data type: the table name and one {@link Element} per
+     * {@link DatabaseSerializable} field.
+     *
+     * @param table the table name
+     * @param type the data type
+     * @param elements the columns of the table
+     * @param autoIncrementElements the number of auto-increment columns
+     */
     public record Schema(
             String table, 
             Class<?> type, 
@@ -460,7 +594,16 @@ public class Database implements Storage {
             int autoIncrementElements
     ) {
 
-        public static Schema of(String originalModID, String table, Class<?> type) {
+        /**
+         * Creates the schema from the declared and public fields of the type that have {@link DatabaseSerializable}.
+         * The table name gets the mod ID as a prefix if the settings enable it.
+         *
+         * @param originalModId the ID of the mod that owns the config
+         * @param table the table name without the prefix
+         * @param type the data type
+         * @return the schema
+         */
+        public static Schema of(String originalModId, String table, Class<?> type) {
             var autoIncrementElements = 0;
             var elements = Lists.<Element>newArrayList();
             var parsedFields = Sets.<Field>newHashSet();
@@ -499,9 +642,23 @@ public class Database implements Storage {
                 }
             }
 
-            return new Schema((Settings.get().isModIDPrefixOnTableNames() ? originalModID + "_" : "") + table, type, elements, autoIncrementElements);
+            return new Schema((Settings.get().isModIdPrefixOnTableNames() ? originalModId + "_" : "") + table, type, elements, autoIncrementElements);
         }
 
+        /**
+         * Describes one column of a {@link Schema}.
+         *
+         * @param field the field of the data type
+         * @param name the column name, in lower case
+         * @param type the SQL type, in upper case
+         * @param surround the quote mark around values of this column
+         * @param encoder converts the field value to its SQL value
+         * @param decoder converts the SQL value to the field value
+         * @param primaryKey {@code true} if the column is the primary key
+         * @param autoIncrement {@code true} if the database sets the value
+         * @param uniqueKey {@code true} if the column is unique or the primary key
+         * @param notNull {@code true} if the column cannot be {@code NULL}
+         */
         public record Element(
                 FieldHolder field,
                 String name, 
@@ -515,6 +672,14 @@ public class Database implements Storage {
                 boolean notNull
         ) {
 
+            /**
+             * Creates the column from the field and its annotation.
+             *
+             * @param field the field of the data type
+             * @param annotation the annotation of the field
+             * @return the column
+             * @throws NullPointerException if the annotation names an encoder that does not exist
+             */
             public static Element of(Field field, DatabaseSerializable annotation) {
                 return new Element(
                         FieldHolder.of(field),
@@ -532,6 +697,10 @@ public class Database implements Storage {
         }
     }
 
+    /**
+     * Holds the SQL queries of a {@link Database}. The {@code %} tokens are replaced in {@link #init}, and the
+     * placeholders are filled in by {@link #prepare}.
+     */
     public static final class Queries {
 
         public IncompleteString CREATE_DATABASE = IncompleteString.of("CREATE DATABASE IF NOT EXISTS %d");
@@ -545,6 +714,13 @@ public class Database implements Storage {
         public IncompleteString DELETE_ELEMENT_NAME = IncompleteString.builder().string("DELETE FROM %d.%t WHERE name = '").placeholder().string("'").build();
         public IncompleteString SELECT_ALL = IncompleteString.of("SELECT * FROM %d.%t");
 
+        /**
+         * Replaces the {@code %d}, {@code %t}, {@code %c}, {@code %u}, {@code %n} and {@code %v} tokens of every
+         * query with the database name, the table name and the column lists of the schema.
+         *
+         * @param database the database name
+         * @param schema the schema of the table
+         */
         public void init(String database, Schema schema) {
             var create = IncompleteString.builder();
             var update = IncompleteString.builder();
@@ -606,14 +782,40 @@ public class Database implements Storage {
             } catch (IllegalAccessException ignored) {}
         }
 
+        /**
+         * Fills in the placeholders of the query with the arguments, in order.
+         *
+         * @param query the query to complete
+         * @param args the values of the placeholders
+         * @return the complete query
+         */
         public String prepare(IncompleteString query, String... args) {
             return query.complete(args);
         }
 
+        /**
+         * Escapes backslashes and single quotes, so that the value is safe inside single quotes.
+         *
+         * @param value the value to escape
+         * @return the escaped value
+         */
         static String escape(String value) {
             return value.replace("\\", "\\\\").replace("'", "''");
         }
 
+        /**
+         * Fills in the placeholders of the query with the encoded field values of the data. Auto-increment columns
+         * are skipped, and values in single quotes are escaped.
+         *
+         * @param query the query to complete
+         * @param key the value of the last placeholder, or an empty string to fill in the update values of the
+         *     non-key columns instead
+         * @param config the config of the data
+         * @param data the data instance
+         * @param schema the schema of the table
+         * @param <T> the configuration type
+         * @return the complete query
+         */
         public <T extends Configuration> String prepare(IncompleteString query, String key, Config<T> config, Object data, Schema schema) {
             var args = new String[schema.elements.size() + (key.isEmpty() ? schema.elements.size() - 1 : 1) - schema.autoIncrementElements];
             var i = 0;
@@ -651,6 +853,9 @@ public class Database implements Storage {
         }
     }
 
+    /**
+     * Holds the SQL keywords for column definitions.
+     */
     public static final class Keywords {
 
         public static String PRIMARY_KEY = "PRIMARY KEY";
