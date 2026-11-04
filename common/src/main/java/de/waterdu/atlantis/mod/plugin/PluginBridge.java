@@ -15,6 +15,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Gives reflective access to the classes, fields and methods of Bukkit plugins on a hybrid server. Create instances
+ * with {@link PluginBridgeFactory}.
+ */
 public class PluginBridge {
 
     private final JavaPlugin plugin;
@@ -23,6 +27,12 @@ public class PluginBridge {
     private final Map<Class<?>, Map<String, PluginField<?>>> fields = new ConcurrentHashMap<>();
     private final Map<Class<?>, Map<String, PluginMethod<?>>> methods = new ConcurrentHashMap<>();
 
+    /**
+     * Creates a bridge for the plugin and reads the class loaders of all plugins from its plugin loader.
+     *
+     * @param name the name of the plugin
+     * @throws IllegalPluginAccessException if the plugin is not loaded and enabled
+     */
     protected PluginBridge(String name) throws NoSuchMethodException, NoSuchFieldException, InvocationTargetException, IllegalAccessException {
         if (!canMake(name)) {
             throw new IllegalPluginAccessException("No such enabled plugin: " + name);
@@ -37,11 +47,17 @@ public class PluginBridge {
         this.loaders = (List<?>) field.get(pluginLoader);
     }
 
+    /**
+     * @return {@code true} if the plugin is loaded and enabled
+     */
     public static boolean canMake(String name) {
         var plugin = Bukkit.getPluginManager().getPlugin(name);
         return plugin != null && plugin.isEnabled();
     }
 
+    /**
+     * Searches the class loaders of all plugins and caches the result.
+     */
     public Optional<Class<?>> findClass(String classpath) {
         return Optional.ofNullable(this.classes.computeIfAbsent(classpath, s -> {
             for (var o : this.loaders) {
@@ -60,6 +76,9 @@ public class PluginBridge {
         }));
     }
 
+    /**
+     * Finds a field that the class declares itself. Inherited fields are not found.
+     */
     @SuppressWarnings("unchecked")
     public <T> Optional<PluginField<T>> findField(Class<?> clazz, String field) {
         return Optional.ofNullable((PluginField<T>) this.fields.computeIfAbsent(clazz, k -> new ConcurrentHashMap<>()).computeIfAbsent(field, s -> {
@@ -78,10 +97,18 @@ public class PluginBridge {
         }));
     }
 
+    /**
+     * Uses the method name as the cache identifier. Use {@link #findMethod(Class, String, String, Class[])} for overloads.
+     */
     public <T> Optional<PluginMethod<T>> findMethod(Class<?> clazz, String method, Class<?>... parameters) {
         return this.findMethod(clazz, method, method, parameters);
     }
 
+    /**
+     * Finds a method that the class declares itself. Inherited methods are not found.
+     *
+     * @param identifier the cache key for the method. Give each overload its own identifier.
+     */
     @SuppressWarnings("unchecked")
     public <T> Optional<PluginMethod<T>> findMethod(Class<?> clazz, String identifier, String method, Class<?>... parameters) {
         return Optional.ofNullable((PluginMethod<T>) this.methods.computeIfAbsent(clazz, k -> new ConcurrentHashMap<>()).computeIfAbsent(identifier, s -> {
