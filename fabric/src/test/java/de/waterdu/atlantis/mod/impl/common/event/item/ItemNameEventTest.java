@@ -21,11 +21,17 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests the {@link UEvent#ITEM_NAME} event that fires when an item builds its tooltip.
+ */
 @ExtendWith(AtlantisTestEnvironment.class)
 class ItemNameEventTest {
 
     private static DataComponentType<Suffix> SUFFIX;
 
+    /**
+     * Bootstraps Minecraft once before the tests and creates the {@link Suffix} component type.
+     */
     @BeforeAll
     static void bootstrap() {
         SharedConstants.tryDetectVersion();
@@ -33,6 +39,9 @@ class ItemNameEventTest {
         SUFFIX = DataComponentType.<Suffix>builder().persistent(com.mojang.serialization.Codec.STRING.xmap(Suffix::new, Suffix::suffix)).build();
     }
 
+    /**
+     * Checks that a listener that sets the name changes the first tooltip line.
+     */
     @Test
     void itemNameListenerChangesTheTooltipName() {
         Mods.modLoader().event(UEvent.ITEM_NAME).listen(payload -> {
@@ -45,6 +54,9 @@ class ItemNameEventTest {
         assertThat(lines.getFirst().getString()).isEqualTo("Renamed");
     }
 
+    /**
+     * Checks that the event fires once with the stack, the player and the tooltip flag of the tooltip call.
+     */
     @Test
     void itemNameEventCarriesTheTooltipArguments() {
         var payloads = new ArrayList<ItemNameEventPayload>();
@@ -64,6 +76,9 @@ class ItemNameEventTest {
         assertThat(lines.getFirst().getString()).isEqualTo(stack.getHoverName().getString());
     }
 
+    /**
+     * Checks that {@link ItemNameEventPayload#addToName} applies the name provider component of the stack.
+     */
     @Test
     void payloadAddToNameAppliesANameProvider() {
         Mods.modLoader().event(UEvent.ITEM_NAME).listen(payload -> {
@@ -78,8 +93,20 @@ class ItemNameEventTest {
         assertThat(lines.getFirst().getString()).isEqualTo("Diamond [x]");
     }
 
+    /**
+     * Adds a fixed suffix to the name of an item.
+     *
+     * @param suffix the text to append to the name
+     */
     private record Suffix(String suffix) implements de.waterdu.atlantis.util.item.NameProvider {
 
+        /**
+         * Appends the suffix to the name.
+         *
+         * @param context the tooltip context
+         * @param name the name to change
+         * @param tooltipFlag the tooltip flag
+         */
         @Override
         public void addToName(Item.TooltipContext context, AtomicReference<Component> name, TooltipFlag tooltipFlag) {
             name.set(name.get().copy().append(this.suffix));

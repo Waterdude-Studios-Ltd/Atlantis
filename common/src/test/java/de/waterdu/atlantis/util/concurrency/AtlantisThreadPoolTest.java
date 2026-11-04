@@ -13,21 +13,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Tests the task submission, scheduling, error handling and shutdown of {@link AtlantisThreadPool}.
+ */
 class AtlantisThreadPoolTest {
 
     private final List<AtlantisThreadPool> pools = new ArrayList<>();
 
+    /**
+     * Creates a pool of two daemon threads. The pool stops after the test.
+     *
+     * @return the pool
+     */
     private AtlantisThreadPool pool() {
         var pool = AtlantisThreadPool.createNewThreadPool("Atlantis Test", 2, true);
         this.pools.add(pool);
         return pool;
     }
 
+    /**
+     * Stops every pool that the test created.
+     */
     @AfterEach
     void shutdown() {
         this.pools.forEach(pool -> pool.getPool().shutdownNow());
     }
 
+    /**
+     * Checks that a submitted task runs on a daemon thread with the name of the pool.
+     */
     @Test
     void submitRunsOnANamedDaemonThread() throws Exception {
         var thread = new java.util.concurrent.atomic.AtomicReference<Thread>();
@@ -38,11 +52,18 @@ class AtlantisThreadPoolTest {
         assertThat(thread.get().isDaemon()).isTrue();
     }
 
+    /**
+     * Checks that the future of a submitted callable completes with its value.
+     */
     @Test
     void submitCallableReturnsItsValue() throws Exception {
         assertThat(this.pool().submit(() -> 42, -1).get(5, TimeUnit.SECONDS)).isEqualTo(42);
     }
 
+    /**
+     * Checks that a failed callable completes with its fallback, and a failed runnable completes with
+     * {@code null}, when the pool catches errors.
+     */
     @Test
     void caughtErrorsReturnTheFallback() throws Exception {
         var pool = this.pool();
@@ -58,6 +79,9 @@ class AtlantisThreadPoolTest {
         assertThat(runnable.get(5, TimeUnit.SECONDS)).isNull();
     }
 
+    /**
+     * Checks that the future fails with the error of the task when the pool does not catch errors.
+     */
     @Test
     void uncaughtErrorsPropagateToTheFuture() {
         var pool = this.pool().shouldCatchErrors(false);
@@ -69,6 +93,9 @@ class AtlantisThreadPoolTest {
         assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class).hasCauseInstanceOf(IllegalStateException.class);
     }
 
+    /**
+     * Checks that a scheduled task does not complete before its delay.
+     */
     @Test
     void scheduleWaitsForTheDelay() throws Exception {
         var start = System.nanoTime();
@@ -78,6 +105,9 @@ class AtlantisThreadPoolTest {
         assertThat(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)).isGreaterThanOrEqualTo(90);
     }
 
+    /**
+     * Checks that a task scheduled at a fixed rate runs more than once.
+     */
     @Test
     void scheduleAtFixedRateRepeats() throws Exception {
         var latch = new CountDownLatch(3);
@@ -88,6 +118,9 @@ class AtlantisThreadPoolTest {
         future.cancel(false);
     }
 
+    /**
+     * Checks that {@link AtlantisThreadPool#repeatUntilComplete} stops after the task returns {@code true}.
+     */
     @Test
     void repeatUntilCompleteStopsOnTrue() throws Exception {
         var calls = new AtomicInteger();
@@ -106,6 +139,9 @@ class AtlantisThreadPoolTest {
         assertThat(calls).hasValue(3);
     }
 
+    /**
+     * Checks that {@link AtlantisThreadPool#repeatUntilComplete} stops after the task throws.
+     */
     @Test
     void repeatUntilCompleteStopsOnError() throws Exception {
         var calls = new AtomicInteger();
@@ -119,6 +155,9 @@ class AtlantisThreadPoolTest {
         assertThat(calls).hasValue(1);
     }
 
+    /**
+     * Checks that {@link AtlantisThreadPool#shutdownAll()} stops only the pools that are not kept alive.
+     */
     @Test
     void shutdownAllOnlyStopsPoolsThatAreNotKeptAlive() {
         var kept = this.pool();
@@ -130,6 +169,9 @@ class AtlantisThreadPoolTest {
         assertThat(stopped.getPool().isShutdown()).isTrue();
     }
 
+    /**
+     * Checks that {@link AtlantisThreadPool#setSize} changes the core pool size.
+     */
     @Test
     void setSize() {
         assertThat(this.pool().setSize(5).getPool().getCorePoolSize()).isEqualTo(5);

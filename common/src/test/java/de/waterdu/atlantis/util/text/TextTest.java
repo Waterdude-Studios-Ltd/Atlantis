@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Text} and {@link Text.Immutable}.
+ */
 @MinecraftBootstrapped
 class TextTest {
 
@@ -19,6 +22,10 @@ class TextTest {
             .registerTypeAdapter(Text.Immutable.class, new Text.Immutable.TypeAdapter())
             .create();
 
+    /**
+     * Checks that the factory methods read strings, components and other objects, that {@code null} gives an empty
+     * text, and which factories give immutable text.
+     */
     @Test
     void factories() {
         assertThat(Text.of("value").get()).isEqualTo("value");
@@ -30,6 +37,9 @@ class TextTest {
         assertThat((Object) Text.of(Text.of("mutable"))).isInstanceOf(Text.Immutable.class).isEqualTo(Text.of("mutable"));
     }
 
+    /**
+     * Checks that the changing methods of mutable text change the text itself and return it.
+     */
     @Test
     void mutableTextChangesInPlace() {
         var text = Text.of("b");
@@ -42,6 +52,9 @@ class TextTest {
         assertThat(text.clear().isEmpty()).isTrue();
     }
 
+    /**
+     * Checks that the changing methods of immutable text return changed copies and leave the original unchanged.
+     */
     @Test
     void immutableTextReturnsCopies() {
         var text = Text.Immutable.of("b");
@@ -56,6 +69,10 @@ class TextTest {
         assertThat(text.get()).isEqualTo("b");
     }
 
+    /**
+     * Checks that {@code raw}, {@code compiled} and {@code translatable} return copies, and that the flags control
+     * color codes and translation when the text compiles.
+     */
     @Test
     void immutableFlagsReturnCopies() {
         var text = Text.Immutable.of("&aGreen");
@@ -70,6 +87,10 @@ class TextTest {
         assertThat(text.compile().getContents()).isNotInstanceOf(TranslatableContents.class);
     }
 
+    /**
+     * Checks that {@code mutable}, {@code immutable} and {@code copy} give text of the correct kind with the same
+     * value.
+     */
     @Test
     void mutableAndImmutableConversions() {
         var immutable = Text.Immutable.of("value");
@@ -79,6 +100,10 @@ class TextTest {
         assertThat((Object) Text.of("value").copy()).isEqualTo(Text.of("value")).isNotSameAs(immutable);
     }
 
+    /**
+     * Checks that the string methods give the same results as on {@link String}, and that they do not change the
+     * text.
+     */
     @Test
     void stringOperations() {
         var text = Text.of("Hello World");
@@ -101,6 +126,9 @@ class TextTest {
         assertThat(text.get()).isEqualTo("Hello World");
     }
 
+    /**
+     * Checks the {@link CharSequence} methods, {@code compareTo}, and that text equals and hashes like its string.
+     */
     @Test
     void charSequenceAndComparison() {
         var text = Text.of("abc");
@@ -116,18 +144,29 @@ class TextTest {
         assertThat(text.equals("abc")).isTrue();
     }
 
+    /**
+     * Checks that {@code format} replaces numbered placeholders such as {@code %1} and {@code %10} with the matching
+     * argument.
+     */
     @Test
     void format() {
         assertThat(Text.of("%1 has %2 points, %10 total").format("Steve", 5, 1, 2, 3, 4, 5, 6, 7, 8).get())
                 .isEqualTo("Steve has 5 points, 8 total");
     }
 
+    /**
+     * Checks that empty text compiles to a space, unless {@code compile(false)} is used.
+     */
     @Test
     void compileEmptyTextAddsASpaceUnlessAsked() {
         assertThat(Text.of("").compile().getString()).isEqualTo(" ");
         assertThat(Text.of("").compile(false).getString()).isEmpty();
     }
 
+    /**
+     * Checks that {@code compileWithEvent} and {@code compileWithEvents} put click and hover events on the style of
+     * plain text.
+     */
     @Test
     void compileWithEventsAppliesToPlainText() {
         var click = Text.of("click").compileWithEvent(ClickEvent.Action.RUN_COMMAND, "/atlantis");
@@ -140,6 +179,9 @@ class TextTest {
         assertThat(both.getStyle().getHoverEvent()).isNotNull();
     }
 
+    /**
+     * Checks that a click event is put on the root and on each sibling of text with hex colors.
+     */
     @Test
     void compileWithEventsAppliesToEverySegment() {
         var component = Text.of("&#ff0000Red &#00ff00Green").compileWithEvent(ClickEvent.Action.RUN_COMMAND, "/x");
@@ -150,6 +192,10 @@ class TextTest {
         }
     }
 
+    /**
+     * Checks that text is written as a JSON string, and that immutable text with a flag set is written as an object
+     * that reads back with the same flags.
+     */
     @Test
     void typeAdapters() {
         assertThat(this.gson.toJson(Text.of("value"), Text.class)).isEqualTo("\"value\"");

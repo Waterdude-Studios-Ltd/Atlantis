@@ -6,8 +6,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link CompactJsonArrayList}.
+ */
 class CompactJsonArrayListTest {
 
+    /**
+     * Checks that each constructor creates a list that holds the elements like an {@link java.util.ArrayList}.
+     */
     @Test
     void behavesLikeAnArrayList() {
         var empty = new CompactJsonArrayList<String>();

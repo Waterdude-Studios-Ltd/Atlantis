@@ -7,18 +7,27 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Keys} as a set of keys.
+ */
 class KeysTest {
 
     private static final Key<String> A = Key.of("atlantis", "a");
     private static final Key<String> B = Key.of("atlantis", "b");
     private static final Key<String> C = Key.of("atlantis", "c");
 
+    /**
+     * Checks that {@code empty} has no keys and that {@code of} drops duplicates.
+     */
     @Test
     void emptyAndOf() {
         assertThat(Keys.<String>empty()).isEmpty();
         assertThat(Keys.of(A, B, A)).hasSize(2).containsExactlyInAnyOrder(A, B);
     }
 
+    /**
+     * Checks that the add, remove, retain, contains, array and clear operations work as they do on a set.
+     */
     @Test
     void behavesAsASet() {
         var keys = Keys.<String>empty();
@@ -41,6 +50,9 @@ class KeysTest {
         assertThat(keys.size()).isZero();
     }
 
+    /**
+     * Checks that equality and the hash code match those of other sets with the same keys.
+     */
     @Test
     void equalsFollowsTheSetContract() {
         var keys = Keys.of(A, B);

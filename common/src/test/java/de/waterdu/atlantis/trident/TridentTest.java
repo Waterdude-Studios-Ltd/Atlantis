@@ -26,6 +26,9 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests that {@link Trident} discovers, validates, orders and loads Tine jars.
+ */
 @ExtendWith(AtlantisTestEnvironment.class)
 public class TridentTest {
 
@@ -43,11 +46,19 @@ public class TridentTest {
             }
             """;
 
+    /**
+     * Clears {@link #CALLS} before each test.
+     */
     @BeforeEach
     void clearCalls() {
         CALLS.clear();
     }
 
+    /**
+     * Checks that the barb of a Tine runs before the other entrypoints of the Tine.
+     *
+     * @param loader the test loader
+     */
     @Test
     void runsBarbsBeforeOtherEntrypoints(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -73,6 +84,12 @@ public class TridentTest {
         assertThat(Trident.isLoaded("a")).isTrue();
     }
 
+    /**
+     * Checks that a dependency loads before its dependent, whatever their order, and that the dependent can use
+     * classes of the dependency.
+     *
+     * @param loader the test loader
+     */
     @Test
     void loadsDependenciesFirstAndSharesClasses(TestModLoader loader) throws IOException {
         var classes = compile(Map.of(
@@ -111,6 +128,11 @@ public class TridentTest {
         assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a", "b");
     }
 
+    /**
+     * Checks that Tines without dependencies load in order of their {@code order} value.
+     *
+     * @param loader the test loader
+     */
     @Test
     void ordersIndependentTinesByOrderThenId(TestModLoader loader) throws IOException {
         var classes = compile(Map.of("a.Main", MAIN.formatted("a"), "b.Main", MAIN.formatted("b"), "c.Main", MAIN.formatted("c")));
@@ -129,6 +151,11 @@ public class TridentTest {
         assertThat(CALLS).containsExactly("c", "b", "a");
     }
 
+    /**
+     * Checks that a Tine whose {@code atlantis} range does not match the Atlantis version does not load.
+     *
+     * @param loader the test loader
+     */
     @Test
     void skipsTinesForOtherAtlantisVersions(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -141,6 +168,12 @@ public class TridentTest {
         assertThat(Trident.isLoaded("a")).isFalse();
     }
 
+    /**
+     * Checks that Tines with a missing or out-of-range dependency do not load, and neither do the Tines that depend
+     * on them.
+     *
+     * @param loader the test loader
+     */
     @Test
     void skipsUnmetDependenciesAndTheirDependents(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -161,6 +194,11 @@ public class TridentTest {
         assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a");
     }
 
+    /**
+     * Checks that Tines that depend on each other do not load, and that other Tines still load.
+     *
+     * @param loader the test loader
+     */
     @Test
     void skipsDependencyCycles(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -178,6 +216,12 @@ public class TridentTest {
         assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("c");
     }
 
+    /**
+     * Checks that a dependency on a loaded loader mod is met by {@code *}. A version range is not met, because the
+     * test loader reports no version for the mod.
+     *
+     * @param loader the test loader
+     */
     @Test
     void resolvesModloaderModDependencies(TestModLoader loader) throws IOException {
         loader.loadMod("cobblemon");
@@ -193,6 +237,11 @@ public class TridentTest {
         assertThat(Trident.tines()).extracting(TineContainer::id).containsExactly("a");
     }
 
+    /**
+     * Checks that Tines with the same ID, or with the ID of a loaded mod, do not load.
+     *
+     * @param loader the test loader
+     */
     @Test
     void skipsDuplicateAndClashingIds(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -210,6 +259,11 @@ public class TridentTest {
         assertThat(Trident.tines()).isEmpty();
     }
 
+    /**
+     * Checks that jars without metadata, with an invalid ID or without a version do not load.
+     *
+     * @param loader the test loader
+     */
     @Test
     void skipsInvalidJars(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", null, Map.of());
@@ -225,6 +279,11 @@ public class TridentTest {
         assertThat(Trident.tines()).isEmpty();
     }
 
+    /**
+     * Checks that {@link Trident#mods()} reports a loaded Tine with the values from its metadata.
+     *
+     * @param loader the test loader
+     */
     @Test
     void exposesTinesAsMods(TestModLoader loader) throws IOException {
         jar(loader, "a.jar", """
@@ -242,6 +301,11 @@ public class TridentTest {
         });
     }
 
+    /**
+     * Checks that {@link Trident#DEV_PROPERTY} loads a Tine from separate classes and resources directories.
+     *
+     * @param loader the test loader
+     */
     @Test
     void loadsDevTineFromSplitDirectories(TestModLoader loader) throws IOException {
         var root = loader.configDir().resolve("dev-tine");
@@ -267,11 +331,22 @@ public class TridentTest {
         assertThat(Trident.tines()).singleElement().satisfies(tine -> assertThat(tine.paths()).containsExactly(classes, resources));
     }
 
+    /**
+     * Reports {@link Trident} from the annotation scan, then bootstraps the loader.
+     *
+     * @param loader the test loader
+     */
     private static void bootstrap(TestModLoader loader) {
         loader.annotated(Bootstrapped.class, Trident.class);
         Bootstrapper.bootstrap(loader);
     }
 
+    /**
+     * Compiles the sources and asserts that the compilation succeeds.
+     *
+     * @param sources a map from each class name to its source
+     * @return a map from each class file path, such as {@code a/Main.class}, to its bytes
+     */
     private static Map<String, byte[]> compile(Map<String, String> sources) throws IOException {
         var compilation = javac().compile(sources.entrySet().stream()
                 .map(source -> JavaFileObjects.forSourceString(source.getKey(), source.getValue()))
@@ -289,6 +364,13 @@ public class TridentTest {
         return classes;
     }
 
+    /**
+     * Gets the class files whose path starts with the prefix.
+     *
+     * @param classes a map from each class file path to its bytes
+     * @param prefix the path prefix, such as {@code a/}
+     * @return a new map with only the matching class files
+     */
     private static Map<String, byte[]> only(Map<String, byte[]> classes, String prefix) {
         var filtered = new HashMap<String, byte[]>();
         classes.forEach((path, bytes) -> {
@@ -299,6 +381,14 @@ public class TridentTest {
         return filtered;
     }
 
+    /**
+     * Writes a jar into the Trident directory of the loader.
+     *
+     * @param loader the test loader
+     * @param name the file name of the jar
+     * @param metadata the content of the {@code tine.json} file, or {@code null} to leave it out
+     * @param classes a map from each class file path to its bytes
+     */
     private static void jar(TestModLoader loader, String name, String metadata, Map<String, byte[]> classes) throws IOException {
         var directory = Files.createDirectories(loader.configDir().resolve(Trident.DIRECTORY));
         try (var output = new JarOutputStream(Files.newOutputStream(directory.resolve(name)))) {

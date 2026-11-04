@@ -31,16 +31,27 @@ class ModsTest {
 
     static final List<String> SETUPS = new ArrayList<>();
 
+    /**
+     * Clears the recorded setups before each test.
+     */
     @BeforeEach
     void clearSetups() {
         SETUPS.clear();
     }
 
+    /**
+     * Checks that NeoForge is not on the classpath of the common tests.
+     */
     @Test
     void commonTestsRunAsFabric() {
         assertThat(classExists("net.neoforged.neoforge.common.NeoForge")).isFalse();
     }
 
+    /**
+     * Checks that an extension of a loaded mod becomes active and its setup runs.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void activatesLoadedExtensionAndRunsItsSetup(TestModLoader loader) {
         extension("fake_mod", ModExtension.Priority.NORMAL, recording("fake_mod")).build();
@@ -53,6 +64,11 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("fake_mod");
     }
 
+    /**
+     * Checks that an extension with only a NeoForge proxy does not activate on the test loader.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsExtensionWithoutProxyForActiveLoader(TestModLoader loader) {
         ModExtension.builder()
@@ -69,6 +85,11 @@ class ModsTest {
         assertThat(SETUPS).isEmpty();
     }
 
+    /**
+     * Checks that an extension whose main class does not exist does not activate.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsExtensionWhoseMainClassIsMissing(TestModLoader loader) {
         ModExtension.builder()
@@ -85,6 +106,11 @@ class ModsTest {
         assertThat(SETUPS).isEmpty();
     }
 
+    /**
+     * Checks that an extension of a mod that is not loaded does not activate.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsExtensionThatIsNotLoaded(TestModLoader loader) {
         extension("not_loaded", ModExtension.Priority.NORMAL, recording("not_loaded")).build();
@@ -95,6 +121,12 @@ class ModsTest {
         assertThat(SETUPS).isEmpty();
     }
 
+    /**
+     * Checks that a plugin extension does not activate without Bukkit, and that the extensions after it still
+     * activate.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsPluginExtensionWithoutBukkitAndKeepsActivatingOthers(TestModLoader loader) {
         extension("fake_plugin", ModExtension.Priority.HIGHEST, recording("fake_plugin")).plugin().build();
@@ -108,6 +140,11 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("fake_mod");
     }
 
+    /**
+     * Checks that the Vault extension does not activate without Bukkit, so there is no economy delegate.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsVaultWithoutBukkit(TestModLoader loader) {
         bootstrap(loader);
@@ -116,6 +153,11 @@ class ModsTest {
         assertThat(Mods.isDelegatePresent(EconomyDelegate.class)).isFalse();
     }
 
+    /**
+     * Checks that the bootstrap activates the Atlantis extension.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void activatesAtlantisItself(TestModLoader loader) {
         bootstrap(loader);
@@ -123,6 +165,11 @@ class ModsTest {
         assertThat(Mods.isPresent("atlantis")).isTrue();
     }
 
+    /**
+     * Checks that the setups of the extensions run from the highest priority to the lowest.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void setsUpExtensionsInPriorityOrder(TestModLoader loader) {
         extension("lowest", ModExtension.Priority.LOWEST, recording("lowest")).build();
@@ -136,6 +183,12 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("high", "normal", "low", "lowest");
     }
 
+    /**
+     * Checks that the extension with the higher priority supplies a delegate when two extensions have the same one.
+     * Both extensions still activate.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void higherPriorityExtensionWinsADuplicateDelegate(TestModLoader loader) {
         var preferred = mock(PokemonDelegate.class);
@@ -151,6 +204,12 @@ class ModsTest {
         assertThat(Mods.isDelegatePresent(PokemonDelegate.class)).isTrue();
     }
 
+    /**
+     * Checks that {@link UEvent#REGISTER_MOD_EXTENSIONS} fires after the setups of the highest priority and before the
+     * others.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void registerModExtensionsFiresAfterTheHighestTier(TestModLoader loader) {
         extension("highest", ModExtension.Priority.HIGHEST, recording("highest")).build();
@@ -166,6 +225,11 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("highest", "event", "high");
     }
 
+    /**
+     * Checks that an extension that a listener registers during {@link UEvent#REGISTER_MOD_EXTENSIONS} activates.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void extensionRegisteredDuringTheEventIsActivated(TestModLoader loader) {
         loader.loadMod("late");
@@ -180,6 +244,11 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("late");
     }
 
+    /**
+     * Checks that the lookups and scopes find a proxy by mod ID and by delegate type.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void looksUpProxiesByModIdAndDelegate(TestModLoader loader) {
         var economy = mock(EconomyDelegate.class);
@@ -198,6 +267,12 @@ class ModsTest {
         assertThat(scoped).containsExactly(economy, economy);
     }
 
+    /**
+     * Checks that a missing delegate throws {@link IllegalStateException}, and that a missing mod gives
+     * {@link Mods#NONE}.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void missingDelegateThrowsAndMissingModFallsBackToNone(TestModLoader loader) {
         bootstrap(loader);
@@ -207,6 +282,11 @@ class ModsTest {
         assertThat(Mods.active("missing")).isSameAs(Mods.NONE);
     }
 
+    /**
+     * Checks that {@link Mods#forEach} and {@link Mods#forEachProxy} visit each active extension and its proxy.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void forEachVisitsActiveExtensionsAndTheirProxies(TestModLoader loader) {
         extension("visited", ModExtension.Priority.NORMAL, recording("visited")).build();
@@ -222,6 +302,11 @@ class ModsTest {
         assertThat(proxies).hasSameSizeAs(ids).contains(Mods.<ModProxy>proxy("visited"));
     }
 
+    /**
+     * Checks that a reflective constructor proxy of an absent mod causes no error when it is built or bootstrapped.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void reflectiveConstructorProxyOfAbsentModIsNeverLinked(TestModLoader loader) {
         assertThatNoException().isThrownBy(() -> ModExtension.builder()
@@ -236,6 +321,11 @@ class ModsTest {
         assertThat(Mods.isPresent("absent_integration")).isFalse();
     }
 
+    /**
+     * Checks that a reflective constructor proxy of a present mod is created and its setup runs.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void reflectiveConstructorProxyOfPresentModIsCreated(TestModLoader loader) {
         ModExtension.builder()
@@ -252,6 +342,11 @@ class ModsTest {
         assertThat(SETUPS).containsExactly("reflective");
     }
 
+    /**
+     * Checks that {@link Mods#resetForTesting} removes the extensions that a test registered, but keeps Atlantis.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void resetForgetsExtensionsRegisteredByTests(TestModLoader loader) {
         extension("forgotten", ModExtension.Priority.NORMAL, recording("forgotten")).build();
@@ -274,11 +369,24 @@ class ModsTest {
         assertThat(Mods.isPresent("atlantis")).isTrue();
     }
 
+    /**
+     * Reports {@link Mods} as a bootstrapped class and runs the Bootstrapper with the loader.
+     *
+     * @param loader the test mod loader
+     */
     private static void bootstrap(TestModLoader loader) {
         loader.annotated(Bootstrapped.class, Mods.class);
         Bootstrapper.bootstrap(loader);
     }
 
+    /**
+     * Creates a builder for a Java extension with a proxy for all loaders and this test class as main class.
+     *
+     * @param modId the ID of the mod
+     * @param priority the priority of the extension
+     * @param proxy supplies the proxy
+     * @return the builder
+     */
     private static ModExtension.Builder extension(String modId, ModExtension.Priority priority, Supplier<? extends ModProxy> proxy) {
         return ModExtension.builder()
                 .modId(modId)
@@ -288,6 +396,12 @@ class ModsTest {
                 .priority(priority);
     }
 
+    /**
+     * Creates a supplier of proxies that add the name to {@link #SETUPS} when their setup runs.
+     *
+     * @param name the name to record
+     * @return the proxy supplier
+     */
     private static Supplier<ModProxy> recording(String name) {
         return () -> new ModProxy() {
             @Override
@@ -297,6 +411,12 @@ class ModsTest {
         };
     }
 
+    /**
+     * Checks if a class exists, without initializing it.
+     *
+     * @param name the binary name of the class
+     * @return {@code true} if the class loader of this test finds the class
+     */
     private static boolean classExists(String name) {
         try {
             Class.forName(name, false, ModsTest.class.getClassLoader());
@@ -306,10 +426,19 @@ class ModsTest {
         }
     }
 
+    /**
+     * A proxy that a reflective constructor proxy creates by class name.
+     */
     public static final class ReflectiveProxy implements ModProxy {
 
+        /**
+         * Creates the proxy.
+         */
         public ReflectiveProxy() {}
 
+        /**
+         * Adds {@code reflective} to {@link #SETUPS}.
+         */
         @Override
         public void setup() {
             SETUPS.add("reflective");

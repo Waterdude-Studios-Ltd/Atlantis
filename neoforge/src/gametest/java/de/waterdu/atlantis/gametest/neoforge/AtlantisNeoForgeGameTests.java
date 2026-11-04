@@ -16,13 +16,24 @@ import java.util.Collection;
 @Mod(AtlantisGameTests.NAMESPACE)
 public final class AtlantisNeoForgeGameTests {
 
+    /**
+     * Registers {@link Generator} when NeoForge fires {@link RegisterGameTestsEvent}.
+     *
+     * @param modEventBus the event bus of the mod
+     */
     public AtlantisNeoForgeGameTests(IEventBus modEventBus) {
         modEventBus.addListener(RegisterGameTestsEvent.class, event -> event.register(Generator.class));
     }
 
+    /**
+     * Gives NeoForge the shared Atlantis GameTests.
+     */
     @GameTestHolder(AtlantisGameTests.NAMESPACE)
     public static final class Generator {
 
+        /**
+         * @return the test functions from {@link AtlantisGameTests#collect()}
+         */
         @GameTestGenerator
         public Collection<TestFunction> atlantisTests() {
             return AtlantisGameTests.collect();

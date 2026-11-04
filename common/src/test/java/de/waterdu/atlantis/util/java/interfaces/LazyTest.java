@@ -11,8 +11,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Tests {@link Lazy}.
+ */
 class LazyTest {
 
+    /**
+     * Checks that {@link Lazy#of} computes the value only on the first get.
+     */
     @Test
     void fastComputesOnce() {
         var calls = new AtomicInteger();
@@ -24,6 +30,9 @@ class LazyTest {
         assertThat(calls).hasValue(1);
     }
 
+    /**
+     * Checks that a {@code null} result is not cached, so each get computes the value again.
+     */
     @Test
     void nullResultIsRecomputed() {
         var calls = new AtomicInteger();
@@ -38,6 +47,10 @@ class LazyTest {
         assertThat(calls).hasValue(2);
     }
 
+    /**
+     * Checks that {@link Lazy#throwingOf} wraps a checked exception in a {@link RuntimeException} on get, and
+     * throws it as it is on {@code getThrowing}.
+     */
     @Test
     void throwingWrapsCheckedExceptions() throws Throwable {
         var failing = Lazy.throwingOf(() -> {
@@ -51,6 +64,9 @@ class LazyTest {
         assertThat(working.getThrowing()).isEqualTo(5);
     }
 
+    /**
+     * Checks that {@link Lazy#concurrentThrowingOf} caches the value and wraps a checked exception on get.
+     */
     @Test
     void concurrentThrowing() throws Throwable {
         var calls = new AtomicInteger();
@@ -64,6 +80,9 @@ class LazyTest {
         assertThatThrownBy(failing::get).hasCauseInstanceOf(IOException.class);
     }
 
+    /**
+     * Checks that {@link Lazy#concurrentOf} computes the value only once when 16 threads get it at the same time.
+     */
     @Test
     void concurrentComputesOnceAcrossThreads() throws InterruptedException {
         var calls = new AtomicInteger();
@@ -92,6 +111,9 @@ class LazyTest {
         assertThat(results).hasSize(threads).containsOnly(lazy.get());
     }
 
+    /**
+     * Sleeps for 20 milliseconds. If the thread is interrupted, it sets the interrupt flag again.
+     */
     private static void sleep() {
         try {
             Thread.sleep(20);

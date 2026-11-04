@@ -32,6 +32,13 @@ public final class AtlantisTestEnvironment implements BeforeEachCallback, AfterE
 
     private static final ExtensionContext.Namespace NAMESPACE = ExtensionContext.Namespace.create(AtlantisTestEnvironment.class);
 
+    /**
+     * Creates a temporary config directory and a {@link TestModLoader} for it. Then activates the loader as the mod
+     * loader extension and stores it in the test context.
+     *
+     * @param context the context of the test
+     * @throws IOException if the temporary directory cannot be created
+     */
     @Override
     public void beforeEach(ExtensionContext context) throws IOException {
         var configDir = Files.createTempDirectory("atlantis-test");
@@ -49,6 +56,12 @@ public final class AtlantisTestEnvironment implements BeforeEachCallback, AfterE
         context.getStore(NAMESPACE).put(TestModLoader.class, loader);
     }
 
+    /**
+     * Resets the global state of {@link Mods}, the {@link Bootstrapper}, events, configs and placeholders. Then
+     * deletes the config directory of the test loader.
+     *
+     * @param context the context of the test
+     */
     @Override
     public void afterEach(ExtensionContext context) {
         Mods.resetForTesting();
@@ -66,16 +79,35 @@ public final class AtlantisTestEnvironment implements BeforeEachCallback, AfterE
         }
     }
 
+    /**
+     * Checks if the parameter is a {@link TestModLoader}.
+     *
+     * @param parameterContext the context of the parameter
+     * @param extensionContext the context of the test
+     * @return {@code true} if the parameter type is {@link TestModLoader}
+     */
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return parameterContext.getParameter().getType() == TestModLoader.class;
     }
 
+    /**
+     * Gets the {@link TestModLoader} that {@link #beforeEach} stored for the test.
+     *
+     * @param parameterContext the context of the parameter
+     * @param extensionContext the context of the test
+     * @return the test loader of the test
+     */
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return extensionContext.getStore(NAMESPACE).get(TestModLoader.class, TestModLoader.class);
     }
 
+    /**
+     * Deletes the directory and all of its contents. Failures are ignored.
+     *
+     * @param dir the directory to delete
+     */
     private static void deleteRecursively(Path dir) {
         try (var paths = Files.walk(dir)) {
             paths.sorted(Comparator.reverseOrder()).forEach(path -> {

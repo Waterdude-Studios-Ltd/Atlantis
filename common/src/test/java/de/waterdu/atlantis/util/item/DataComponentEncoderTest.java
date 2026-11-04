@@ -13,9 +13,17 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests how {@link DataComponentEncoder} encodes data components to NBT and JSON, and decodes them.
+ */
 @MinecraftBootstrapped
 class DataComponentEncoderTest {
 
+    /**
+     * Creates a map with a stack size, damage, rarity, unbreakable and custom name component.
+     *
+     * @return the new component map
+     */
     private static DataComponentMap components() {
         return DataComponentMap.builder()
                 .set(DataComponents.MAX_STACK_SIZE, 16)
@@ -26,6 +34,11 @@ class DataComponentEncoderTest {
                 .build();
     }
 
+    /**
+     * Checks that a decoded map has the same components and values as {@link #components()}.
+     *
+     * @param decoded the decoded component map
+     */
     private static void assertSameComponents(DataComponentMap decoded) {
         var expected = components();
         assertThat(decoded.size()).isEqualTo(expected.size());
@@ -34,6 +47,9 @@ class DataComponentEncoderTest {
         }
     }
 
+    /**
+     * Checks that the NBT encoder writes each component under its ID and decodes the same components back.
+     */
     @Test
     void tagRoundTrip() {
         CompoundTag tag = DataComponentEncoder.TAG.encode(components());
@@ -43,6 +59,9 @@ class DataComponentEncoderTest {
         assertSameComponents(DataComponentEncoder.TAG.decode(tag));
     }
 
+    /**
+     * Checks that the JSON encoder writes each component under its ID and decodes the same components back.
+     */
     @Test
     void jsonRoundTrip() {
         JsonObject json = DataComponentEncoder.JSON.encode(components());
@@ -52,6 +71,9 @@ class DataComponentEncoderTest {
         assertSameComponents(DataComponentEncoder.JSON.decode(json));
     }
 
+    /**
+     * Checks that decoding skips entries with unknown component IDs and entries with invalid values.
+     */
     @Test
     void decodeSkipsUnknownAndInvalidEntries() {
         var tag = new CompoundTag();
@@ -65,6 +87,9 @@ class DataComponentEncoderTest {
         assertThat(decoded.get(DataComponents.DAMAGE)).isEqualTo(3);
     }
 
+    /**
+     * Checks that an empty map encodes to an empty tag and an empty JSON object.
+     */
     @Test
     void emptyMapEncodesToEmptyStore() {
         assertThat(DataComponentEncoder.TAG.encode(DataComponentMap.EMPTY).isEmpty()).isTrue();

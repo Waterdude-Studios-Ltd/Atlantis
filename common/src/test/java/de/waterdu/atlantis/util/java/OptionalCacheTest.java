@@ -6,8 +6,14 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link OptionalCache}.
+ */
 class OptionalCacheTest {
 
+    /**
+     * Checks that a key that is not cached gives an empty optional.
+     */
     @Test
     void missingKeysAreEmpty() {
         OptionalCache<String> cache = OptionalCache.create();
@@ -16,6 +22,10 @@ class OptionalCacheTest {
         assertThat(cache).isEmpty();
     }
 
+    /**
+     * Checks that {@code cache} stores the key as its own value, and returns {@code null} when the key was not
+     * cached before.
+     */
     @Test
     void cacheStoresKeysAsValues() {
         OptionalCache<String> cache = OptionalCache.create(4);
@@ -25,6 +35,9 @@ class OptionalCacheTest {
         assertThat(cache.get("a")).contains("a");
     }
 
+    /**
+     * Checks that an empty optional caches nothing, and that a present optional caches its value.
+     */
     @Test
     void cacheOptional() {
         OptionalCache<String> cache = OptionalCache.create();
@@ -36,6 +49,9 @@ class OptionalCacheTest {
         assertThat(cache.get("b")).contains("b");
     }
 
+    /**
+     * Checks that {@code cacheAll} caches every given key.
+     */
     @Test
     void cacheAll() {
         OptionalCache<Integer> cache = OptionalCache.create();

@@ -18,22 +18,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Task} and its builder.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class TaskTest {
 
     private AtlantisThreadPool pool;
 
+    /**
+     * Creates a pool with two daemon threads for each test.
+     */
     @BeforeEach
     void createPool() {
         this.pool = AtlantisThreadPool.createNewThreadPool("atlantis-task-test", 2, true);
     }
 
+    /**
+     * Stops the pool of the test immediately.
+     */
     @AfterEach
     void stopPool() {
         this.pool.getPool().shutdownNow();
     }
 
+    /**
+     * Checks that ticks, milliseconds, seconds, minutes and time units give the correct duration, and that
+     * {@code instant()} sets it to zero.
+     */
     @Test
     void durationsConvertToMilliseconds() {
         assertThat(Task.builder("t").ticks(3).build().duration()).isEqualTo(Duration.ofMillis(150));
@@ -44,6 +57,9 @@ class TaskTest {
         assertThat(Task.builder("t").seconds(9).instant().build().duration()).isEqualTo(Duration.ZERO);
     }
 
+    /**
+     * Checks that a default task does not repeat, is not cancelled, has no delay and keeps its ID.
+     */
     @Test
     void builderDefaultsToAnAsyncOneShot() {
         var task = Task.builder("t").build();
@@ -54,6 +70,9 @@ class TaskTest {
         assertThat(task.id()).isEqualTo("t");
     }
 
+    /**
+     * Checks that an async task runs on a thread of its executor pool.
+     */
     @Test
     void asyncTaskRunsOnThePool() throws InterruptedException {
         var latch = new CountDownLatch(1);
@@ -68,6 +87,9 @@ class TaskTest {
         assertThat(thread).hasValue(1);
     }
 
+    /**
+     * Checks that a repeating task stops after it cancels itself, and then no longer repeats.
+     */
     @Test
     void repeatingTaskRunsUntilCancelled() throws InterruptedException {
         var runs = new AtomicInteger();
@@ -87,6 +109,9 @@ class TaskTest {
         assertThat(task.repeats()).isFalse();
     }
 
+    /**
+     * Checks that a scheduled task does not run if it is cancelled before its delay ends.
+     */
     @Test
     void cancelledTaskDoesNotRun() throws InterruptedException {
         var runs = new AtomicInteger();
@@ -98,6 +123,9 @@ class TaskTest {
         assertThat(runs).hasValue(0);
     }
 
+    /**
+     * Checks that {@code andThen} runs the second runnable after the first one.
+     */
     @Test
     void andThenRunsBothTasksInOrder() {
         List<String> calls = new CopyOnWriteArrayList<>();
@@ -108,6 +136,11 @@ class TaskTest {
         assertThat(calls).containsExactly("first", "second");
     }
 
+    /**
+     * Checks that a sync task runs through the executor of the server.
+     *
+     * @param loader the test mod loader that gets the inline mock server
+     */
     @Test
     void syncTaskRunsThroughTheServer(TestModLoader loader) {
         loader.server(MockServers.executingInline());
@@ -119,6 +152,9 @@ class TaskTest {
         assertThat(runs).hasValue(1);
     }
 
+    /**
+     * Checks that equality, the hash code and the string form of a task use only its ID.
+     */
     @Test
     void equalityUsesTheId() {
         var task = Task.builder("same").build();

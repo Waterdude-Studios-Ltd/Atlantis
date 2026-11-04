@@ -9,8 +9,15 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Tests {@link Version} and {@link VersionRange}.
+ */
 class VersionRangeTest {
 
+    /**
+     * Checks that {@link Version#parse} accepts short versions, a {@code v} prefix, build metadata and pre-release
+     * parts, and rejects text and versions with more than three numbers.
+     */
     @Test
     void parsesLenientVersions() {
         assertThat(Version.parse("1.2")).contains(new Version(1, 2, 0));
@@ -21,6 +28,9 @@ class VersionRangeTest {
         assertThat(Version.parse("1.2.3.4")).isEmpty();
     }
 
+    /**
+     * Checks that pre-releases sort before the release, and that numeric pre-release parts sort as numbers.
+     */
     @Test
     void ordersPreReleasesBeforeReleases() {
         assertThat(Version.parse("1.0.0-alpha").orElseThrow()).isLessThan(Version.parse("1.0.0-alpha.1").orElseThrow());
@@ -29,6 +39,14 @@ class VersionRangeTest {
         assertThat(Version.parse("1.0.0-rc.1").orElseThrow()).isLessThan(Version.parse("1.0.0").orElseThrow());
     }
 
+    /**
+     * Checks that a range matches a version as expected. Covers wildcards, comparisons, tilde and caret ranges,
+     * ranges joined by spaces and alternatives joined by {@code ||}.
+     *
+     * @param range the range to parse
+     * @param version the version to test
+     * @param matches {@code true} if the range must match the version
+     */
     @ParameterizedTest
     @CsvSource({
             "*, 0.0.1, true",
@@ -60,12 +78,18 @@ class VersionRangeTest {
         assertThat(VersionRange.parse(range).test(version)).isEqualTo(matches);
     }
 
+    /**
+     * Checks that a version that cannot be parsed matches {@code *} and no other range.
+     */
     @Test
     void unparsableVersionsOnlyMatchAnyRange() {
         assertThat(VersionRange.parse("*").test("weird-version")).isTrue();
         assertThat(VersionRange.parse(">=1.0.0").test("weird-version")).isFalse();
     }
 
+    /**
+     * Checks that {@link VersionRange#parse} throws an {@link IllegalArgumentException} for an invalid range.
+     */
     @Test
     void rejectsInvalidRanges() {
         assertThatThrownBy(() -> VersionRange.parse(">=banana")).isInstanceOf(IllegalArgumentException.class);

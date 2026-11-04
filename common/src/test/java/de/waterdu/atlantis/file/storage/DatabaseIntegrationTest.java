@@ -39,11 +39,19 @@ class DatabaseIntegrationTest {
 
     private final List<Config<?>> configs = new ArrayList<>();
 
+    /**
+     * Destructs the storage of every config that the test registered, which closes its connection pool.
+     */
     @AfterEach
     void closePools() {
         this.configs.forEach(config -> config.storage().destruct(config));
     }
 
+    /**
+     * Checks that a written record reads back with the same value in every column.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void writesAndReadsEveryColumnType() throws Exception {
         var config = this.register(explicit());
@@ -56,6 +64,11 @@ class DatabaseIntegrationTest {
         assertSameColumns(read, record);
     }
 
+    /**
+     * Checks that a record reads by its name, and that an unknown name gives {@code null}.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void readsByName() throws Exception {
         var config = this.register(explicit());
@@ -67,6 +80,11 @@ class DatabaseIntegrationTest {
         assertThat(await(config.storage().readFromName(config, "Nobody"))).isNull();
     }
 
+    /**
+     * Checks that a name with SQL injection in it does not match a row.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void namesAreEscapedInLookups() throws Exception {
         var config = this.register(explicit());
@@ -75,6 +93,11 @@ class DatabaseIntegrationTest {
         assertThat(await(config.storage().readFromName(config, "x' OR '1'='1"))).isNull();
     }
 
+    /**
+     * Checks that a second write of the same record updates its row.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void writingAgainUpdatesTheRow() throws Exception {
         var config = this.register(explicit());
@@ -91,6 +114,11 @@ class DatabaseIntegrationTest {
         assertThat(read.tags).containsExactly("changed");
     }
 
+    /**
+     * Checks that a full read loads every row of the table into the config.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void readLoadsEveryRow() throws Exception {
         var config = this.register(explicit());
@@ -108,6 +136,11 @@ class DatabaseIntegrationTest {
         assertThat(config.all()).extracting(record -> ((Record) record).name()).containsExactlyInAnyOrder("a", "b", "c");
     }
 
+    /**
+     * Checks that a delete returns the record and removes it from the config and from the table.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void deleteRemovesTheRow() throws Exception {
         var config = this.register(explicit());
@@ -120,6 +153,11 @@ class DatabaseIntegrationTest {
         assertThat(await(config.storage().readFromUUID(config, record.uuid()))).isNull();
     }
 
+    /**
+     * Checks that settings with a JDBC URL connect, and that a record writes and reads through them.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void urlSettingsConnect() throws Exception {
         var url = "jdbc:mysql://root:" + PASSWORD + "@" + MYSQL.getHost() + ":" + MYSQL.getMappedPort(MySQLContainer.MYSQL_PORT) + "/";
@@ -133,15 +171,33 @@ class DatabaseIntegrationTest {
 
     private static final String PROPERTIES = "\"connections\": 2, \"properties\": {\"useSSL\": \"false\", \"allowPublicKeyRetrieval\": \"true\"}";
 
+    /**
+     * Creates settings with the host, port and credentials of the MySQL container as separate fields.
+     *
+     * @return the database settings
+     */
     private static DatabaseSettings explicit() {
         return settings("{\"ip\": \"" + MYSQL.getHost() + "\", \"port\": " + MYSQL.getMappedPort(MySQLContainer.MYSQL_PORT)
                 + ", \"username\": \"root\", \"password\": \"" + PASSWORD + "\", " + PROPERTIES + "}");
     }
 
+    /**
+     * Parses database settings with {@link DatabaseSettings.TypeAdapter}.
+     *
+     * @param json the settings as JSON
+     * @return the parsed settings
+     */
     private static DatabaseSettings settings(String json) {
         return new GsonBuilder().registerTypeAdapter(DatabaseSettings.class, new DatabaseSettings.TypeAdapter()).create().fromJson(json, DatabaseSettings.class);
     }
 
+    /**
+     * Registers a {@link Record} config with a new table and database, and tracks it so that its pool closes after
+     * the test. Fails the test if the config does not register.
+     *
+     * @param settings the database settings to use
+     * @return the registered config
+     */
     private Config<Record> register(DatabaseSettings settings) {
         var table = "records_" + TABLES.incrementAndGet();
         var config = StorageTestConfigs.register(Record.class, table, settings.storage("atlantis_test_" + table));
@@ -150,6 +206,12 @@ class DatabaseIntegrationTest {
         return config;
     }
 
+    /**
+     * Creates a record with a value in every column. The text values contain quotes and backslashes.
+     *
+     * @param name the name of the record
+     * @return the record
+     */
     private static Record record(String name) {
         var record = new Record(name);
         record.level = 12;
@@ -161,6 +223,12 @@ class DatabaseIntegrationTest {
         return record;
     }
 
+    /**
+     * Asserts that the read record is not {@code null} and has the same value in every column as the expected record.
+     *
+     * @param read the record read from the database
+     * @param expected the record that was written
+     */
     private static void assertSameColumns(Record read, Record expected) {
         assertThat(read).isNotNull();
         assertThat(read.uuid()).isEqualTo(expected.uuid());

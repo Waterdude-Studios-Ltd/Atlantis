@@ -18,17 +18,32 @@ import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Configurable} values, lists and their Gson contexts.
+ */
 class ConfigurableTest {
 
+    /**
+     * Gets the parameterized {@link Configurable} type of a value type.
+     *
+     * @param type the type of the configurable value
+     * @return the type of {@code Configurable<type>}
+     */
     private static Type configurableOf(Class<?> type) {
         return TypeToken.getParameterized(Configurable.class, type).getType();
     }
 
+    /**
+     * Checks that a configurable made from a value returns that value.
+     */
     @Test
     void valueIsReturnedAsIs() {
         assertThat(Configurable.of("value").get()).isEqualTo("value");
     }
 
+    /**
+     * Checks that a supplier runs only on the first get, and runs again after a reset.
+     */
     @Test
     void supplierIsLazyAndCachedUntilReset() {
         var calls = new AtomicInteger();
@@ -41,6 +56,9 @@ class ConfigurableTest {
         assertThat(configurable.get()).isEqualTo(2);
     }
 
+    /**
+     * Checks that a configurable keeps the same {@link ResettableLazy} instance that it is made from.
+     */
     @Test
     void wrapsAnExistingLazy() {
         var lazy = ResettableLazy.of(() -> "lazy");
@@ -49,6 +67,9 @@ class ConfigurableTest {
         assertThat(Configurable.of(lazy).get()).isEqualTo("lazy");
     }
 
+    /**
+     * Checks that {@code ofList} makes lists from values, suppliers and lazies in order.
+     */
     @Test
     void lists() {
         Supplier<String> supplier = () -> "b";
@@ -58,6 +79,10 @@ class ConfigurableTest {
         assertThat(Configurable.ofList(ResettableLazy.of(() -> "c"))).extracting(Configurable::get).containsExactly("c");
     }
 
+    /**
+     * Checks that every {@code contains} overload finds values in lists and arrays, with and without a custom
+     * comparison.
+     */
     @Test
     void contains() {
         var list = Configurable.ofList("a", "b");
@@ -77,6 +102,9 @@ class ConfigurableTest {
         assertThat(Configurable.contains("x", "y", String::equals, typed)).isFalse();
     }
 
+    /**
+     * Checks that a context without custom adapters reads and writes the value with Gson.
+     */
     @Test
     void defaultContextDelegatesToGson() {
         var builder = new GsonBuilder();
@@ -89,6 +117,10 @@ class ConfigurableTest {
         assertThat(gson.toJson(Configurable.of(7), configurableOf(Integer.class))).isEqualTo("7");
     }
 
+    /**
+     * Checks that a custom deserializer runs only once, on the first get, and that the custom serializer writes the
+     * value.
+     */
     @Test
     void deserializationIsDeferredUntilFirstGet() {
         var calls = new AtomicInteger();
@@ -108,16 +140,27 @@ class ConfigurableTest {
         assertThat(gson.toJson(parsed, configurableOf(String.class))).isEqualTo("\"value\"");
     }
 
+    /**
+     * Tests the contexts that {@link Configurable#registerDefaultContexts} registers.
+     */
     @ExtendWith(AtlantisTestEnvironment.class)
     @Nested
     class DefaultContexts {
 
+        /**
+         * Creates a Gson instance with the default contexts.
+         *
+         * @return the new Gson instance
+         */
         private Gson gson() {
             var builder = new GsonBuilder();
             Configurable.registerDefaultContexts(builder);
             return builder.create();
         }
 
+        /**
+         * Checks that colors read with an alpha of 255 when it is missing, and write their alpha.
+         */
         @Test
         void colour() {
             var gson = this.gson();
@@ -130,6 +173,9 @@ class ConfigurableTest {
             assertThat(gson.toJson(translucent, configurableOf(Color.class))).isEqualTo("{\"red\":1,\"green\":2,\"blue\":3,\"alpha\":4}");
         }
 
+        /**
+         * Checks that patterns read and write as a plain string, or as an object when they have flags.
+         */
         @Test
         void pattern() {
             var gson = this.gson();

@@ -20,6 +20,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+/**
+ * Tests {@link Leaderboard} updates, recalculation, events and the type adapter.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class LeaderboardTest {
@@ -28,6 +31,9 @@ class LeaderboardTest {
     private static final UUID B = new UUID(0, 2);
     private static final UUID C = new UUID(0, 3);
 
+    /**
+     * Checks that a new entry is queued and not ranked, but still counts as on the leaderboard.
+     */
     @Test
     void newEntriesAreQueuedUntilRecalculated() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -42,6 +48,9 @@ class LeaderboardTest {
         assertThat(leaderboard.positionOf(B)).isEqualTo(-1);
     }
 
+    /**
+     * Checks that a recalculation empties the queue and sorts the entries from lowest to highest.
+     */
     @Test
     void recalculateSortsAscending() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -57,6 +66,9 @@ class LeaderboardTest {
         assertThat(leaderboard.positionOf(A)).isEqualTo(2);
     }
 
+    /**
+     * Checks that a reverse leaderboard sorts the entries from highest to lowest.
+     */
     @Test
     void reverseRecalculateSortsDescending() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, true);
@@ -70,6 +82,9 @@ class LeaderboardTest {
         assertThat(leaderboard.rankingsList()).containsExactly(A, C, B);
     }
 
+    /**
+     * Checks that an update to a ranked entry changes its value but not its position until the next recalculation.
+     */
     @Test
     void updatingARankedEntryChangesItInPlace() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -86,6 +101,9 @@ class LeaderboardTest {
         assertThat(leaderboard.rankingsList()).containsExactly(B, A);
     }
 
+    /**
+     * Checks that a getter with an argument is called with the argument given to the leaderboard.
+     */
     @Test
     void getterWithArgumentIsCalledWithIt() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "stat", "kills", Integer.class, false);
@@ -94,11 +112,17 @@ class LeaderboardTest {
         assertThat(leaderboard.queued()).containsEntry(A, "kills".length() + 7);
     }
 
+    /**
+     * Checks that a leaderboard with a missing getter throws {@link NoSuchMethodException}.
+     */
     @Test
     void unknownGetterIsRejected() {
         assertThatExceptionOfType(NoSuchMethodException.class).isThrownBy(() -> Leaderboard.create("test", Score.class, "missing", Integer.class, false));
     }
 
+    /**
+     * Checks that the update event gets the key and the value, and that a cancelled update does not add the entry.
+     */
     @Test
     void cancelledUpdateIsNotRecorded() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -115,6 +139,9 @@ class LeaderboardTest {
         assertThat(leaderboard.isOnLeaderboard(A)).isFalse();
     }
 
+    /**
+     * Checks that a cancelled pre-recalculation event keeps the queue and the rankings, and fires no post event.
+     */
     @Test
     void cancelledRecalculationLeavesRankingsAlone() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -133,6 +160,9 @@ class LeaderboardTest {
         assertThat(posts).isEmpty();
     }
 
+    /**
+     * Checks that a recalculation fires the post event with the leaderboard.
+     */
     @Test
     void recalculationEmitsPostWithTheLeaderboard() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -147,6 +177,9 @@ class LeaderboardTest {
         assertThat(posts).containsExactly(leaderboard);
     }
 
+    /**
+     * Checks that an async recalculation completes and sorts the entries.
+     */
     @Test
     void asyncRecalculationCompletes() throws Exception {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -158,6 +191,11 @@ class LeaderboardTest {
         assertThat(leaderboard.rankingsList()).containsExactly(B, A);
     }
 
+    /**
+     * Checks that {@code recalculateAll} recalculates every leaderboard and then fires the post-all event once.
+     *
+     * @param loader the test mod loader that gets the inline mock server
+     */
     @Test
     void recalculateAllRecalculatesEveryLeaderboardThenEmitsPostAll(TestModLoader loader) throws NoSuchMethodException {
         loader.server(MockServers.executingInline());
@@ -178,6 +216,11 @@ class LeaderboardTest {
         assertThat(postAll).containsExactly("post_all");
     }
 
+    /**
+     * Checks that a cancelled pre-all event stops every recalculation and the post-all event.
+     *
+     * @param loader the test mod loader that gets the inline mock server
+     */
     @Test
     void cancelledRecalculateAllDoesNothing(TestModLoader loader) throws NoSuchMethodException {
         loader.server(MockServers.executingInline());
@@ -196,6 +239,10 @@ class LeaderboardTest {
         assertThat(postAll).isEmpty();
     }
 
+    /**
+     * Checks that equality ignores the reverse flag but uses the owner, and that the accessors return the given
+     * values.
+     */
     @Test
     void equalityUsesOwnerDataGetterAndValueType() throws NoSuchMethodException {
         var leaderboard = Leaderboard.create("test", Score.class, "points", Integer.class, false);
@@ -208,6 +255,10 @@ class LeaderboardTest {
         assertThat(leaderboard.valueClass()).isEqualTo(Integer.class);
     }
 
+    /**
+     * Checks that a leaderboard read back with {@link Leaderboard.TypeAdapter} is equal, keeps the reverse flag and
+     * ranks the queued entries too.
+     */
     @Test
     void typeAdapterRoundTripsAndRecalculates() throws NoSuchMethodException {
         var gson = new GsonBuilder().registerTypeHierarchyAdapter(Leaderboard.class, new Leaderboard.TypeAdapter()).create();
@@ -226,34 +277,63 @@ class LeaderboardTest {
         assertThat(copy.rankings()).isEqualTo(Map.of(A, 6, B, 14, C, 9));
     }
 
+    /**
+     * Holds the points of a player for the leaderboard tests.
+     */
     public static final class Score implements Data {
 
         private UUID uuid;
         private final int points;
 
+        /**
+         * Creates a score.
+         *
+         * @param uuid the UUID of the player
+         * @param points the points of the player
+         */
         public Score(UUID uuid, int points) {
             this.uuid = uuid;
             this.points = points;
         }
 
+        /**
+         * @return the points of the player
+         */
         public int points() {
             return this.points;
         }
 
+        /**
+         * Gets a stat that adds the length of the name to the points.
+         *
+         * @param name the name of the stat
+         * @return the length of the name plus the points
+         */
         public int stat(String name) {
             return name.length() + this.points;
         }
 
+        /**
+         * @return the UUID of the player
+         */
         @Override
         public UUID uuid() {
             return this.uuid;
         }
 
+        /**
+         * Sets the UUID of the player.
+         *
+         * @param uuid the new UUID
+         */
         @Override
         public void setUUID(UUID uuid) {
             this.uuid = uuid;
         }
 
+        /**
+         * @return the UUID of the player as a string
+         */
         @Override
         public String identifier() {
             return this.uuid.toString();

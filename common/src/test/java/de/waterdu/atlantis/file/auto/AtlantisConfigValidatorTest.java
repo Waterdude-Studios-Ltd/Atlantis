@@ -9,6 +9,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
 
+/**
+ * Tests that {@link AtlantisConfigValidator} checks the classes with config annotations.
+ */
 class AtlantisConfigValidatorTest {
 
     private static final String DATA_OVERRIDES = """
@@ -17,6 +20,12 @@ class AtlantisConfigValidatorTest {
                 @Override public String toString() { return ""; }
             """;
 
+    /**
+     * Compiles the source in package {@code test}, with {@link AtlantisConfigValidator} as the processor.
+     *
+     * @param body the source after the imports
+     * @return the result of the compilation
+     */
     private static Compilation compile(String body) {
         return javac()
                 .withProcessors(new AtlantisConfigValidator())
@@ -29,6 +38,11 @@ class AtlantisConfigValidatorTest {
                         """ + body));
     }
 
+    /**
+     * Checks that a class with a config annotation that implements {@code Configuration} compiles without warnings.
+     *
+     * @param annotation the source of the config annotation
+     */
     @ParameterizedTest
     @ValueSource(strings = {
             "@BasicConfiguration(mod = \"m\")",
@@ -39,6 +53,11 @@ class AtlantisConfigValidatorTest {
         assertThat(compile(annotation + "\npublic class Sample implements Configuration {}")).succeededWithoutWarnings();
     }
 
+    /**
+     * Checks that a class with a config annotation that implements no configuration type gives one error.
+     *
+     * @param annotation the source of the config annotation
+     */
     @ParameterizedTest
     @ValueSource(strings = {
             "@BasicConfiguration(mod = \"m\")",
@@ -54,6 +73,12 @@ class AtlantisConfigValidatorTest {
         assertThat(compilation).hadErrorContaining("invalid " + kind + " implementation, must implement one of Configuration, Data, NamedData, PlayerData");
     }
 
+    /**
+     * Checks that a data class that overrides {@code hashCode}, {@code equals} and {@code toString} compiles
+     * without warnings.
+     *
+     * @param type the data interface that the class implements
+     */
     @ParameterizedTest
     @ValueSource(strings = {"Data", "NamedData", "PlayerData"})
     void acceptsDataThatOverridesObjectMethods(String type) {
@@ -62,6 +87,9 @@ class AtlantisConfigValidatorTest {
         assertThat(compilation).succeededWithoutWarnings();
     }
 
+    /**
+     * Checks that a record that implements {@code Data} compiles without explicit overrides.
+     */
     @Test
     void acceptsRecordsImplementingData() {
         var compilation = compile("""
@@ -74,6 +102,11 @@ class AtlantisConfigValidatorTest {
         assertThat(compilation).succeededWithoutWarnings();
     }
 
+    /**
+     * Checks that a data class with missing overrides gives one error that names all of them.
+     *
+     * @param type the data interface that the class implements
+     */
     @ParameterizedTest
     @ValueSource(strings = {"Data", "PlayerData"})
     void reportsMissingOverridesOnce(String type) {
@@ -88,6 +121,10 @@ class AtlantisConfigValidatorTest {
         assertThat(compilation).hadErrorContaining("invalid Sample implementation, must override equals, toString");
     }
 
+    /**
+     * Checks that a data class with no overrides gives one error that names {@code hashCode}, {@code equals} and
+     * {@code toString}.
+     */
     @Test
     void reportsEveryMissingOverride() {
         var compilation = compile("@BasicData(mod = \"m\")\npublic abstract class Sample implements Data {}");

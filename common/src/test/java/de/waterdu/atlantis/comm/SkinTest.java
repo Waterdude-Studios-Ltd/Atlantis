@@ -5,8 +5,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Skin}.
+ */
 class SkinTest {
 
+    /**
+     * Checks that a new skin has no texture and no signature.
+     */
     @Test
     void emptyByDefault() {
         var skin = new Skin();
@@ -15,6 +21,9 @@ class SkinTest {
         assertThat(skin.hasSignature()).isFalse();
     }
 
+    /**
+     * Checks that the setters set the texture and the signature.
+     */
     @Test
     void settersUpdateState() {
         var skin = new Skin();
@@ -27,6 +36,9 @@ class SkinTest {
         assertThat(skin.signature()).isEqualTo("signature");
     }
 
+    /**
+     * Checks that Gson writes and reads a skin without losing the texture or the signature.
+     */
     @Test
     void gsonRoundTrip() {
         var gson = new Gson();

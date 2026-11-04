@@ -14,11 +14,18 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link LocalPosition}.
+ */
 @MinecraftBootstrapped
 class LocalPositionTest {
 
     private final Gson gson = new GsonBuilder().registerTypeAdapter(LocalPosition.class, new LocalPosition.TypeAdapter()).create();
 
+    /**
+     * Checks that the constructors set the coordinates and the rotation, and that a position has a rotation only
+     * when one is given.
+     */
     @Test
     void constructors() {
         assertThat(LocalPosition.ZERO).isEqualTo(new LocalPosition(0, 0, 0));
@@ -30,6 +37,9 @@ class LocalPositionTest {
         assertThat(new LocalPosition(1, 2, 3).hasRotation()).isFalse();
     }
 
+    /**
+     * Checks that each setter gives a changed copy and leaves the original unchanged.
+     */
     @Test
     void settersReturnCopies() {
         var original = new LocalPosition(1, 2, 3, 4, 5);
@@ -42,6 +52,10 @@ class LocalPositionTest {
         assertThat(original).isEqualTo(new LocalPosition(1, 2, 3, 4, 5));
     }
 
+    /**
+     * Checks that a moved copy keeps the rotation through a JSON round trip, and that the original keeps its own
+     * rotation.
+     */
     @Test
     void copiesDoNotShareRotation() {
         var original = new LocalPosition(1, 2, 3, 4, 5);
@@ -52,6 +66,10 @@ class LocalPositionTest {
         assertThat(original.xRot()).isEqualTo(4);
     }
 
+    /**
+     * Checks that {@code add} and {@code move} change only the coordinates, and that {@code rotate} adds to the
+     * rotation.
+     */
     @Test
     void addMoveAndRotateKeepRotation() {
         var position = new LocalPosition(1, 2, 3, 4, 5);
@@ -63,6 +81,9 @@ class LocalPositionTest {
         assertThat(position.rotate(1, -1)).isEqualTo(new LocalPosition(1, 2, 3, 5, 4));
     }
 
+    /**
+     * Checks that the delta getters give the signed distance from the position to the given coordinate.
+     */
     @Test
     void deltas() {
         var position = new LocalPosition(1, 2, 3);
@@ -72,12 +93,19 @@ class LocalPositionTest {
         assertThat(position.getDZ(3)).isZero();
     }
 
+    /**
+     * Checks that {@link LocalPosition#getBlockPos()} rounds each coordinate down, also for negative coordinates.
+     */
     @Test
     void blockPosContainsThePosition() {
         assertThat(new LocalPosition(1.7, 64.2, 3.9).getBlockPos()).isEqualTo(new BlockPos(1, 64, 3));
         assertThat(new LocalPosition(-0.5, -1.2, -3.9).getBlockPos()).isEqualTo(new BlockPos(-1, -2, -4));
     }
 
+    /**
+     * Checks that each randomized coordinate is at most the factor times the original coordinate away from zero, and
+     * that the rotation does not change.
+     */
     @RepeatedTest(20)
     void randomizeStaysWithinTheFactor() {
         var randomized = new LocalPosition(10, -20, 30, 1, 2).randomize(0.5);
@@ -89,6 +117,10 @@ class LocalPositionTest {
         assertThat(randomized.yRot()).isEqualTo(2);
     }
 
+    /**
+     * Checks that {@link LocalPosition#matches} accepts vectors and arrays of three equal coordinates, and rejects
+     * other lengths, other coordinates and other types.
+     */
     @Test
     void matchesVectorsAndArrays() {
         var position = new LocalPosition(1, 2, 3, 45, 45);
@@ -105,6 +137,9 @@ class LocalPositionTest {
         assertThat(position.matches("1 2 3")).isFalse();
     }
 
+    /**
+     * Checks that equality and the hash code include the rotation, and that {@code toString} shows the rotation.
+     */
     @Test
     void equalityIncludesRotation() {
         assertThat(new LocalPosition(1, 2, 3, 4, 5))
@@ -115,6 +150,10 @@ class LocalPositionTest {
         assertThat(new LocalPosition(1, 2, 3, 4, 5).toString()).isEqualTo("(1.0, 2.0, 3.0, [4.0, 5.0])");
     }
 
+    /**
+     * Checks that {@link LocalPosition.TypeAdapter} leaves out a zero rotation when it writes, and reads a missing
+     * rotation as zero.
+     */
     @Test
     void typeAdapterOmitsZeroRotation() {
         assertThat(this.gson.toJson(new LocalPosition(1, 2, 3))).isEqualTo("{\"x\":1.0,\"y\":2.0,\"z\":3.0}");

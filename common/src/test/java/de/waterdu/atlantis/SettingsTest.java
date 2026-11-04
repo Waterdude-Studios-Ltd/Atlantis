@@ -14,10 +14,17 @@ import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Settings}.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class SettingsTest {
 
+    /**
+     * Checks that {@link Settings#get()} gives the same default settings each time before the Atlantis config is
+     * ready.
+     */
     @Test
     void defaultsBeforeAtlantisConfigIsReady() {
         var settings = Settings.get();
@@ -29,6 +36,13 @@ class SettingsTest {
         assertThat(settings.isUseErrorBin()).isFalse();
     }
 
+    /**
+     * Checks that {@link Settings#get()} gives the loaded settings after the configs initialize, and that the
+     * settings file is written with its comments.
+     *
+     * @param loader the test mod loader
+     * @throws Exception if the file cannot be read or the wait is interrupted
+     */
     @Test
     void loadedSettingsOnceAtlantisConfigIsReady(TestModLoader loader) throws Exception {
         var defaults = Settings.get();

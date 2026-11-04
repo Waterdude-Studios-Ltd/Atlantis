@@ -12,9 +12,14 @@ import static org.mockito.Mockito.mock;
  */
 public final class MockServers {
 
+    /**
+     * Prevents instances of this utility class.
+     */
     private MockServers() {}
 
-    /** A server whose {@code execute} runs tasks immediately on the calling thread. */
+    /**
+     * A server whose {@code execute} runs tasks immediately on the calling thread.
+     */
     public static MinecraftServer executingInline() {
         var server = mock(MinecraftServer.class);
         doAnswer(invocation -> {

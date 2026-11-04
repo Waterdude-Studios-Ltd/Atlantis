@@ -10,15 +10,25 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link AtlantisLevel}.
+ */
 @MinecraftBootstrapped
 class AtlantisLevelTest {
 
+    /**
+     * Checks that a level without a namespace uses the {@code atlantis} namespace, and that the default path is
+     * {@code example}.
+     */
     @Test
     void defaultsToAnAtlantisLevel() {
         assertThat(new AtlantisLevel().id()).isEqualTo("atlantis:example");
         assertThat(new AtlantisLevel("arena").id()).isEqualTo("atlantis:arena");
     }
 
+    /**
+     * Checks the level key, the configurable level, {@code toString}, equality and the hash code of a level.
+     */
     @Test
     void identity() {
         var level = new AtlantisLevel("atlantis_test", "arena");
@@ -30,6 +40,9 @@ class AtlantisLevelTest {
         assertThat(level).isNotEqualTo(new AtlantisLevel("atlantis_test", "other"));
     }
 
+    /**
+     * Checks that {@link AtlantisLevel#setLevel} changes the ID of the level.
+     */
     @Test
     void setLevelChangesIdentity() {
         var level = new AtlantisLevel("atlantis_test", "arena");
@@ -39,6 +52,9 @@ class AtlantisLevelTest {
         assertThat(level.id()).isEqualTo("atlantis_test:moved");
     }
 
+    /**
+     * Checks that a level matches equal levels, configurable levels and level keys, but not other levels or strings.
+     */
     @Test
     void matches() {
         var level = new AtlantisLevel("atlantis_test", "arena");
@@ -51,6 +67,10 @@ class AtlantisLevelTest {
         assertThat(level.matches("atlantis_test:arena")).isFalse();
     }
 
+    /**
+     * Checks that a builder that does not instantiate the level sets the chunk generator and dimension type, but
+     * creates no level stem.
+     */
     @Test
     void builderWithoutInstantiatingSetsGeneratorAndDimensionType() throws InvalidAtlantisLevelException {
         var level = AtlantisLevel.builder("atlantis_test", "built")
@@ -65,6 +85,9 @@ class AtlantisLevelTest {
         assertThat(level.dimensionType()).isNull();
     }
 
+    /**
+     * Checks that a level built without a dimension type or chunk generator makes neither.
+     */
     @Test
     void levelWithoutDimensionTypeHasNone() throws InvalidAtlantisLevelException {
         var level = AtlantisLevel.builder("atlantis_test", "incomplete").build(false);

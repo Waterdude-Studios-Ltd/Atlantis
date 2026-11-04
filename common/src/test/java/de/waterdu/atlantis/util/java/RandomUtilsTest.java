@@ -7,15 +7,24 @@ import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link RandomUtils}.
+ */
 class RandomUtilsTest {
 
     private static final int SAMPLES = 2000;
 
+    /**
+     * Checks that {@link RandomUtils#getRandom()} always returns the same instance.
+     */
     @Test
     void sharedRandom() {
         assertThat(RandomUtils.getRandom()).isSameAs(RandomUtils.getRandom());
     }
 
+    /**
+     * Checks that random integers stay within both bounds and that both bounds can occur.
+     */
     @Test
     void intsAreInclusiveAndReachBothBounds() {
         var seen = new HashSet<Integer>();
@@ -27,6 +36,9 @@ class RandomUtilsTest {
         assertThat(seen).containsExactlyInAnyOrder(1, 2, 3, 4);
     }
 
+    /**
+     * Checks that every number type accepts a minimum that is larger than the maximum.
+     */
     @Test
     void swappedBoundsAreAccepted() {
         for (var i = 0; i < SAMPLES; i++) {
@@ -39,6 +51,9 @@ class RandomUtilsTest {
         }
     }
 
+    /**
+     * Checks that equal bounds return that bound.
+     */
     @Test
     void equalBounds() {
         assertThat(RandomUtils.getBetween(7, 7)).isEqualTo(7);
@@ -46,6 +61,9 @@ class RandomUtilsTest {
         assertThat(RandomUtils.getBetween(1.5, 1.5)).isEqualTo(1.5);
     }
 
+    /**
+     * Checks that random doubles and floats stay within their bounds.
+     */
     @RepeatedTest(5)
     void floatingPointValuesStayWithinBounds() {
         for (var i = 0; i < SAMPLES; i++) {
@@ -54,6 +72,9 @@ class RandomUtilsTest {
         }
     }
 
+    /**
+     * Checks that random longs can be larger than {@link Integer#MAX_VALUE}.
+     */
     @Test
     void longsSupportRangesWiderThanAnInt() {
         var min = 0L;

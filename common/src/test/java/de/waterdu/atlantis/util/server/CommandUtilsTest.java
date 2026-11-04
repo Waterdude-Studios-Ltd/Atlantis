@@ -7,8 +7,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link CommandUtils}.
+ */
 class CommandUtilsTest {
 
+    /**
+     * Checks that {@link CommandUtils#doesStringStartWith} ignores case and that an empty prefix matches any string.
+     */
     @Test
     void doesStringStartWithIgnoresCase() {
         assertThat(CommandUtils.doesStringStartWith("re", "Reload")).isTrue();
@@ -17,6 +23,10 @@ class CommandUtilsTest {
         assertThat(CommandUtils.doesStringStartWith("x", "reload")).isFalse();
     }
 
+    /**
+     * Checks that {@link CommandUtils#getListOfStringsMatchingLastWord} keeps the completions that start with the
+     * last argument.
+     */
     @Test
     void matchesTheLastArgument() {
         var args = new String[]{"atlantis", "re"};
@@ -26,11 +36,17 @@ class CommandUtilsTest {
         assertThat(CommandUtils.getListOfStringsMatchingLastWord(args, List.of())).isEmpty();
     }
 
+    /**
+     * Checks that completions that are not strings are matched and returned by their {@code toString} value.
+     */
     @Test
     void usesToStringOfNonStringCompletions() {
         assertThat(CommandUtils.getListOfStringsMatchingLastWord(new String[]{"1"}, List.of(10, 20, 15))).containsExactly("10", "15");
     }
 
+    /**
+     * Checks that a resource location matches by its full name or by its path, and is returned by its full name.
+     */
     @Test
     void fallsBackToResourceLocationPaths() {
         var stone = ResourceLocation.withDefaultNamespace("stone");

@@ -13,9 +13,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Tests {@link ModExtension} and its builder.
+ */
 @ExtendWith(AtlantisTestEnvironment.class)
 class ModExtensionTest {
 
+    /**
+     * Creates a builder that has every required value and a Fabric proxy.
+     *
+     * @return the builder
+     */
     private static ModExtension.Builder complete() {
         return ModExtension.builder()
                 .modId("example")
@@ -24,6 +32,9 @@ class ModExtensionTest {
                 .language(ModExtension.Language.JAVA);
     }
 
+    /**
+     * Checks that an extension uses normal priority, is not a mod loader and has no delegates by default.
+     */
     @Test
     void buildsWithDefaults() {
         var extension = complete().build();
@@ -35,6 +46,9 @@ class ModExtensionTest {
         assertThat(extension.delegateProxies()).isEmpty();
     }
 
+    /**
+     * Checks that the builder throws {@link IllegalStateException} when a required value or the proxy is missing.
+     */
     @Test
     void rejectsPartialBuilders() {
         assertThatIllegalStateException().isThrownBy(() -> complete().modId(null).build());
@@ -48,6 +62,10 @@ class ModExtensionTest {
                 .build());
     }
 
+    /**
+     * Checks that the extension keeps the delegates, the mod loader flag, the language and the priority of the
+     * builder.
+     */
     @Test
     void recordsDelegatesAndFlags() {
         var extension = complete()
@@ -63,6 +81,9 @@ class ModExtensionTest {
         assertThat(extension.priority()).isEqualTo(ModExtension.Priority.HIGH);
     }
 
+    /**
+     * Checks that an extension with only a Fabric proxy supports Fabric and no other loader.
+     */
     @Test
     void singleLoaderProxy() {
         var extension = complete().build();
@@ -75,6 +96,10 @@ class ModExtensionTest {
         }
     }
 
+    /**
+     * Checks that a {@code NEOFORGE_AND_FABRIC} proxy supports NeoForge and Fabric with the same proxy, but not
+     * Spigot.
+     */
     @Test
     void neoForgeAndFabricProxy() {
         var proxy = new ModProxy() {};
@@ -92,6 +117,10 @@ class ModExtensionTest {
         assertThat(extension.<ModProxy>proxy(ModExtension.Loader.FABRIC)).isSameAs(proxy);
     }
 
+    /**
+     * Checks that an {@code ALL} proxy supports NeoForge, Fabric and Spigot, but not the group or {@code OTHER}
+     * loaders.
+     */
     @Test
     void allProxyCoversEveryLoaderItCanRunOn() {
         var extension = ModExtension.builder()
@@ -109,6 +138,9 @@ class ModExtensionTest {
         assertThat(extension.supports(ModExtension.Loader.OTHER)).isFalse();
     }
 
+    /**
+     * Checks that the extension gives a proxy that is not {@code null} for a loader it does not support.
+     */
     @Test
     void unsupportedLoaderGetsNoOpProxy() {
         var extension = complete().build();
@@ -116,6 +148,9 @@ class ModExtensionTest {
         assertThat(extension.<ModProxy>proxy(ModExtension.Loader.NEOFORGE)).isNotNull();
     }
 
+    /**
+     * Checks that the proxy supplier runs only on the first request for the proxy, and only one time.
+     */
     @Test
     void proxyIsCreatedLazilyAndOnce() {
         var created = new AtomicInteger();
@@ -137,6 +172,10 @@ class ModExtensionTest {
         assertThat(created).hasValue(1);
     }
 
+    /**
+     * Checks that a reflective constructor proxy creates the named class, and that a missing class throws an
+     * exception that names it.
+     */
     @Test
     void reflectiveConstructorProxy() {
         var extension = ModExtension.builder()
@@ -152,6 +191,9 @@ class ModExtensionTest {
                 .hasMessageContaining("de.waterdu.atlantis.DoesNotExist");
     }
 
+    /**
+     * Checks that a reflective method proxy gets the proxy from the instance that the static method returns.
+     */
     @Test
     void reflectiveMethodProxy() {
         var extension = ModExtension.builder()
@@ -164,6 +206,10 @@ class ModExtensionTest {
         assertThat(extension.<ModProxy>proxy(ModExtension.Loader.FABRIC)).isSameAs(ProxyHolder.INSTANCE.proxy());
     }
 
+    /**
+     * Checks that the check for the main class does not initialize it, and that a missing main class throws
+     * {@link ClassNotFoundException}.
+     */
     @Test
     void mainClassPresenceDoesNotInitialiseTheClass() {
         var present = complete().mainClass("de.waterdu.atlantis.mod.ModExtensionTest$NotInitialised").build();
@@ -175,31 +221,52 @@ class ModExtensionTest {
         assertThatThrownBy(absent::mainClass).isInstanceOf(ClassNotFoundException.class);
     }
 
+    /**
+     * A proxy that {@link #reflectiveConstructorProxy()} creates by class name.
+     */
     public static final class ReflectiveProxy implements ModProxy {
 
+        /**
+         * Creates the proxy.
+         */
         public ReflectiveProxy() {}
     }
 
+    /**
+     * Holds the proxy that {@link #reflectiveMethodProxy()} gets through reflection.
+     */
     public static final class ProxyHolder {
 
         static final ProxyHolder INSTANCE = new ProxyHolder();
 
         private final ModProxy proxy = new ModProxy() {};
 
+        /**
+         * @return the single instance of the holder
+         */
         public static ProxyHolder instance() {
             return INSTANCE;
         }
 
+        /**
+         * @return the proxy of this holder
+         */
         public ModProxy proxy() {
             return this.proxy;
         }
     }
 
+    /**
+     * Records if {@link NotInitialised} was initialized.
+     */
     static final class NotInitialisedProbe {
 
         static boolean INITIALISED = false;
     }
 
+    /**
+     * Sets {@link NotInitialisedProbe#INITIALISED} when it is initialized.
+     */
     @SuppressWarnings("unused")
     static final class NotInitialised {
 

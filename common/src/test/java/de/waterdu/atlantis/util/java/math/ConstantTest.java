@@ -4,8 +4,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Constant}.
+ */
 class ConstantTest {
 
+    /**
+     * Checks that {@link Constant#get} finds a constant by any of its names or symbols, and returns {@code null}
+     * for an unknown name.
+     */
     @Test
     void lookupByAnyRepresentation() {
         assertThat(Constant.get("pi")).isEqualTo(Constant.PI);
@@ -15,6 +22,9 @@ class ConstantTest {
         assertThat(Constant.get("nothing")).isNull();
     }
 
+    /**
+     * Checks the values of some constants and the representations of {@link Constant#TAU}.
+     */
     @Test
     void values() {
         assertThat(Constant.PI.value()).isEqualTo(Math.PI);

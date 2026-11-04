@@ -11,10 +11,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link PokemonTypeAdapter}.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class PokemonTypeAdapterTest {
 
+    /**
+     * Checks that a Pokémon written and read through the adapter keeps its UUID, species and shininess.
+     */
     @Test
     void roundTripsThroughTheDelegate() {
         var delegate = FakePokemonDelegate.install();

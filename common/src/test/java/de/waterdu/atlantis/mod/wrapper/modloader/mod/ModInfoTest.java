@@ -7,8 +7,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link ModInfo} and {@link VersionCheck}.
+ */
 class ModInfoTest {
 
+    /**
+     * Checks that the version check supplier runs only when {@code versionCheck().get()} is called, and that the
+     * check has the status and target that the supplier gives.
+     */
     @Test
     void versionCheckIsLazy() {
         var calls = new AtomicInteger();
@@ -26,6 +33,9 @@ class ModInfoTest {
         assertThat(info.issueTracker()).isNull();
     }
 
+    /**
+     * Checks that {@link VersionCheck#UNSUPPORTED} has the unsupported status and no target version.
+     */
     @Test
     void unsupportedHasNoTarget() {
         assertThat(VersionCheck.UNSUPPORTED.status()).isEqualTo(VersionStatus.UNSUPPORTED);

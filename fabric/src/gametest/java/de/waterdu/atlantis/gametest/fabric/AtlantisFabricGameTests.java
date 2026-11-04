@@ -11,6 +11,11 @@ import java.util.Collection;
  */
 public final class AtlantisFabricGameTests {
 
+    /**
+     * Gets the test functions of all Atlantis GameTest classes from {@link AtlantisGameTests#collect()}.
+     *
+     * @return the test functions
+     */
     @GameTestGenerator
     public Collection<TestFunction> atlantisTests() {
         return AtlantisGameTests.collect();

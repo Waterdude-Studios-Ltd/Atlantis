@@ -10,22 +10,34 @@ import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link DecimalPattern} and its type adapter.
+ */
 class DecimalPatternTest {
 
     private final Gson gson = new GsonBuilder().registerTypeAdapter(DecimalPattern.class, new DecimalPattern.TypeAdapter()).create();
     private Locale previous;
 
+    /**
+     * Saves the default locale and sets it to {@link Locale#ROOT}.
+     */
     @BeforeEach
     void useRootLocale() {
         this.previous = Locale.getDefault();
         Locale.setDefault(Locale.ROOT);
     }
 
+    /**
+     * Sets the default locale back to the saved one.
+     */
     @AfterEach
     void restoreLocale() {
         Locale.setDefault(this.previous);
     }
 
+    /**
+     * Checks that the pattern formats longs and doubles, and that it keeps one formatter.
+     */
     @Test
     void formatsLongsAndDoubles() {
         var pattern = DecimalPattern.of("#,##0.00");
@@ -36,6 +48,9 @@ class DecimalPatternTest {
         assertThat(pattern.formatter()).isSameAs(pattern.formatter());
     }
 
+    /**
+     * Checks that {@link DecimalPattern.TypeAdapter} reads a pattern from a string and writes it back.
+     */
     @Test
     void typeAdapterRoundTrips() {
         var pattern = this.gson.fromJson("\"0.#\"", DecimalPattern.class);

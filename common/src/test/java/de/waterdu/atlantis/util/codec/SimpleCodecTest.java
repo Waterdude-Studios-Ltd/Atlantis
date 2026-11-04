@@ -14,10 +14,20 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests that {@link SimpleCodec} serializes and deserializes the fields of an object, and that
+ * {@link SimpleCodecPool} finds codecs by ID.
+ */
 class SimpleCodecTest {
 
     private static final Key<Sample> KEY = Key.of("atlantis", "sample");
 
+    /**
+     * Creates a Gson instance that uses the codec to serialize and deserialize {@link Sample}.
+     *
+     * @param codec the codec for {@link Sample}
+     * @return the Gson instance
+     */
     private static Gson gson(SimpleCodec<Sample> codec) {
         return new GsonBuilder()
                 .registerTypeAdapter(Sample.class, (JsonSerializer<Sample>) (src, type, context) -> {
@@ -29,6 +39,11 @@ class SimpleCodecTest {
                 .create();
     }
 
+    /**
+     * Creates a {@link Sample} with a value in every field, including the transient one.
+     *
+     * @return the sample
+     */
     private static Sample sample() {
         var sample = new Sample();
         sample.number = 4;
@@ -41,6 +56,9 @@ class SimpleCodecTest {
         return sample;
     }
 
+    /**
+     * Checks that {@link SimpleCodec#fromTypeFields()} writes and reads every field that is not transient.
+     */
     @Test
     void fromTypeFieldsRoundTripsEveryNonTransientField() {
         var gson = gson(SimpleCodec.of(KEY, Sample.class).fromTypeFields());
@@ -58,6 +76,9 @@ class SimpleCodecTest {
         assertThat(copy.ignored).isNull();
     }
 
+    /**
+     * Checks that fields, arrays, lists, sets and maps added one by one are written and read back.
+     */
     @Test
     void explicitFieldsRoundTrip() {
         var codec = SimpleCodec.of(KEY, Sample.class)
@@ -79,6 +100,9 @@ class SimpleCodecTest {
         assertThat(copy.map).containsEntry("k", 5L);
     }
 
+    /**
+     * Checks that the codec does not write a field with the wrong type or a field that does not exist.
+     */
     @Test
     void mismatchedOrMissingFieldsAreSkipped() {
         var codec = SimpleCodec.of(KEY, Sample.class)
@@ -91,6 +115,9 @@ class SimpleCodecTest {
         assertThat(json.keySet()).containsExactly("name");
     }
 
+    /**
+     * Checks that a field that is not in the JSON keeps its default value.
+     */
     @Test
     void absentJsonFieldsKeepTheirDefaults() {
         var copy = gson(SimpleCodec.of(KEY, Sample.class).fromTypeFields()).fromJson("{\"name\":\"only\"}", Sample.class);
@@ -99,6 +126,10 @@ class SimpleCodecTest {
         assertThat(copy.number).isEqualTo(Sample.DEFAULT_NUMBER);
     }
 
+    /**
+     * Checks that a codec with a supplier deserializes into the supplied instance, and that a codec created from an
+     * instance keeps its ID.
+     */
     @Test
     void supplierAndInstanceFactories() {
         var supplied = SimpleCodec.of(KEY, Sample.class, () -> {
@@ -111,6 +142,9 @@ class SimpleCodecTest {
         assertThat(SimpleCodec.of(KEY, new Sample()).id()).isEqualTo(KEY);
     }
 
+    /**
+     * Checks that a codec for a type without a no-argument constructor deserializes to {@code null}.
+     */
     @Test
     void typeWithoutNoArgConstructorDeserializesToNull() {
         var codec = SimpleCodec.of(Key.<NoDefaultConstructor>of("atlantis", "no_default"), NoDefaultConstructor.class);
@@ -118,6 +152,9 @@ class SimpleCodecTest {
         assertThat(codec.deserialize(new JsonObject(), null)).isNull();
     }
 
+    /**
+     * Checks that {@link SimpleCodecPool#get} finds an added codec by its ID, and finds nothing for other IDs.
+     */
     @Test
     void poolLooksUpById() {
         var pool = new SimpleCodecPool<Sample>();
@@ -127,6 +164,9 @@ class SimpleCodecTest {
         assertThat(pool.get(Key.of("atlantis", "other"))).isEmpty();
     }
 
+    /**
+     * Holds one field of each kind that the codec supports, plus a transient field.
+     */
     public static final class Sample {
 
         static final int DEFAULT_NUMBER = 7;
@@ -139,8 +179,16 @@ class SimpleCodecTest {
         private Map<String, Long> map;
         private transient String ignored;
 
+        /**
+         * Creates a sample with {@link #DEFAULT_NUMBER} and no other values.
+         */
         public Sample() {}
     }
 
+    /**
+     * Has no no-argument constructor, so the codec cannot create it.
+     *
+     * @param value any value
+     */
     public record NoDefaultConstructor(String value) {}
 }

@@ -8,8 +8,19 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Comparators} and {@link Comparator}.
+ */
 class ComparatorsTest {
 
+    /**
+     * Checks that {@link Comparators#evaluate} returns {@code 10} if the comparison is true and {@code 20} if not.
+     *
+     * @param comparator the comparator to test
+     * @param a the first value to compare
+     * @param b the second value to compare
+     * @param expected the expected result
+     */
     @ParameterizedTest
     @CsvSource({
             "EQUAL,                 1, 1, 10",
@@ -27,6 +38,10 @@ class ComparatorsTest {
         assertThat(comparator.evaluate(a, b, 10, 20)).isEqualTo(expected);
     }
 
+    /**
+     * Checks that {@link Comparators#find} finds two-character symbols before one-character symbols, and gives
+     * {@link Comparators#EQUAL} if the formula has no symbol.
+     */
     @Test
     void findPrefersTwoCharacterOperators() {
         assertThat(Comparators.find("a>=b")).isEqualTo(Comparators.GREATER_THAN_OR_EQUAL);
@@ -38,6 +53,10 @@ class ComparatorsTest {
         assertThat(Comparators.find("ab")).isEqualTo(Comparators.EQUAL);
     }
 
+    /**
+     * Checks that {@link Comparators#get} finds a comparator by symbol or enum name in any case, and checks
+     * {@link Comparators#matches} and {@link Comparators#getRepresentation()}.
+     */
     @Test
     void getAndMatches() {
         assertThat(Comparators.get(">=")).isEqualTo(Comparators.GREATER_THAN_OR_EQUAL);
@@ -47,6 +66,10 @@ class ComparatorsTest {
         assertThat(Comparators.EQUAL.getRepresentation()).isEqualTo("==");
     }
 
+    /**
+     * Checks that {@link Comparator#evaluate} replaces variable names with their values and reads other values as
+     * numbers.
+     */
     @Test
     void comparatorResolvesVariablesAndLiterals() {
         var comparator = new Comparator(Comparators.GREATER_THAN, "level", "10", "bonus", "0");

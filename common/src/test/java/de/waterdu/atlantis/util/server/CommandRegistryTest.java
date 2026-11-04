@@ -11,8 +11,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link CommandRegistry}.
+ */
 class CommandRegistryTest {
 
+    /**
+     * Checks that {@link CommandRegistry#registerAll} adds a registered command to each dispatcher it is given.
+     *
+     * @throws CommandSyntaxException if the command cannot be run
+     */
     @Test
     void replaysRegistrantsIntoEveryDispatcher() throws CommandSyntaxException {
         var name = "atlantis_test_" + UUID.randomUUID().toString().substring(0, 8);
@@ -30,6 +38,9 @@ class CommandRegistryTest {
         assertThat(second.execute(name, null)).isEqualTo(2);
     }
 
+    /**
+     * Checks that {@link CommandRegistry#registerAll} runs the registrants in the order they were registered.
+     */
     @Test
     void registrantsRunInRegistrationOrder() {
         var order = new StringBuilder();

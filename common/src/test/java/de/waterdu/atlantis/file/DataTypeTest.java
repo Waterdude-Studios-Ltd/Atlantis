@@ -13,6 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+/**
+ * Tests which kinds of configuration each {@link DataType} accepts.
+ */
 class DataTypeTest {
 
     private static final Map<String, Class<? extends Configuration>> KINDS = Map.of(
@@ -22,6 +25,15 @@ class DataTypeTest {
             "player", PlayerData.class
     );
 
+    /**
+     * Checks that the data type accepts a configuration, data, named data and player data as expected.
+     *
+     * @param type the data type to check
+     * @param configuration {@code true} if the type accepts a plain configuration
+     * @param data {@code true} if the type accepts data
+     * @param named {@code true} if the type accepts named data
+     * @param player {@code true} if the type accepts player data
+     */
     @ParameterizedTest
     @CsvSource({
             "ALL,           true,  true,  true,  true",
@@ -37,6 +49,12 @@ class DataTypeTest {
         assertThat(type.isValid(config("player"))).as("player data").isEqualTo(player);
     }
 
+    /**
+     * Creates a mock config whose instance is a mock of the given kind.
+     *
+     * @param kind {@code configuration}, {@code data}, {@code named} or {@code player}
+     * @return the mock config
+     */
     private static Config<?> config(String kind) {
         var config = mock(Config.class);
         doReturn(mock(KINDS.get(kind))).when(config).get();

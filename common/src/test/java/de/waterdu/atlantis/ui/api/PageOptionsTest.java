@@ -8,15 +8,24 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link PageOptions}, its builder and its form factors.
+ */
 @MinecraftBootstrapped
 class PageOptionsTest {
 
+    /**
+     * Checks that the default options and an empty builder use {@link PageOptions.FormFactor#CHEST}.
+     */
     @Test
     void defaultsHaveAFormFactorBeforeCreateDefaults() {
         assertThat(PageOptions.defaults().formFactor()).isNotNull().isSameAs(PageOptions.FormFactor.CHEST);
         assertThat(PageOptions.builder().build().formFactor()).isSameAs(PageOptions.FormFactor.CHEST);
     }
 
+    /**
+     * Checks that the vanilla form factors have the correct menu types and slots.
+     */
     @Test
     void vanillaFormFactorsExistBeforeCreateDefaults() {
         var options = PageOptions.defaults();
@@ -27,6 +36,12 @@ class PageOptionsTest {
         assertThat(PageOptions.FormFactor.DISPENSER.hasRows()).isFalse();
     }
 
+    /**
+     * Checks that the chest menu type matches the number of rows, and that a row count out of range gives 9x3.
+     *
+     * @param rows the number of rows
+     * @param size the expected menu size, such as {@code 9x3}
+     */
     @ParameterizedTest
     @CsvSource({"1, 9x1", "2, 9x2", "3, 9x3", "4, 9x4", "5, 9x5", "6, 9x6", "0, 9x3", "7, 9x3"})
     void chestMenuTypeFollowsTheRows(int rows, String size) {
@@ -42,6 +57,9 @@ class PageOptionsTest {
         assertThat(PageOptions.FormFactor.CHEST.getType(options)).isSameAs(expected);
     }
 
+    /**
+     * Checks that the builder sets the form factor, rows, title, refresh rate and hidden inventory.
+     */
     @Test
     void builderSetsEveryOption() {
         var options = PageOptions.builder()
@@ -59,6 +77,9 @@ class PageOptionsTest {
         assertThat(options.isInventoryHidden()).isTrue();
     }
 
+    /**
+     * Checks that a draggable page does not hide the inventory, even if the builder asks it to.
+     */
     @Test
     void aDraggablePageNeverHidesTheInventory() {
         var options = PageOptions.builder().hideInventory().draggable(true).build();

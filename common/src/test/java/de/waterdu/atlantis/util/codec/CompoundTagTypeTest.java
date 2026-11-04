@@ -15,9 +15,17 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests that {@link CompoundTagType} finds the tag type for a Java type and writes and reads its values.
+ */
 @MinecraftBootstrapped
 class CompoundTagTypeTest {
 
+    /**
+     * Gets the arguments for {@link #scalarTypesRoundTrip}.
+     *
+     * @return a stream of a Java type, its expected tag type and a sample value
+     */
     static Stream<Arguments> values() {
         return Stream.of(
                 Arguments.of(int.class, CompoundTagType.INT_PRIMITIVE, 5),
@@ -39,6 +47,14 @@ class CompoundTagTypeTest {
         );
     }
 
+    /**
+     * Checks that a primitive, boxed, string or UUID type maps to the expected tag type, and that a written value
+     * reads back as the same value.
+     *
+     * @param type the Java type
+     * @param expected the expected tag type
+     * @param value the value to write and read
+     */
     @ParameterizedTest
     @MethodSource("values")
     void scalarTypesRoundTrip(Type type, CompoundTagType expected, Object value) {
@@ -51,6 +67,9 @@ class CompoundTagTypeTest {
         assertThat((Object) tagType.read(tag, "key")).isEqualTo(value);
     }
 
+    /**
+     * Checks that {@code int}, {@code long} and {@code byte} arrays read back with the same elements.
+     */
     @Test
     void arraysRoundTrip() {
         var tag = new CompoundTag();
@@ -63,6 +82,10 @@ class CompoundTagTypeTest {
         assertThat(CompoundTagType.BYTE_ARRAY.<byte[]>read(tag, "bytes")).containsExactly((byte) 4);
     }
 
+    /**
+     * Checks that lists of {@link Integer}, {@link Long} and {@link Byte} are written as arrays and read back as
+     * arrays.
+     */
     @Test
     void listsAreStoredAsArrays() {
         var tag = new CompoundTag();
@@ -75,6 +98,9 @@ class CompoundTagTypeTest {
         assertThat(CompoundTagType.BYTE_LIST.<byte[]>read(tag, "bytes")).containsExactly((byte) 4);
     }
 
+    /**
+     * Checks that an unsupported type and an unknown type name give no tag type.
+     */
     @Test
     void unknownTypeIsEmpty() {
         assertThat(CompoundTagType.get(Object.class)).isEmpty();

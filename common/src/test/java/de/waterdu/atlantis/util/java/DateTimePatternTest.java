@@ -8,10 +8,16 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link DateTimePattern} and its type adapter.
+ */
 class DateTimePatternTest {
 
     private final Gson gson = new GsonBuilder().registerTypeAdapter(DateTimePattern.class, new DateTimePattern.TypeAdapter()).create();
 
+    /**
+     * Checks that the pattern formats a date and time, and that it keeps one formatter.
+     */
     @Test
     void formats() {
         var pattern = DateTimePattern.of("yyyy-MM-dd HH:mm");
@@ -21,6 +27,9 @@ class DateTimePatternTest {
         assertThat(pattern.formatter()).isSameAs(pattern.formatter());
     }
 
+    /**
+     * Checks that {@link DateTimePattern.TypeAdapter} reads a pattern from a string and writes it back.
+     */
     @Test
     void typeAdapterRoundTrips() {
         var pattern = this.gson.fromJson("\"dd/MM\"", DateTimePattern.class);

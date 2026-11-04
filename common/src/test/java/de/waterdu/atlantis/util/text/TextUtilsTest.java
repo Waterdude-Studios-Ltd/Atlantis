@@ -13,9 +13,18 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link TextUtils}.
+ */
 @MinecraftBootstrapped
 class TextUtilsTest {
 
+    /**
+     * Flattens a component and its siblings into a list of styled segments. Segments with no text are left out.
+     *
+     * @param component the component to flatten
+     * @return a copy of each segment with its own style, in order
+     */
     private static List<Component> segments(Component component) {
         var segments = new ArrayList<Component>();
         var own = component.plainCopy().withStyle(component.getStyle());
@@ -28,10 +37,21 @@ class TextUtilsTest {
         return segments;
     }
 
+    /**
+     * Gets the RGB value of the color of a component. Throws a {@link NullPointerException} if the component has no
+     * color.
+     *
+     * @param component the component to read
+     * @return the RGB value
+     */
     private static int colour(Component component) {
         return component.getStyle().getColor().getValue();
     }
 
+    /**
+     * Checks that {@link TextUtils#colorize} changes {@code &} codes to {@code §} codes and leaves plain and empty text
+     * unchanged.
+     */
     @Test
     void legacyColourCodesAreKept() {
         assertThat(TextUtils.colorize("&aGreen &lBold").getString()).isEqualTo("§aGreen §lBold");
@@ -39,6 +59,9 @@ class TextUtilsTest {
         assertThat(TextUtils.colorize("").getString()).isEmpty();
     }
 
+    /**
+     * Checks that a {@code &#rrggbb} code is removed from the text and sets the color.
+     */
     @Test
     void hexColour() {
         var component = TextUtils.colorize("&#ff0000Red");
@@ -47,6 +70,9 @@ class TextUtilsTest {
         assertThat(colour(component)).isEqualTo(0xff0000);
     }
 
+    /**
+     * Checks that text before a hex code stays uncolored and the text after it gets the color.
+     */
     @Test
     void hexColourAfterPlainText() {
         var component = TextUtils.colorize("Plain &#00ff00Green");
@@ -58,6 +84,9 @@ class TextUtilsTest {
         assertThat(colour(segments.get(1))).isEqualTo(0x00ff00);
     }
 
+    /**
+     * Checks that each hex code starts a new segment with its own color, and that a legacy code after them is kept.
+     */
     @Test
     void consecutiveHexColours() {
         var segments = segments(TextUtils.colorize("&#ff0000Red&#0000ffBlue&aLegacy"));
@@ -67,6 +96,9 @@ class TextUtilsTest {
         assertThat(colour(segments.get(1))).isEqualTo(0x0000ff);
     }
 
+    /**
+     * Checks that style codes in brackets after a hex code apply only the given styles.
+     */
     @Test
     void hexStyles() {
         var component = TextUtils.colorize("&#ff0000[lo]Styled");
@@ -77,12 +109,18 @@ class TextUtilsTest {
         assertThat(component.getStyle().isUnderlined()).isFalse();
     }
 
+    /**
+     * Checks that a {@code #} that is not part of a hex code stays in the text.
+     */
     @Test
     void leadingHashIsKept() {
         assertThat(TextUtils.colorize("#1 Player").getString()).isEqualTo("#1 Player");
         assertThat(TextUtils.colorize("#1 &#ff0000Player").getString()).isEqualTo("#1 Player");
     }
 
+    /**
+     * Checks that a gradient code gives one segment for each character, from the start color to the end color.
+     */
     @Test
     void gradientRunsFromStartToEndColour() {
         var component = TextUtils.colorize("&#@ff0000-0000ffABCD");
@@ -94,6 +132,9 @@ class TextUtilsTest {
         assertThat(colour(segments.getLast())).isEqualTo(0x0000ff);
     }
 
+    /**
+     * Checks that style codes after a gradient code apply to each segment of the gradient.
+     */
     @Test
     void gradientWithStyles() {
         var segments = segments(TextUtils.colorize("&#@ff0000-0000ff[n]AB"));
@@ -101,6 +142,17 @@ class TextUtilsTest {
         assertThat(segments).isNotEmpty().allSatisfy(segment -> assertThat(segment.getStyle().isUnderlined()).isTrue());
     }
 
+    /**
+     * Checks that {@link TextUtils#getStyleArray} sets a flag for each style code in any case, and ignores other
+     * codes.
+     *
+     * @param codes the style codes
+     * @param obfuscated the expected obfuscated flag
+     * @param bold the expected bold flag
+     * @param strikethrough the expected strikethrough flag
+     * @param underlined the expected underlined flag
+     * @param italic the expected italic flag
+     */
     @ParameterizedTest
     @CsvSource({
             "klmno, true,  true,  true,  true,  true",
@@ -112,6 +164,9 @@ class TextUtilsTest {
         assertThat(TextUtils.getStyleArray(codes)).containsExactly(obfuscated, bold, strikethrough, underlined, italic);
     }
 
+    /**
+     * Checks that {@link TextUtils#applyStyleArray} applies the styles to the component and to its siblings.
+     */
     @Test
     void applyStyleArrayReachesSiblings() {
         var component = Component.literal("a").append(Component.literal("b"));
@@ -122,6 +177,9 @@ class TextUtilsTest {
         assertThat(component.getSiblings().getFirst().getStyle().isBold()).isTrue();
     }
 
+    /**
+     * Checks that {@link TextUtils#format} replaces numbered placeholders, including repeated and two-digit ones.
+     */
     @Test
     void format() {
         assertThat(TextUtils.format("%1 %2 %1", "a", Component.literal("b")).get()).isEqualTo("a b a");
@@ -129,11 +187,18 @@ class TextUtilsTest {
         assertThat(TextUtils.format("no placeholders").get()).isEqualTo("no placeholders");
     }
 
+    /**
+     * Checks that {@link TextUtils#combine} joins strings, components and other objects with no separator.
+     */
     @Test
     void combine() {
         assertThat(TextUtils.combine("a", Component.literal("b"), 3).getString()).isEqualTo("ab3");
     }
 
+    /**
+     * Checks the start index, end index and separator of the {@code concat} methods, and the {@code concatExcept} and
+     * {@code join} methods.
+     */
     @Test
     void concat() {
         var words = new String[]{"a", "b", "c", "d"};
@@ -146,12 +211,20 @@ class TextUtilsTest {
         assertThat(TextUtils.join(new String[]{"a"}, "b", "c")).containsExactly("a", "b", "c");
     }
 
+    /**
+     * Checks that {@code stripNewlines} removes only real newlines, and that {@code stripSpecialCharacters} removes
+     * accented characters but keeps spaces.
+     */
     @Test
     void stripping() {
         assertThat(TextUtils.stripNewlines("a\nb\\nc")).isEqualTo("ab\\nc");
         assertThat(TextUtils.stripSpecialCharacters("héllo wörld")).isEqualTo("hllo wrld");
     }
 
+    /**
+     * Checks that {@link TextUtils#capitalizeEachWord} capitalizes each word except the given minor words, and always
+     * capitalizes the first word.
+     */
     @Test
     void capitalizeEachWord() {
         assertThat(TextUtils.capitalizeEachWord("THE lord OF the rings")).isEqualTo("The Lord of the Rings");
@@ -160,6 +233,10 @@ class TextUtilsTest {
         assertThat(TextUtils.capitalizeEachWord(Text.of("of mice")).get()).isEqualTo("Of Mice");
     }
 
+    /**
+     * Checks that {@code asText}, {@code asComponent}, {@code asString}, {@code toArray} and {@code toMutableArray}
+     * convert each kind of object, and return text and components unchanged where possible.
+     */
     @Test
     void textConversions() {
         var text = Text.of("text");
@@ -183,6 +260,9 @@ class TextUtilsTest {
         assertThat((Object) TextUtils.toMutableArray(new Object[]{Text.Immutable.of("b")})[0]).isNotInstanceOf(Text.Immutable.class);
     }
 
+    /**
+     * Checks that with no placeholder provider, the placeholder methods leave the placeholders in the text.
+     */
     @Test
     void placeholdersWithoutAProviderLeaveTextUnchanged() {
         assertThat(TextUtils.asTextWithPlaceholders("%player%", new Object()).get()).isEqualTo("%player%");
@@ -191,12 +271,20 @@ class TextUtilsTest {
         assertThat(Text.of("%x%").formatPlaceholders(1, 2).get()).isEqualTo("%x%");
     }
 
+    /**
+     * Checks that {@code countCharOccurrence} counts a character, and that {@code countCharOccurrenceDifference} gives
+     * the difference between the counts of two characters.
+     */
     @Test
     void counting() {
         assertThat(TextUtils.countCharOccurrence("a(b(c))", '(')).isEqualTo(2);
         assertThat(TextUtils.countCharOccurrenceDifference("a(b(c)", '(', ')')).isEqualTo(1);
     }
 
+    /**
+     * Checks that {@code isNumber} accepts only digits, that {@code isNumberParsable} accepts any parsable number and
+     * that {@code isNumeral} accepts only a digit.
+     */
     @Test
     void numbers() {
         assertThat(TextUtils.isNumber("0123")).isTrue();
@@ -208,6 +296,9 @@ class TextUtilsTest {
         assertThat(TextUtils.isNumeral('x')).isFalse();
     }
 
+    /**
+     * Checks that {@link TextUtils#empty()} gives a component that holds one space.
+     */
     @Test
     void emptyIsASpace() {
         assertThat(TextUtils.empty().getString()).isEqualTo(" ");

@@ -8,8 +8,18 @@ import org.junit.jupiter.params.provider.ValueSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+/**
+ * Tests the pattern matching, validation and JSON adapter of {@link AtlantisPermission}.
+ */
 class AtlantisPermissionTest {
 
+    /**
+     * Checks that a permission pattern matches a permission string only when expected.
+     *
+     * @param node the permission pattern
+     * @param permission the permission string to match
+     * @param expected {@code true} if the pattern must match the permission
+     */
     @ParameterizedTest
     @CsvSource({
             "atlantis.command,      atlantis.command,           true",
@@ -40,6 +50,14 @@ class AtlantisPermissionTest {
         assertThat(new AtlantisPermission(node).matches(permission)).isEqualTo(expected);
     }
 
+    /**
+     * Checks that a node from {@link Permissions#buildNode} matches the pattern of its own default group and not the
+     * pattern of the other group.
+     *
+     * @param domain the domain of the node
+     * @param admin {@code true} for an admin node, {@code false} for a user node
+     * @param qualifiers the qualifiers of the node, separated by {@code .}, or an empty string for none
+     */
     @ParameterizedTest
     @CsvSource({
             "atlantis, false, ''",
@@ -55,12 +73,20 @@ class AtlantisPermissionTest {
         assertThat(other.matches(node)).isFalse();
     }
 
+    /**
+     * Checks that the constructor throws {@link IllegalArgumentException} for an invalid node.
+     *
+     * @param node the invalid node
+     */
     @ParameterizedTest
     @ValueSource(strings = {"", "atlantis command", "atlantis_command"})
     void rejectsInvalidNodes(String node) {
         assertThatIllegalArgumentException().isThrownBy(() -> new AtlantisPermission(node));
     }
 
+    /**
+     * Checks that the type adapter reads a permission from a JSON string and writes it back as the same string.
+     */
     @Test
     void typeAdapterRoundTrips() {
         var gson = new com.google.gson.GsonBuilder()

@@ -8,8 +8,14 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link TimeUtils}.
+ */
 class TimeUtilsTest {
 
+    /**
+     * Checks the values of the minute, hour, day and week constants.
+     */
     @Test
     void constants() {
         assertThat(TimeUtils.MINUTE_IN_MILLIS).isEqualTo(60_000L);
@@ -19,6 +25,10 @@ class TimeUtilsTest {
         assertThat(TimeUtils.WEEK_IN_MILLIS).isEqualTo(7 * TimeUtils.DAY_IN_MILLIS);
     }
 
+    /**
+     * Checks that {@link TimeUtils#tick()} advances the global tick by one and that
+     * {@link TimeUtils#isSecond()} is true once every 20 ticks.
+     */
     @Test
     void tickAdvancesAndMarksEverySecond() {
         while (!TimeUtils.isSecond()) {
@@ -38,6 +48,13 @@ class TimeUtilsTest {
         assertThat(TimeUtils.isSecond()).isTrue();
     }
 
+    /**
+     * Checks that {@link TimeUtils#formatTime} joins the hours, minutes and seconds with the correct singular or
+     * plural units.
+     *
+     * @param millis the time in milliseconds
+     * @param expected the expected text
+     */
     @ParameterizedTest
     @CsvSource(delimiter = '|', value = {
             "0        | 0 seconds",
@@ -52,6 +69,10 @@ class TimeUtilsTest {
         assertThat(TimeUtils.formatTime(millis, (unit, amount) -> amount + " " + unit)).isEqualTo(expected);
     }
 
+    /**
+     * Checks that {@link TimeUtils#mmssForMillis} and {@link TimeUtils#mmssForTicks} return the minutes, the padded
+     * seconds and the unpadded seconds.
+     */
     @Test
     void mmss() {
         assertThat(TimeUtils.mmssForMillis(65_000)).containsExactly("1", "05", "5");
@@ -59,6 +80,9 @@ class TimeUtilsTest {
         assertThat(TimeUtils.mmssForTicks(20 * 75)).containsExactly("1", "15", "15");
     }
 
+    /**
+     * Checks that {@link TimeUtils#daysSinceEpoch()} is within one day of the current day number.
+     */
     @Test
     void daysSinceEpoch() {
         var expected = Instant.now().getEpochSecond() / TimeUtils.DAY_IN_SECONDS;

@@ -15,23 +15,42 @@ import java.util.Random;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
+/**
+ * Tests {@link WeightedSet} and its type adapter.
+ */
 class WeightedSetTest {
 
     private Locale previous;
 
+    /**
+     * Saves the default locale and sets it to {@link Locale#ROOT}, so that number formats do not change between
+     * systems.
+     */
     @BeforeEach
     void useRootLocale() {
         this.previous = Locale.getDefault();
         Locale.setDefault(Locale.ROOT);
     }
 
+    /**
+     * Sets the default locale back to the one that {@link #useRootLocale()} saved.
+     */
     @AfterEach
     void restoreLocale() {
         Locale.setDefault(this.previous);
     }
 
+    /**
+     * Holds a name and its own weight.
+     *
+     * @param name the name of the item
+     * @param weight the weight of the item
+     */
     record Item(String name, double weight) implements Weighted {}
 
+    /**
+     * Checks that an empty set is empty and that {@link WeightedSet#get} returns {@code null}.
+     */
     @Test
     void emptySetReturnsNull() {
         var set = WeightedSet.<String>newWeightedSet();
@@ -41,6 +60,10 @@ class WeightedSetTest {
         assertThat(set.get(new Random(1))).isNull();
     }
 
+    /**
+     * Checks that {@link WeightedSet#add} does not add a duplicate element or an element with a weight of zero or
+     * less.
+     */
     @Test
     void addRejectsDuplicatesAndNonPositiveWeights() {
         var set = new WeightedSet<String>();
@@ -53,6 +76,9 @@ class WeightedSetTest {
         assertThat(set.weight()).isEqualTo(2);
     }
 
+    /**
+     * Checks that {@link WeightedSet#contains} and {@link WeightedSet#containsAll} find only added elements.
+     */
     @Test
     void containsAndContainsAll() {
         var set = new WeightedSet<String>();
@@ -65,6 +91,10 @@ class WeightedSetTest {
         assertThat(set.containsAll(List.of("a", "z"))).isFalse();
     }
 
+    /**
+     * Checks that plain elements get the default element weight, that {@link Weighted} elements use their own
+     * weight, and that a missing element has a weight of zero.
+     */
     @Test
     void defaultAndWeightedElementWeights() {
         var set = new WeightedSet<Object>();
@@ -78,6 +108,9 @@ class WeightedSetTest {
         assertThat(set.getChance("plain")).isEqualTo(0.4);
     }
 
+    /**
+     * Checks that {@link WeightedSet#getAndDo} selects each element about as often as its weight predicts.
+     */
     @Test
     void selectionFollowsTheWeights() {
         var set = new WeightedSet<String>();
@@ -93,6 +126,9 @@ class WeightedSetTest {
         assertThat(counts.get("common") / (double) samples).isCloseTo(0.75, within(0.02));
     }
 
+    /**
+     * Checks that {@link WeightedSet#remove} lowers the total weight and that the removed element is not selected.
+     */
     @Test
     void removeRebuildsWeights() {
         var set = new WeightedSet<String>();
@@ -111,6 +147,10 @@ class WeightedSetTest {
         }
     }
 
+    /**
+     * Checks the bulk operations, the array and stream views, and that {@link WeightedSet#clear()} sets the weight
+     * to zero.
+     */
     @Test
     void bulkOperations() {
         var set = new WeightedSet<String>();
@@ -129,6 +169,10 @@ class WeightedSetTest {
         assertThat(set.weight()).isZero();
     }
 
+    /**
+     * Checks that {@link WeightedSet#getChanceString} gives the chance as a percentage with up to the given number
+     * of decimals and no trailing zeros.
+     */
     @Test
     void chanceString() {
         var set = new WeightedSet<String>();
@@ -146,6 +190,9 @@ class WeightedSetTest {
         assertThat(set.getChanceString("a", 1)).isEqualTo("11.1");
     }
 
+    /**
+     * Checks that the type adapter reads and writes {@link Weighted} elements and uses their own weights.
+     */
     @Test
     void typeAdapterRoundTripsWithWeights() {
         var adapter = new WeightedSet.TypeAdapter<>(Item.class);
@@ -158,6 +205,9 @@ class WeightedSetTest {
         assertThat(gson.toJson(set, WeightedSet.TypeAdapter.typeOf(Item.class))).contains("\"name\":\"a\"").contains("\"name\":\"b\"");
     }
 
+    /**
+     * Checks that the type adapter gives each element of a plain type a weight of one.
+     */
     @Test
     void typeAdapterUsesUnitWeightForPlainTypes() {
         Gson gson = new GsonBuilder().registerTypeAdapter(WeightedSet.TypeAdapter.typeOf(String.class), new WeightedSet.TypeAdapter<>(String.class)).create();

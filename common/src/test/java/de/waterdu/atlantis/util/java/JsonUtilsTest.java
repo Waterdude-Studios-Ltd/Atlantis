@@ -16,6 +16,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * Tests the read and write methods of {@link JsonUtils}.
+ */
 class JsonUtilsTest {
 
     private static final Gson GSON = new Gson();
@@ -26,6 +29,9 @@ class JsonUtilsTest {
         }
     };
 
+    /**
+     * Checks that {@code getOrDefault} reads values that are present, by class and by type token.
+     */
     @Test
     void getOrDefaultReadsPresentValues() {
         var object = JsonParser.parseString("{\"a\": 5, \"list\": [1, 2]}").getAsJsonObject();
@@ -34,6 +40,9 @@ class JsonUtilsTest {
         assertThat(JsonUtils.getOrDefault(object, "list", new TypeToken<List<Integer>>() {}, List.of(), CONTEXT)).containsExactly(1, 2);
     }
 
+    /**
+     * Checks that {@code getOrDefault} returns the default value for missing and {@code null} members.
+     */
     @Test
     void getOrDefaultFallsBackForMissingAndNull() {
         var object = JsonParser.parseString("{\"a\": null}").getAsJsonObject();
@@ -43,6 +52,9 @@ class JsonUtilsTest {
         assertThat(JsonUtils.getOrDefault(new JsonObject(), "x", new TypeToken<List<String>>() {}, List.of("d"), CONTEXT)).containsExactly("d");
     }
 
+    /**
+     * Checks that {@code serializeList} writes each element in order.
+     */
     @Test
     void serializeList() {
         var array = JsonUtils.serializeList(List.of("a", "b"), JsonPrimitive::new);
@@ -50,6 +62,9 @@ class JsonUtilsTest {
         assertThat(array.toString()).isEqualTo("[\"a\",\"b\"]");
     }
 
+    /**
+     * Checks that {@code deserializeList} leaves out elements that the reader turns into {@code null}.
+     */
     @Test
     void deserializeListDropsNulls() {
         var array = JsonParser.parseString("[\"a\", \"\", \"b\"]").getAsJsonArray();
@@ -59,6 +74,9 @@ class JsonUtilsTest {
         assertThat(list).containsExactly("a", "b");
     }
 
+    /**
+     * Checks that {@code deserializeListImmutable} reads every element into a list that cannot change.
+     */
     @Test
     void deserializeListImmutable() {
         var array = JsonParser.parseString("[1, 2]").getAsJsonArray();
@@ -69,6 +87,9 @@ class JsonUtilsTest {
         assertThatThrownBy(() -> list.add(3)).isInstanceOf(UnsupportedOperationException.class);
     }
 
+    /**
+     * Checks that {@code deserializeArray} returns an array of the given type without the {@code null} elements.
+     */
     @Test
     void deserializeArrayIsTypedAndDropsNulls() {
         var array = new JsonArray();

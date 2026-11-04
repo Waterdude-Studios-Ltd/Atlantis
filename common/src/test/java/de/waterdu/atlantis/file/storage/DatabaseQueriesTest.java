@@ -22,6 +22,9 @@ class DatabaseQueriesTest {
 
     private static final String DB = "testdb";
 
+    /**
+     * Checks that the schema has one element per annotated field, with the correct types and keys.
+     */
     @Test
     void schemaHasOneElementPerAnnotatedField() {
         var schema = Database.Schema.of("mod", "records", Record.class);
@@ -39,6 +42,9 @@ class DatabaseQueriesTest {
         assertThat(element(schema, "tags").type()).isEqualTo("JSON");
     }
 
+    /**
+     * Checks the {@code CREATE DATABASE} and {@code CREATE TABLE} statements.
+     */
     @Test
     void createStatements() {
         var queries = queries(Record.class);
@@ -54,6 +60,9 @@ class DatabaseQueriesTest {
                 .contains("tags JSON NOT NULL");
     }
 
+    /**
+     * Checks that the insert statement quotes the values and updates every column except the primary key.
+     */
     @Test
     void insertQuotesValuesAndUpdatesEveryNonKeyColumn() {
         var config = StorageTestConfigs.register(Record.class, "records", new Volatile());
@@ -72,6 +81,9 @@ class DatabaseQueriesTest {
         assertThat(insert).doesNotContain("%");
     }
 
+    /**
+     * Checks that quotes and backslashes in a single-quoted value are escaped in the insert statement.
+     */
     @Test
     void singleQuotedValuesAreEscaped() {
         var config = StorageTestConfigs.register(Record.class, "records", new Volatile());
@@ -84,6 +96,9 @@ class DatabaseQueriesTest {
         assertThat(insert).contains("'O''Brien said \\\\'' OR 1=1 -- \\\\'");
     }
 
+    /**
+     * Checks that {@link Database.Queries#escape} doubles backslashes and single quotes.
+     */
     @Test
     void escapeDoublesBackslashesBeforeQuotes() {
         assertThat(Database.Queries.escape("plain")).isEqualTo("plain");
@@ -92,6 +107,9 @@ class DatabaseQueriesTest {
         assertThat(Database.Queries.escape("\\'")).isEqualTo("\\\\''");
     }
 
+    /**
+     * Checks that an auto-increment column is declared in the table but left out of the insert statement.
+     */
     @Test
     void autoIncrementColumnsAreLeftToTheDatabase() {
         var config = StorageTestConfigs.register(AutoIncrementRecord.class, "auto", new Volatile());
@@ -107,6 +125,9 @@ class DatabaseQueriesTest {
         assertThat(insert).endsWith("ON DUPLICATE KEY UPDATE uuid = '" + record.uuid() + "', name = ''");
     }
 
+    /**
+     * Checks the select and delete statements by UUID and by name, and the select-all statement.
+     */
     @Test
     void lookupsByUuidAndName() {
         var queries = queries(Record.class);
@@ -118,6 +139,11 @@ class DatabaseQueriesTest {
         assertThat(queries.prepare(queries.SELECT_ALL)).isEqualTo("SELECT * FROM " + DB + ".mod_records");
     }
 
+    /**
+     * Creates a record named {@code Steve} with fixed column values.
+     *
+     * @return the record
+     */
     private static Record record() {
         var record = new Record("Steve");
         record.level = 12;
@@ -128,16 +154,36 @@ class DatabaseQueriesTest {
         return record;
     }
 
+    /**
+     * Creates the schema of a class for the {@code records} table of the mod {@code mod}.
+     *
+     * @param type the data class
+     * @return the schema
+     */
     private static Database.Schema schema(Class<?> type) {
         return Database.Schema.of("mod", "records", type);
     }
 
+    /**
+     * Creates queries for the test database and the schema of a class.
+     *
+     * @param type the data class
+     * @return the initialized queries
+     */
     private static Database.Queries queries(Class<?> type) {
         var queries = new Database.Queries();
         queries.init(DB, schema(type));
         return queries;
     }
 
+    /**
+     * Finds an element of a schema by its name.
+     *
+     * @param schema the schema to search
+     * @param name the name of the element
+     * @return the element
+     * @throws java.util.NoSuchElementException if the schema has no element with that name
+     */
     private static Database.Schema.Element element(Database.Schema schema, String name) {
         return schema.elements().stream().filter(element -> element.name().equals(name)).findFirst().orElseThrow();
     }

@@ -6,8 +6,18 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link AtlantisData}.
+ */
 class AtlantisDataTest {
 
+    /**
+     * Checks that the automatic thread count is two per Atlantis mod plus one, but never less than
+     * {@link Atlantis#DEFAULT_THREADS}.
+     *
+     * @param atlantisMods the number of Atlantis mods
+     * @param threads the expected thread count
+     */
     @ParameterizedTest
     @CsvSource({
             "0, 4",

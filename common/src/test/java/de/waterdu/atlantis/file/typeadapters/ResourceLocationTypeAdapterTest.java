@@ -10,6 +10,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link ResourceLocationTypeAdapter}.
+ */
 @MinecraftBootstrapped
 class ResourceLocationTypeAdapterTest {
 
@@ -17,6 +20,9 @@ class ResourceLocationTypeAdapterTest {
             .registerTypeAdapter(ResourceLocation.class, new ResourceLocationTypeAdapter())
             .create();
 
+    /**
+     * Checks that a resource location serializes as {@code namespace:path} and parses back to an equal location.
+     */
     @Test
     void roundTrips() {
         var location = ResourceLocation.fromNamespaceAndPath("atlantis", "test/path");
@@ -25,6 +31,9 @@ class ResourceLocationTypeAdapterTest {
         assertThat(this.gson.fromJson("\"atlantis:test/path\"", ResourceLocation.class)).isEqualTo(location);
     }
 
+    /**
+     * Checks that a location without a namespace is lowercased and gets the {@code minecraft} namespace.
+     */
     @Test
     void lowercasesAndDefaultsToMinecraftNamespace() {
         var location = this.gson.fromJson("\"Diamond_Sword\"", ResourceLocation.class);
@@ -33,6 +42,9 @@ class ResourceLocationTypeAdapterTest {
         assertThat(BuiltInRegistries.ITEM.get(location)).isSameAs(Items.DIAMOND_SWORD);
     }
 
+    /**
+     * Checks that an invalid location parses to {@code null}.
+     */
     @Test
     void invalidLocationDeserializesToNull() {
         assertThat(this.gson.fromJson("\"not a location\"", ResourceLocation.class)).isNull();

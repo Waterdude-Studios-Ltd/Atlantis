@@ -14,6 +14,12 @@ import static com.google.testing.compile.Compiler.javac;
  */
 class DatabaseSerializableValidatorTest {
 
+    /**
+     * Compiles a class with the given field, with {@link DatabaseSerializableValidator} as the processor.
+     *
+     * @param field the source of the field declaration
+     * @return the result of the compilation
+     */
     private static Compilation compile(String field) {
         return javac()
                 .withProcessors(new DatabaseSerializableValidator())
@@ -29,6 +35,11 @@ class DatabaseSerializableValidatorTest {
                         """.formatted(field)));
     }
 
+    /**
+     * Checks that a field whose JVM type matches its SQL type compiles without warnings.
+     *
+     * @param field the source of the field declaration
+     */
     @ParameterizedTest
     @CsvSource(delimiter = '|', value = {
             "@DatabaseSerializable(type = DatabaseEncoders.Defaults.INT) int value;",
@@ -50,6 +61,13 @@ class DatabaseSerializableValidatorTest {
         assertThat(compile(field)).succeededWithoutWarnings();
     }
 
+    /**
+     * Checks that a field whose JVM type does not match its SQL type gives one error that names both types.
+     *
+     * @param field the source of the field declaration
+     * @param sqlType the SQL type that the error names
+     * @param javaType the JVM type that the error names
+     */
     @ParameterizedTest
     @CsvSource(delimiter = '|', value = {
             "@DatabaseSerializable(type = DatabaseEncoders.Defaults.INT) String value; | int | java.lang.String",
@@ -66,6 +84,9 @@ class DatabaseSerializableValidatorTest {
         assertThat(compilation).hadErrorContaining("Unsupported SQL type " + sqlType + " for JVM type " + javaType);
     }
 
+    /**
+     * Checks that the validator gives one error for each field with a wrong type.
+     */
     @Test
     void checksEveryField() {
         var compilation = compile("""

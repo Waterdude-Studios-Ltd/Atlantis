@@ -7,8 +7,19 @@ import org.junit.jupiter.params.provider.CsvSource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 
+/**
+ * Tests {@link Operator}.
+ */
 class OperatorTest {
 
+    /**
+     * Checks that each operator gives the expected result for a current value and an operand.
+     *
+     * @param operator the operator to apply
+     * @param current the current value
+     * @param value the operand
+     * @param expected the expected result
+     */
     @ParameterizedTest
     @CsvSource({
             "ADD,      2, 3, 5",
@@ -38,6 +49,9 @@ class OperatorTest {
         assertThat(operator.calculate(current, value)).isCloseTo(expected, within(1e-9));
     }
 
+    /**
+     * Checks that {@link Operator#RAND} gives a value from 0 to 1, whatever its inputs are.
+     */
     @Test
     void randIgnoresItsInputs() {
         for (var i = 0; i < 100; i++) {
@@ -45,6 +59,10 @@ class OperatorTest {
         }
     }
 
+    /**
+     * Checks that {@link Operator#get} finds an operator by its symbol or its name, and gives {@code null} for an
+     * unknown string.
+     */
     @Test
     void getByNameOrRepresentation() {
         assertThat(Operator.get("+")).isEqualTo(Operator.ADD);
@@ -54,6 +72,10 @@ class OperatorTest {
         assertThat(Operator.get("?")).isNull();
     }
 
+    /**
+     * Checks that {@link Operator#matches} accepts only the representation of the operator, and that
+     * {@link Operator#SIN} is bracketed but {@link Operator#ADD} is not.
+     */
     @Test
     void matchesAndBracketed() {
         assertThat(Operator.MULTIPLY.matches("*")).isTrue();

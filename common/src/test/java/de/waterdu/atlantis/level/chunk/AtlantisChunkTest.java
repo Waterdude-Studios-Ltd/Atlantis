@@ -11,22 +11,32 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link AtlantisChunk}.
+ */
 @MinecraftBootstrapped
 class AtlantisChunkTest {
 
     private static final ConfigurableLevel OVERWORLD = ConfigurableLevel.of("minecraft:overworld");
     private static final ConfigurableLevel NETHER = ConfigurableLevel.of("minecraft:the_nether");
 
+    /**
+     * Checks that the default chunk belongs to Atlantis and is at chunk 0, 0 in the overworld.
+     */
     @Test
     void defaultsToAtlantisInTheOverworldOrigin() {
         var chunk = new AtlantisChunk();
 
-        assertThat(chunk.modID()).isEqualTo("atlantis");
+        assertThat(chunk.modId()).isEqualTo("atlantis");
         assertThat(chunk.owner()).isEqualTo(UUIDUtils.fromHashCode("atlantis"));
         assertThat(chunk.level()).isEqualTo(OVERWORLD);
         assertThat(chunk.pos()).isEqualTo(new ChunkPos(0, 0));
     }
 
+    /**
+     * Checks that the owner UUID comes from the hash code of the mod ID or of the owner object, and is the same
+     * each time.
+     */
     @Test
     void ownerIsDerivedDeterministically() {
         var byModId = new AtlantisChunk("mod", OVERWORLD, 1, 2);
@@ -37,6 +47,9 @@ class AtlantisChunkTest {
         assertThat(new AtlantisChunk("mod", (Object) "owner", OVERWORLD, 1, 2).owner()).isEqualTo(byObject.owner());
     }
 
+    /**
+     * Checks that the chunk gives its coordinates, position and level.
+     */
     @Test
     void exposesItsPosition() {
         var chunk = new AtlantisChunk("mod", UUID.randomUUID(), NETHER, -3, 7);
@@ -47,6 +60,9 @@ class AtlantisChunkTest {
         assertThat(chunk.level()).isEqualTo(NETHER);
     }
 
+    /**
+     * Checks that equality and the hash code use the mod ID, owner, level and coordinates.
+     */
     @Test
     void equalityCoversEveryField() {
         var owner = UUID.randomUUID();
@@ -63,6 +79,9 @@ class AtlantisChunkTest {
                 .isNotEqualTo("chunk");
     }
 
+    /**
+     * Checks that an equal chunk is found in and removed from a {@link HashSet}.
+     */
     @Test
     void worksInHashSets() {
         var owner = UUID.randomUUID();

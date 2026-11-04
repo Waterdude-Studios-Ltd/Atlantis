@@ -33,10 +33,18 @@ import static de.waterdu.atlantis.file.ConfigTestSupport.awaitUntil;
 import static de.waterdu.atlantis.file.ConfigTestSupport.modDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link AtlantisConfigFinder}.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class AtlantisConfigFinderTest {
 
+    /**
+     * Checks that each config annotation registers one config of the matching kind.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void registersOneConfigPerAnnotation(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class)
@@ -59,6 +67,11 @@ class AtlantisConfigFinderTest {
         assertThat(instance.config(SampleData.class.getCanonicalName()).shouldForceLoad()).isTrue();
     }
 
+    /**
+     * Checks that the files of each config are written in the directory of the mod that owns them.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void filesAreCreatedInTheOwningModsDirectory(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class)
@@ -76,6 +89,11 @@ class AtlantisConfigFinderTest {
         assertThat(dir.resolve("sampledata")).isDirectory();
     }
 
+    /**
+     * Checks that the owner mod of a config is the mod in its annotation, and that the config uses that mod's proxy.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void ownerModIsTheAnnotationsMod(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class);
@@ -86,6 +104,11 @@ class AtlantisConfigFinderTest {
         assertThat(new SampleConfiguration().proxy()).isSameAs(AtlantisConfigProxy.of(ConfigFixtures.MOD));
     }
 
+    /**
+     * Checks that configs register in their load order, not in the order of the scan.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void registersInLoadOrder(TestModLoader loader) {
         loader.annotated(FileBackedObject.class, LastConfiguration.class, SampleAon.class, FirstConfiguration.class);
@@ -96,6 +119,11 @@ class AtlantisConfigFinderTest {
         assertThat(registered).containsExactly(FirstConfiguration.class, SampleAon.class, LastConfiguration.class);
     }
 
+    /**
+     * Checks that a {@link UEvent#REGISTER_CONFIG} listener can change the file that a config writes to.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void registerListenerCanChangeThePath(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class);
@@ -110,6 +138,11 @@ class AtlantisConfigFinderTest {
         assertThat(modDir().resolve("sampleconfiguration.json")).doesNotExist();
     }
 
+    /**
+     * Checks that an annotated class that is not a configuration is not registered.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void skipsAnnotatedClassesThatAreNotConfigurations(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, NotAConfiguration.class, SampleConfiguration.class);
@@ -119,6 +152,11 @@ class AtlantisConfigFinderTest {
         assertThat(AtlantisConfig.of(ConfigFixtures.MOD).configs.keySet()).containsExactly(SampleConfiguration.class.getCanonicalName());
     }
 
+    /**
+     * Checks that a config uses the storage in its annotation, and flatfile storage when none is set.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void usesTheAnnotatedStorage(TestModLoader loader) {
         loader.annotated(FileBackedObject.class, VolatileConfiguration.class, SampleAon.class);
@@ -130,6 +168,11 @@ class AtlantisConfigFinderTest {
         assertThat(instance.config(SampleAon.class.getCanonicalName()).storage()).isInstanceOf(Flatfile.class);
     }
 
+    /**
+     * Checks that a config uses flatfile storage when its annotated storage cannot be created.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void fallsBackToFlatfileWhenTheStorageCannotBeCreated(TestModLoader loader) {
         loader.annotated(FileBackedObject.class, FallbackStorageConfiguration.class);
@@ -139,6 +182,11 @@ class AtlantisConfigFinderTest {
         assertThat(AtlantisConfig.of(ConfigFixtures.MOD).config(FallbackStorageConfiguration.class.getCanonicalName()).storage()).isInstanceOf(Flatfile.class);
     }
 
+    /**
+     * Checks that a second call to {@link AtlantisConfigFinder#find()} does not register the configs again.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void findOnlyScansOnce(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class);
@@ -152,6 +200,12 @@ class AtlantisConfigFinderTest {
         assertThat(registered).containsExactly(SampleConfiguration.class);
     }
 
+    /**
+     * Checks that a second init registers nothing, but that {@link AtlantisConfigFinder#restoreFromBackup()} lets the
+     * next init register the configs again.
+     *
+     * @param loader the test mod loader
+     */
     @Test
     void restoreFromBackupAllowsRegisteringAgain(TestModLoader loader) {
         loader.annotated(BasicConfiguration.class, SampleConfiguration.class);
@@ -166,12 +220,22 @@ class AtlantisConfigFinderTest {
         assertThat(registered).containsExactly(SampleConfiguration.class, SampleConfiguration.class);
     }
 
+    /**
+     * Bootstraps the loader, then finds and initializes the configs.
+     *
+     * @param loader the test mod loader
+     */
     private static void findAndInit(TestModLoader loader) {
         Bootstrapper.bootstrap(loader);
         AtlantisConfigFinder.find();
         AtlantisConfigFinder.init(true);
     }
 
+    /**
+     * Listens for {@link UEvent#REGISTER_CONFIG} and records the configuration class of each registration.
+     *
+     * @return a list that fills as configs register
+     */
     private static List<Class<?>> recordRegistrations() {
         var registered = new ArrayList<Class<?>>();
         Mods.modLoader().event(UEvent.REGISTER_CONFIG).listen(payload -> {

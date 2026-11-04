@@ -12,10 +12,18 @@ import java.util.UUID;
 import static de.waterdu.atlantis.file.StorageTestConfigs.await;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Volatile} storage, which keeps data only in memory.
+ */
 @MinecraftBootstrapped
 @ExtendWith(AtlantisTestEnvironment.class)
 class VolatileTest {
 
+    /**
+     * Checks that writes and reads succeed, leave the data in memory alone and create no files.
+     *
+     * @throws InterruptedException if the wait for a storage operation is interrupted
+     */
     @Test
     void writesAndReadsSucceedWithoutTouchingDisk() throws InterruptedException {
         var config = StorageTestConfigs.data(new Volatile());
@@ -33,6 +41,9 @@ class VolatileTest {
         assertThat(StorageTestConfigs.modDirFiles()).isEmpty();
     }
 
+    /**
+     * Checks that a delete returns the data and removes it from the config.
+     */
     @Test
     void deleteRemovesFromMemory() {
         var config = StorageTestConfigs.data(new Volatile());
@@ -44,6 +55,9 @@ class VolatileTest {
         assertThat(config.uuidDataMap()).isEmpty();
     }
 
+    /**
+     * Checks that a delete by an unknown UUID or name completes with {@code null}.
+     */
     @Test
     void deletingNothingCompletesEmpty() {
         Config<?> config = StorageTestConfigs.data(new Volatile());
@@ -52,6 +66,9 @@ class VolatileTest {
         assertThat(await(config.storage().deleteFromName(config, "missing"))).isNull();
     }
 
+    /**
+     * Checks that a delete after the server has stopped completes with {@code null} and keeps the data.
+     */
     @Test
     void deletesCompleteEmptyOnceTheServerHasStopped() {
         var config = StorageTestConfigs.data(new Volatile());

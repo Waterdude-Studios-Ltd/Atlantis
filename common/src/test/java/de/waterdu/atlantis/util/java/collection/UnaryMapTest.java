@@ -7,8 +7,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link UnaryMap}.
+ */
 class UnaryMapTest {
 
+    /**
+     * Checks that put, get, pair and remove return the previous or current values.
+     */
     @Test
     void putGetRemove() {
         UnaryMap<String> map = UnaryMap.create();
@@ -22,11 +28,17 @@ class UnaryMapTest {
         assertThat(map).isEmpty();
     }
 
+    /**
+     * Checks that {@link UnaryMap#get} returns {@code null} for a missing key.
+     */
     @Test
     void getMissingKeyIsNull() {
         assertThat(UnaryMap.<String>create().get("missing")).isNull();
     }
 
+    /**
+     * Checks that {@link UnaryMap#containsKey} looks only at keys and {@link UnaryMap#containsValue} only at values.
+     */
     @Test
     void containsKeyAndValue() {
         UnaryMap<String> map = UnaryMap.create(2);
@@ -38,6 +50,10 @@ class UnaryMapTest {
         assertThat(map.containsValue("k")).isFalse();
     }
 
+    /**
+     * Checks that a pair and a map can be put, that the views keep insertion order, and that
+     * {@link UnaryMap#clear()} empties the map.
+     */
     @Test
     void putPairAndPutAll() {
         UnaryMap<String> map = UnaryMap.create();
@@ -53,6 +69,9 @@ class UnaryMapTest {
         assertThat(map.isEmpty()).isTrue();
     }
 
+    /**
+     * Checks that a unary map is equal to, and has the same hash code as, other maps with the same entries.
+     */
     @Test
     void equalsAndHashCodeFollowTheMapContract() {
         UnaryMap<String> a = UnaryMap.create();
@@ -70,6 +89,10 @@ class UnaryMapTest {
         assertThat(a.equals("k")).isFalse();
     }
 
+    /**
+     * Checks that {@link UnaryMap#createFromString} reads space-separated {@code key:value} entries in order, and
+     * gives an empty value to a key without one.
+     */
     @Test
     void createFromString() {
         var map = UnaryMap.createFromString("shiny:true  level:50 untradeable");
@@ -78,6 +101,9 @@ class UnaryMapTest {
         assertThat(map.keySet()).containsExactly("shiny", "level", "untradeable");
     }
 
+    /**
+     * Checks that {@link UnaryMap#createFromString} accepts custom entry and key delimiters.
+     */
     @Test
     void createFromStringWithCustomDelimiters() {
         var map = UnaryMap.createFromString("a=1;b=2", ";", "=");
@@ -86,6 +112,9 @@ class UnaryMapTest {
         assertThat(map.get("b")).isEqualTo("2");
     }
 
+    /**
+     * Checks that {@link UnaryMap#createFromString} joins the extra parts of a value with spaces.
+     */
     @Test
     void createFromStringJoinsExtraValueSegmentsWithSpaces() {
         assertThat(UnaryMap.createFromString("time:12:30").get("time")).isEqualTo("12 30");

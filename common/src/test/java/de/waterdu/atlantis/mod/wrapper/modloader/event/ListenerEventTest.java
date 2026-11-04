@@ -15,12 +15,24 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests the listener order, cancellation and registration of {@link ListenerEvent}.
+ */
 class ListenerEventTest {
 
+    /**
+     * Creates an event key with a random path, so that each test gets its own event.
+     *
+     * @param <P> the payload type of the event
+     * @return a new key in the {@code atlantis_test} namespace
+     */
     private static <P extends EventPayload> Key<UEvent<P>> freshKey() {
         return Key.of("atlantis_test", "event/" + UUID.randomUUID());
     }
 
+    /**
+     * Checks that the same key always gives the same event, and that the event type is that key.
+     */
     @Test
     void sameKeyReturnsSameEvent() {
         Key<UEvent<Plain>> key = freshKey();
@@ -29,6 +41,9 @@ class ListenerEventTest {
         assertThat(ListenerEvent.of(key).eventType()).isEqualTo(key);
     }
 
+    /**
+     * Checks that listeners run in the order of {@link UEvent.Priority}, not in the order they are added.
+     */
     @Test
     void listenersRunInPriorityOrder() {
         Key<UEvent<Plain>> key = freshKey();
@@ -46,6 +61,9 @@ class ListenerEventTest {
         assertThat(order).containsExactly(UEvent.Priority.values());
     }
 
+    /**
+     * Checks that a listener added without a priority runs between the high and the low listeners.
+     */
     @Test
     void defaultPriorityIsNormal() {
         Key<UEvent<Plain>> key = freshKey();
@@ -60,6 +78,10 @@ class ListenerEventTest {
         assertThat(order).containsExactly("high", "default", "low");
     }
 
+    /**
+     * Checks that a listener that returns a result other than {@link InteractionResult#PASS} cancels a cancellable
+     * payload, and that the remaining listeners do not run.
+     */
     @Test
     void nonPassCancelsAndSkipsRemainingListeners() {
         Key<UEvent<Cancelable>> key = freshKey();
@@ -78,6 +100,9 @@ class ListenerEventTest {
         assertThat(order).containsExactly("first", "canceller");
     }
 
+    /**
+     * Checks that no listener runs when the payload is already cancelled before it is emitted.
+     */
     @Test
     void alreadyCancelledPayloadRunsNoListeners() {
         Key<UEvent<Cancelable>> key = freshKey();
@@ -92,6 +117,10 @@ class ListenerEventTest {
         assertThat(order).isEmpty();
     }
 
+    /**
+     * Checks that a result other than {@link InteractionResult#PASS} does not skip listeners when the payload is not
+     * cancellable.
+     */
     @Test
     void nonPassOnNonCancellablePayloadRunsEveryListener() {
         Key<UEvent<Plain>> key = freshKey();
@@ -108,6 +137,9 @@ class ListenerEventTest {
         assertThat(order).containsExactly("success", "after");
     }
 
+    /**
+     * Checks that {@code emit} returns the payload instance that it got.
+     */
     @Test
     void emitReturnsTheSamePayload() {
         Key<UEvent<Plain>> key = freshKey();
@@ -116,6 +148,11 @@ class ListenerEventTest {
         assertThat(ListenerEvent.of(key).emit(payload)).isSameAs(payload);
     }
 
+    /**
+     * Checks that no listener is lost when eight threads add listeners at the same time.
+     *
+     * @throws InterruptedException if the test thread is interrupted while it waits for the threads to stop
+     */
     @Test
     void concurrentRegistrationKeepsEveryListener() throws InterruptedException {
         Key<UEvent<Plain>> key = freshKey();
@@ -147,32 +184,61 @@ class ListenerEventTest {
         assertThat(calls).hasValue(threads * perThread);
     }
 
+    /**
+     * Adds the name to the order list.
+     *
+     * @param order the list that records the order in which listeners run
+     * @param name the name of the listener
+     * @return {@link InteractionResult#PASS}
+     */
     private static InteractionResult pass(List<String> order, String name) {
         order.add(name);
         return InteractionResult.PASS;
     }
 
+    /**
+     * Is a payload that cannot be cancelled.
+     *
+     * @param type the key of the event
+     */
     private record Plain(Key<?> type) implements EventPayload {}
 
+    /**
+     * Is a payload that can be cancelled.
+     */
     private static final class Cancelable implements EventPayload, Cancellable {
 
         private final Key<?> type;
         private boolean cancelled;
 
+        /**
+         * Creates a payload that is not cancelled.
+         *
+         * @param type the key of the event
+         */
         private Cancelable(Key<?> type) {
             this.type = type;
         }
 
+        /**
+         * @return the key of the event
+         */
         @Override
         public Key<?> type() {
             return this.type;
         }
 
+        /**
+         * Marks this payload as cancelled.
+         */
         @Override
         public void cancel() {
             this.cancelled = true;
         }
 
+        /**
+         * @return {@code true} if {@link #cancel()} was called
+         */
         @Override
         public boolean cancelled() {
             return this.cancelled;

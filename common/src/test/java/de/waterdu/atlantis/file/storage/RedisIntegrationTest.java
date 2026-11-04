@@ -40,11 +40,19 @@ class RedisIntegrationTest {
 
     private final List<Config<?>> configs = new ArrayList<>();
 
+    /**
+     * Destructs the storage of every config that the test registered, which disconnects it from Redis.
+     */
     @AfterEach
     void disconnect() {
         this.configs.forEach(config -> config.storage().destruct(config));
     }
 
+    /**
+     * Checks that a record written by one server reaches the other server with its values.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void writesReachOtherServers() throws Exception {
         var channel = channel();
@@ -60,6 +68,11 @@ class RedisIntegrationTest {
         assertThat(((RedisRecord) second.uuidDataMap().get(record.uuid())).value).isEqualTo(7);
     }
 
+    /**
+     * Checks that a record deleted by one server is also removed from the other server.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void deletesReachOtherServers() throws Exception {
         var channel = channel();
@@ -75,6 +88,11 @@ class RedisIntegrationTest {
         awaitUntil("the second server deletes the record", () -> second.uuidDataMap().isEmpty());
     }
 
+    /**
+     * Checks that a server that joins the channel later receives the records of the first server.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void joiningServerIsSynced() throws Exception {
         var channel = channel();
@@ -88,6 +106,11 @@ class RedisIntegrationTest {
         awaitUntil("the joining server is synced", () -> second.uuidDataMap().containsKey(record.uuid()));
     }
 
+    /**
+     * Checks that storage from URL settings and from explicit settings registers configs and can publish.
+     *
+     * @throws Exception if a storage operation fails
+     */
     @Test
     void settingsConnect() throws Exception {
         var url = new RedisSettings.URL("redis://" + REDIS.getHost() + ":" + REDIS.getMappedPort(6379) + "/").storage("mod");
@@ -102,14 +125,35 @@ class RedisIntegrationTest {
         assertThat(explicitConfig).isNotNull();
     }
 
+    /**
+     * @return a new channel name that no other test uses
+     */
     private static String channel() {
         return "channel_" + CHANNELS.incrementAndGet();
     }
 
+    /**
+     * Registers a config with new Redis storage that connects to the Redis container.
+     *
+     * @param clazz the data class
+     * @param channel the path of the config, used in the name of its Redis channel
+     * @param <T> the type of the data
+     * @return the registered config
+     */
     private <T extends RedisRecord> Config<T> register(Class<T> clazz, String channel) {
         return this.register(clazz, channel, new Redis("redis://" + REDIS.getHost() + ":" + REDIS.getMappedPort(6379) + "/"));
     }
 
+    /**
+     * Registers a config with the given Redis storage, and tracks it so that it disconnects after the test. Fails the
+     * test if the config does not register.
+     *
+     * @param clazz the data class
+     * @param channel the path of the config, used in the name of its Redis channel
+     * @param redis the Redis storage to use
+     * @param <T> the type of the data
+     * @return the registered config
+     */
     private <T extends RedisRecord> Config<T> register(Class<T> clazz, String channel, Redis redis) {
         var config = StorageTestConfigs.register(clazz, channel, redis);
         assertThat(config).as("config registered").isNotNull();

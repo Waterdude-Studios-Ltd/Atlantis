@@ -4,8 +4,15 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests the bound, range and bit methods of {@link NumberUtils}.
+ */
 class NumberUtilsTest {
 
+    /**
+     * Checks that infinite and too large values are bound to the largest finite value, and other values do not
+     * change.
+     */
     @Test
     void boundsInfiniteValues() {
         assertThat(NumberUtils.boundDouble(Double.POSITIVE_INFINITY)).isEqualTo(Double.MAX_VALUE);
@@ -17,6 +24,9 @@ class NumberUtilsTest {
         assertThat(NumberUtils.boundFloat(2.5)).isEqualTo(2.5F);
     }
 
+    /**
+     * Checks that NaN is not finite and that it is bound to the negative largest double.
+     */
     @Test
     void nanIsNotFiniteAndBoundsToNegativeMax() {
         assertThat(NumberUtils.isFinite(Double.NaN)).isFalse();
@@ -24,6 +34,9 @@ class NumberUtilsTest {
         assertThat(NumberUtils.boundDouble(Double.NaN)).isEqualTo(-Double.MAX_VALUE);
     }
 
+    /**
+     * Checks that the largest values are finite and that infinite values are not.
+     */
     @Test
     void isFinite() {
         assertThat(NumberUtils.isFinite(Double.MAX_VALUE)).isTrue();
@@ -32,6 +45,9 @@ class NumberUtilsTest {
         assertThat(NumberUtils.isFinite(Float.NEGATIVE_INFINITY)).isFalse();
     }
 
+    /**
+     * Checks that {@code arrayOfRange} includes both ends and counts down when the start is larger.
+     */
     @Test
     void arrayOfRangeIsInclusiveInBothDirections() {
         assertThat(NumberUtils.arrayOfRange(1, 4)).containsExactly(1, 2, 3, 4);
@@ -40,6 +56,9 @@ class NumberUtilsTest {
         assertThat(NumberUtils.arrayOfRange(7, 7)).containsExactly(7);
     }
 
+    /**
+     * Checks that the set, get and flip bit methods work on bytes, including the highest bit.
+     */
     @Test
     void byteBits() {
         byte flags = 0;
@@ -53,6 +72,9 @@ class NumberUtilsTest {
         assertThat(NumberUtils.setBit((byte) 0, 0x80, true)).isEqualTo((byte) 0x80);
     }
 
+    /**
+     * Checks that the set, get and flip bit methods work on ints, including the sign bit.
+     */
     @Test
     void intBits() {
         var flags = NumberUtils.setBit(0, 1 << 20, true);

@@ -6,8 +6,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Tests {@link Variable} and {@link Operation}.
+ */
 class VariableTest {
 
+    /**
+     * Checks that an expression parses into operations from left to right, and that it has no comparator.
+     */
     @Test
     void parsesOperationsLeftToRight() {
         var variable = new Variable("a+2*b");
@@ -18,6 +24,9 @@ class VariableTest {
         assertThat(variable.comparator()).isNull();
     }
 
+    /**
+     * Checks that a leading {@code -} becomes the operator of the first operation.
+     */
     @Test
     void leadingSignIsApplied() {
         var variable = new Variable("-a");
@@ -26,6 +35,10 @@ class VariableTest {
         assertThat(variable.calculate(Map.of("a", 3.0))).isEqualTo(-3.0);
     }
 
+    /**
+     * Checks that a ternary expression has a comparator and gives the value of the true branch when the comparison
+     * is true.
+     */
     @Test
     void ternary() {
         var variable = new Variable("a>b?1:2");
@@ -34,6 +47,10 @@ class VariableTest {
         assertThat(variable.calculate(Map.of("a", 1.0, "b", 0.0))).isEqualTo(1.0);
     }
 
+    /**
+     * Checks that an {@link Operation} keeps a number as its value and a name as its variable, and applies either
+     * one to the current value.
+     */
     @Test
     void operationParsesNumbersAndVariables() {
         var number = new Operation(Operator.MULTIPLY, "2.5");
