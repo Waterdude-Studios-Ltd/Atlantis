@@ -96,7 +96,7 @@ public final class Bootstrapper {
         }
         var bootstrapped = ANNOTATED_CLASSES.get(Bootstrapped.class);
         if (bootstrapped != null) {
-            bootstrapped.sort(Comparator.comparingInt(annotated -> Bootstrapped.Priority.values().length - ((Bootstrapped) annotated.annotation()).priority().ordinal()));
+            bootstrapped.sort(Comparator.comparingInt(annotated -> ((Bootstrapped) annotated.annotation()).value().ordinal()));
         }
 
         Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> Bootstrapper.invokeStatic(annotated.clazz(), Entrypoint.class));

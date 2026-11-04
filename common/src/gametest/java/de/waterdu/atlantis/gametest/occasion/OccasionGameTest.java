@@ -51,7 +51,7 @@ public final class OccasionGameTest {
         helper.assertValueEqual(firstStarts.get(), 1, "starts of the first moment");
         helper.assertValueEqual(secondStarts.get(), 0, "starts of the second moment");
         helper.assertValueEqual(occasion.momentCount(), 2, "moments");
-        helper.assertTrue(OccasionManager.getFor(occasion.uuid()).orElse(null) == occasion, "occasion not registered");
+        helper.assertTrue(OccasionManager.getFor(occasion.uuid()) == occasion, "occasion not registered");
         helper.succeed();
     }
 
@@ -72,11 +72,11 @@ public final class OccasionGameTest {
         helper.assertValueEqual(occasion.addMembers(player), 0, "added the same member twice");
 
         helper.assertTrue(occasion.isMember(player), "not a member");
-        helper.assertTrue(OccasionManager.getFor(reference).orElse(null) == occasion, "the manager doesn't know the member's occasion");
+        helper.assertTrue(OccasionManager.getFor(reference) == occasion, "the manager doesn't know the member's occasion");
         helper.assertTrue(OccasionManager.isIn(reference), "isIn");
 
         helper.assertTrue(occasion.removeMember(player), "removeMember");
-        helper.assertFalse(OccasionManager.getFor(reference).isPresent(), "the manager still has the member's occasion");
+        helper.assertTrue(OccasionManager.getFor(reference) == null, "the manager still has the member's occasion");
         helper.assertFalse(OccasionManager.isIn(reference), "isIn after removal");
         assertAt(helper, player, recovery);
         helper.succeed();
@@ -132,7 +132,7 @@ public final class OccasionGameTest {
         helper.assertValueEqual(completions.get(), 1, "onComplete calls");
         helper.assertValueEqual(occasion.memberCount(), 0, "members after completion");
         helper.assertFalse(OccasionManager.isIn(PlayerReference.get(player)), "player is still in the occasion");
-        helper.succeedWhen(() -> helper.assertFalse(OccasionManager.getFor(occasion.uuid()).isPresent(), "completed occasion still registered"));
+        helper.succeedWhen(() -> helper.assertTrue(OccasionManager.getFor(occasion.uuid()) == null, "completed occasion still registered"));
     }
 
     /**
@@ -163,7 +163,7 @@ public final class OccasionGameTest {
         helper.assertValueEqual(countMembers(occasion), 1, "members iterated after rejoining");
         helper.startSequence()
                 .thenIdle(3)
-                .thenExecute(() -> helper.assertTrue(OccasionManager.getFor(occasion.uuid()).isPresent(), "repeating occasion was dropped"))
+                .thenExecute(() -> helper.assertTrue(OccasionManager.getFor(occasion.uuid()) != null, "repeating occasion was dropped"))
                 .thenExecute(occasion::removeAllMembers)
                 .thenSucceed();
     }

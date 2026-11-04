@@ -60,16 +60,16 @@ class AtlantisLevelRegistryTest {
     }
 
     /**
-     * Checks that an unknown key gives an empty chunk generator and an empty dimension type.
+     * Checks that an unknown key gives no chunk generator and no dimension type.
      *
      * @throws InvalidAtlantisLevelException if a lookup fails
      */
     @Test
-    void unknownKeysAreEmpty() throws InvalidAtlantisLevelException {
+    void unknownKeysGiveNull() throws InvalidAtlantisLevelException {
         var unknown = ResourceLocation.fromNamespaceAndPath("atlantis_test", unique());
 
-        assertThat(AtlantisLevelRegistry.getChunkGenerator(unknown, level(), null)).isEmpty();
-        assertThat(AtlantisLevelRegistry.getDimensionType(unknown, level())).isEmpty();
+        assertThat(AtlantisLevelRegistry.getChunkGenerator(unknown, level(), null)).isNull();
+        assertThat(AtlantisLevelRegistry.getDimensionType(unknown, level())).isNull();
     }
 
     /**
@@ -91,15 +91,15 @@ class AtlantisLevelRegistryTest {
 
         var result = AtlantisLevelRegistry.getDimensionType(key, level, "a", "b");
 
-        assertThat(result).isPresent();
-        assertThat(result.get().getA()).isEqualTo(dimensionKey);
+        assertThat(result).isNotNull();
+        assertThat(result.getA()).isEqualTo(dimensionKey);
         assertThat(seen[0]).isSameAs(level);
         assertThat(seen[1]).isEqualTo(Arrays.asList("a", "b"));
     }
 
     /**
      * Checks that a registered chunk generator function receives the arguments, and that a {@code null} result
-     * gives an empty optional.
+     * gives {@code null}.
      *
      * @throws InvalidAtlantisLevelException if the lookup fails
      */
@@ -111,7 +111,7 @@ class AtlantisLevelRegistryTest {
             return null;
         });
 
-        assertThat(AtlantisLevelRegistry.getChunkGenerator(key, level(), null, "x")).isEmpty();
+        assertThat(AtlantisLevelRegistry.getChunkGenerator(key, level(), null, "x")).isNull();
         assertThat(seen[0]).isEqualTo(Arrays.asList("x"));
     }
 
@@ -122,7 +122,8 @@ class AtlantisLevelRegistryTest {
      */
     @Test
     void uniqueOverworldIsNamedAfterTheLevel() throws InvalidAtlantisLevelException {
-        var result = AtlantisLevelRegistry.getDimensionType(AtlantisLevelRegistry.UNIQUE_OVERWORLD_DIMENSION_TYPE, level()).orElseThrow();
+        var result = AtlantisLevelRegistry.getDimensionType(AtlantisLevelRegistry.UNIQUE_OVERWORLD_DIMENSION_TYPE, level());
+        assertThat(result).isNotNull();
 
         assertThat(result.getA()).isEqualTo(ResourceKey.create(Registries.DIMENSION_TYPE, ResourceLocation.fromNamespaceAndPath("atlantis_test", "level")));
         DimensionType type = result.getB();

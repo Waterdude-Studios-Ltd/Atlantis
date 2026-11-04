@@ -233,7 +233,7 @@ public final class LevelUtilsGameTest {
     public static void levelPositionCreatesAnUnspawnedEntity(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
 
-        var pig = LevelPosition.of(OVERWORLD, target.x, target.y, target.z, 0F, 180F).createEntity(EntityType.PIG).orElse(null);
+        var pig = LevelPosition.of(OVERWORLD, target.x, target.y, target.z, 0F, 180F).createEntity(EntityType.PIG);
 
         helper.assertTrue(pig != null, "no entity was created");
         helper.assertTrue(pig.level() == helper.getLevel(), "entity is in the wrong level");
@@ -448,7 +448,7 @@ public final class LevelUtilsGameTest {
         var target = helper.absoluteVec(new Vec3(2.5, 2, 2.5));
         var position = LevelPosition.of(OVERWORLD, target.x, target.y, target.z);
 
-        var stand = EntityUtils.createEntity(EntityType.ARMOR_STAND, position, true, true, entity -> entity.setCustomName(Component.literal("noop"))).orElse(null);
+        var stand = EntityUtils.createEntity(EntityType.ARMOR_STAND, position, true, true, entity -> entity.setCustomName(Component.literal("noop")));
 
         helper.assertTrue(stand != null, "no entity was created");
         helper.assertTrue(stand.isInvulnerable(), "not invulnerable");
@@ -470,8 +470,9 @@ public final class LevelUtilsGameTest {
     public static void noopArmorStandIsAMarker(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(1.5, 2, 1.5));
 
-        var stand = EntityUtils.createEntity(EntityType.ARMOR_STAND, LevelPosition.of(OVERWORLD, target.x, target.y, target.z), true, false, entity -> {}).orElseThrow();
+        var stand = EntityUtils.createEntity(EntityType.ARMOR_STAND, LevelPosition.of(OVERWORLD, target.x, target.y, target.z), true, false, entity -> {});
 
+        helper.assertTrue(stand != null, "no entity was created");
         helper.assertTrue(stand.isMarker(), "no-op armour stand is not a marker (flags " + stand.getEntityData().get(ArmorStand.DATA_CLIENT_FLAGS) + ")");
         helper.succeed();
     }
@@ -486,8 +487,9 @@ public final class LevelUtilsGameTest {
     public static void createEntityWithoutSpawnLeavesTheLevelAlone(GameTestHelper helper) {
         var target = helper.absoluteVec(new Vec3(3.5, 2, 1.5));
 
-        var pig = EntityUtils.createEntity(EntityType.PIG, LevelPosition.of(OVERWORLD, target.x, target.y, target.z), false, false, entity -> entity.setCustomName(Component.literal("pig"))).orElseThrow();
+        var pig = EntityUtils.createEntity(EntityType.PIG, LevelPosition.of(OVERWORLD, target.x, target.y, target.z), false, false, entity -> entity.setCustomName(Component.literal("pig")));
 
+        helper.assertTrue(pig != null, "no entity was created");
         helper.assertValueEqual(pig.getCustomName(), Component.literal("pig"), "modifier was not applied");
         helper.assertFalse(pig.isInvisible(), "a regular entity is invisible");
         helper.assertFalse(pig.isNoGravity(), "a regular entity has no gravity");

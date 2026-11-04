@@ -39,7 +39,7 @@ class BootstrapperTest {
     }
 
     /**
-     * Checks that entrypoints run in order of {@link Bootstrapped#order()}, whatever order the scan reports.
+     * Checks that entrypoints run in order of {@link Bootstrapped#value()}, whatever order the scan reports.
      *
      * @param loader the test loader
      */
@@ -105,11 +105,11 @@ class BootstrapperTest {
     void forEachAnnotatedClassReportsTheAnnotation(TestModLoader loader) {
         loader.annotated(Bootstrapped.class, Early.class);
         Bootstrapper.bootstrap(loader);
-        var seen = new ArrayList<Integer>();
+        var seen = new ArrayList<Bootstrapped.Priority>();
 
-        Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> seen.add(((Bootstrapped) annotated.annotation()).order()));
+        Bootstrapper.forEachAnnotatedClass(Bootstrapped.class, annotated -> seen.add(((Bootstrapped) annotated.annotation()).value()));
 
-        assertThat(seen).containsExactly(-10);
+        assertThat(seen).containsExactly(Bootstrapped.Priority.HIGH);
     }
 
     /**
@@ -127,9 +127,9 @@ class BootstrapperTest {
     }
 
     /**
-     * Has two entrypoints and bootstraps at order 10.
+     * Has two entrypoints and bootstraps at {@link Bootstrapped.Priority#LOW}.
      */
-    @Bootstrapped(order = 10)
+    @Bootstrapped(Bootstrapped.Priority.LOW)
     static final class Late {
 
         /**
@@ -150,9 +150,9 @@ class BootstrapperTest {
     }
 
     /**
-     * Bootstraps at order -10.
+     * Bootstraps at {@link Bootstrapped.Priority#HIGH}.
      */
-    @Bootstrapped(order = -10)
+    @Bootstrapped(Bootstrapped.Priority.HIGH)
     static final class Early {
 
         /**
@@ -165,7 +165,7 @@ class BootstrapperTest {
     }
 
     /**
-     * Bootstraps at the default order.
+     * Bootstraps at the default priority.
      */
     @Bootstrapped
     static final class Default {
@@ -180,9 +180,9 @@ class BootstrapperTest {
     }
 
     /**
-     * Bootstraps at order -20 and has an entrypoint that throws.
+     * Bootstraps at {@link Bootstrapped.Priority#VERY_HIGH} and has an entrypoint that throws.
      */
-    @Bootstrapped(order = -20)
+    @Bootstrapped(Bootstrapped.Priority.VERY_HIGH)
     static final class Failing {
 
         /**

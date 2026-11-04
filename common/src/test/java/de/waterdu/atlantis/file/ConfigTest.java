@@ -287,7 +287,7 @@ class ConfigTest {
             var config = register(SamplePlayerData.class, new Volatile());
 
             assertThat(config.isPlayerData()).isTrue();
-            assertThat(config.classes().<SamplePlayerData>playerDataClass()).contains(SamplePlayerData.class);
+            assertThat(config.classes().<SamplePlayerData>playerDataClass()).isEqualTo(SamplePlayerData.class);
         }
 
         /**

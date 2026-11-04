@@ -39,7 +39,7 @@ class BootstrappedValidatorTest {
     @Test
     void acceptsStaticNoArgVoidEntrypoints() {
         var compilation = compile("""
-                @Bootstrapped(order = 5)
+                @Bootstrapped(Bootstrapped.Priority.LOW)
                 public class Sample {
                     @Entrypoint
                     private static void bootstrap() {}

@@ -23,6 +23,7 @@ import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UNature;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UPokeBall;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.USpecies;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UStatus;
+import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.UTeraType;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.moves.UMoveCategory;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.moves.UMoveTemplate;
 import de.waterdu.atlantis.mod.wrapper.pokemon.pokemon.properties.moves.UMoveset;
@@ -371,6 +372,29 @@ public final class FakePokemonDelegate implements PokemonDelegate {
      */
     @Override
     public List<? extends UNature<?>> natures() {
+        throw unsupported();
+    }
+
+    /**
+     * Does not get a Tera type, because the fake has no Tera types.
+     *
+     * @param name the name of the Tera type
+     * @return never returns
+     * @throws UnsupportedOperationException always
+     */
+    @Override
+    public @Nullable UTeraType<?> teraType(String name) {
+        throw unsupported();
+    }
+
+    /**
+     * Does not list the Tera types, because the fake has no Tera types.
+     *
+     * @return never returns
+     * @throws UnsupportedOperationException always
+     */
+    @Override
+    public List<? extends UTeraType<?>> teraTypes() {
         throw unsupported();
     }
 
@@ -996,6 +1020,28 @@ public final class FakePokemonDelegate implements PokemonDelegate {
          */
         @Override
         public void setNature(UNature<?> nature) {
+            throw unsupported();
+        }
+
+        /**
+         * Does not get the Tera type, because the fake has no Tera types.
+         *
+         * @return never returns
+         * @throws UnsupportedOperationException always
+         */
+        @Override
+        public UTeraType<?> teraType() {
+            throw unsupported();
+        }
+
+        /**
+         * Does not set the Tera type, because the fake has no Tera types.
+         *
+         * @param teraType the new Tera type
+         * @throws UnsupportedOperationException always
+         */
+        @Override
+        public void setTeraType(UTeraType<?> teraType) {
             throw unsupported();
         }
 

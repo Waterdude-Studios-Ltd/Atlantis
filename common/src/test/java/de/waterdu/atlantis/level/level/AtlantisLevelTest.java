@@ -79,7 +79,8 @@ class AtlantisLevelTest {
                 .build(false);
 
         assertThat(level.id()).isEqualTo("atlantis_test:built");
-        var dimensionType = level.makeDimensionType().orElseThrow();
+        var dimensionType = level.makeDimensionType();
+        assertThat(dimensionType).isNotNull();
         assertThat(dimensionType.getA().location()).isEqualTo(ResourceLocation.fromNamespaceAndPath("atlantis_test", "built"));
         assertThat(level.levelStem()).isNull();
         assertThat(level.dimensionType()).isNull();
@@ -92,7 +93,7 @@ class AtlantisLevelTest {
     void levelWithoutDimensionTypeHasNone() throws InvalidAtlantisLevelException {
         var level = AtlantisLevel.builder("atlantis_test", "incomplete").build(false);
 
-        assertThat(level.makeDimensionType()).isEmpty();
-        assertThat(level.makeChunkGenerator(null)).isEmpty();
+        assertThat(level.makeDimensionType()).isNull();
+        assertThat(level.makeChunkGenerator(null)).isNull();
     }
 }

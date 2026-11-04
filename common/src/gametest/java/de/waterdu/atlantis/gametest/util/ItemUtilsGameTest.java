@@ -397,10 +397,9 @@ public final class ItemUtilsGameTest {
         var position = LevelPosition.of(ConfigurableLevel.of(helper.getLevel()), new LocalPosition(at.x, at.y, at.z));
         var modified = new AtomicReference<ItemEntity>();
 
-        var dropped = ItemUtils.drop(new ItemStack(Items.EMERALD, 2), position, modified::set);
+        var entity = ItemUtils.drop(new ItemStack(Items.EMERALD, 2), position, modified::set);
 
-        helper.assertTrue(dropped.isPresent(), "no item entity created");
-        var entity = dropped.get();
+        helper.assertTrue(entity != null, "no item entity created");
         helper.assertTrue(modified.get() == entity, "modifier did not receive the entity");
         helper.assertValueEqual(entity.getItem().getCount(), 2, "dropped count");
         helper.succeedWhen(() -> {

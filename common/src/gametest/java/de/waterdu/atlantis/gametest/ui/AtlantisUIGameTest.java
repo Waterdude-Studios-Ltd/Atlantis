@@ -535,7 +535,11 @@ public final class AtlantisUIGameTest {
      * @throws GameTestAssertException if no page is open
      */
     private static AtlantisContainerMenuInternal container(GameTestHelper helper, ServerPlayer player) {
-        return AtlantisUI.currentContainer(player).orElseThrow(() -> new GameTestAssertException("no page is open"));
+        var container = AtlantisUI.currentContainer(player);
+        if (container == null) {
+            throw new GameTestAssertException("no page is open");
+        }
+        return container;
     }
 
     /**
