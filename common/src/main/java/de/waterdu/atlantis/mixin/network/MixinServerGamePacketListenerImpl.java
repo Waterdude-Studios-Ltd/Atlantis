@@ -26,6 +26,12 @@ public abstract class MixinServerGamePacketListenerImpl {
     @Shadow
     public ServerPlayer player;
 
+    /**
+     * Emits CHAT. If a listener cancels it, the message is not broadcast.
+     *
+     * @param message the validated chat message
+     * @param ci the callback info
+     */
     @Inject(method = "broadcastChatMessage", at = @At("HEAD"), cancellable = true)
     private void atlantis$emitChat(PlayerChatMessage message, CallbackInfo ci) {
         if (Mods.events().emitChat(this.player, message)) {
@@ -33,6 +39,13 @@ public abstract class MixinServerGamePacketListenerImpl {
         }
     }
 
+    /**
+     * Reads the action and the hand from the packet and emits PLAYER_INTERACT_ENTITY. Does nothing if the target
+     * entity or the action is {@code null}. If a listener cancels the event, the interaction is not dispatched.
+     *
+     * @param packet the interaction packet
+     * @param ci the callback info
+     */
     @Inject(method = "handleInteract", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ServerboundInteractPacket;dispatch(Lnet/minecraft/network/protocol/game/ServerboundInteractPacket$Handler;)V"), cancellable = true)
     private void atlantis$emitInteractEntity(ServerboundInteractPacket packet, CallbackInfo ci) {
         var entity = packet.getTarget(this.player.serverLevel());

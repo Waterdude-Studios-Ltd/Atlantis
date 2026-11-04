@@ -18,6 +18,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Emits INTERCEPT_PACKET for packets that a player connection sends or handles. Listeners can change or cancel the
+ * packet.
+ */
 @Mixin(value = Connection.class)
 public abstract class MixinConnection {
 
@@ -36,6 +40,12 @@ public abstract class MixinConnection {
         }
     }
 
+    /**
+     * Replaces the packet to send with the packet from {@link #atlantis$interceptPacket}.
+     *
+     * @param packet the packet to send
+     * @return the changed packet, or {@link CancelledPacket#INSTANCE} if a listener canceled it
+     */
     @ModifyVariable(
             method = "doSendPacket",
             at = @At(value = "HEAD"),
@@ -45,6 +55,14 @@ public abstract class MixinConnection {
         return atlantis$interceptPacket(packet);
     }
 
+    /**
+     * Stops the send if the packet is {@link CancelledPacket#INSTANCE}.
+     *
+     * @param packet the packet to send
+     * @param listener the listener for the send result
+     * @param flush {@code true} to flush the channel
+     * @param ci the callback info
+     */
     @Inject(
             method = "doSendPacket",
             at = @At(value = "HEAD"),
@@ -56,6 +74,12 @@ public abstract class MixinConnection {
         }
     }
 
+    /**
+     * Emits INTERCEPT_PACKET for this connection if its listener is a player connection.
+     *
+     * @param packet the packet
+     * @return the changed packet, {@link CancelledPacket#INSTANCE} if a listener canceled it, or the same packet
+     */
     @Unique
     private Packet<?> atlantis$interceptPacket(Packet<?> packet) {
         if (this.packetListener instanceof ServerPlayerConnection spc) {
@@ -69,6 +93,14 @@ public abstract class MixinConnection {
         return packet;
     }
 
+    /**
+     * Emits INTERCEPT_PACKET for a handled packet if the listener is a player connection. Gets the connection from the
+     * packet listener of the player.
+     *
+     * @param packet the packet
+     * @param listener the listener that handles the packet
+     * @return the changed packet, {@link CancelledPacket#INSTANCE} if a listener canceled it, or the same packet
+     */
     @Unique
     private static Packet<?> atlantis$interceptPacketStatic(Packet<?> packet, PacketListener listener) {
         if (listener instanceof ServerPlayerConnection spc) {
@@ -83,6 +115,12 @@ public abstract class MixinConnection {
         return packet;
     }
 
+    /**
+     * Checks if the packet is {@link CancelledPacket#INSTANCE}.
+     *
+     * @param packet the packet
+     * @return {@code true} if the packet is canceled
+     */
     @Unique
     private static boolean atlantis$isPacketCancelled(Packet<?> packet) {
         return packet == CancelledPacket.INSTANCE;

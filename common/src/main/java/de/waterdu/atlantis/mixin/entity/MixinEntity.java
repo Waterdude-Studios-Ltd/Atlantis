@@ -23,6 +23,11 @@ public abstract class MixinEntity implements PersistentDataHolder {
     @Unique
     private CompoundTag atlantis$persistentData;
 
+    /**
+     * Gets the persistent tag. Creates an empty tag the first time.
+     *
+     * @return the persistent tag of this entity
+     */
     @Override
     public CompoundTag atlantis$persistentData() {
         if (this.atlantis$persistentData == null) {
@@ -31,6 +36,12 @@ public abstract class MixinEntity implements PersistentDataHolder {
         return this.atlantis$persistentData;
     }
 
+    /**
+     * Writes a copy of the persistent tag under {@value #KEY} into the saved tag, if the persistent tag is not empty.
+     *
+     * @param tag the tag that the entity saves into
+     * @param cir the callback that holds the saved tag
+     */
     @Inject(method = "saveWithoutId", at = @At("RETURN"))
     private void atlantis$savePersistentData(CompoundTag tag, CallbackInfoReturnable<CompoundTag> cir) {
         if (this.atlantis$persistentData != null && !this.atlantis$persistentData.isEmpty()) {
@@ -38,6 +49,12 @@ public abstract class MixinEntity implements PersistentDataHolder {
         }
     }
 
+    /**
+     * Reads a copy of the persistent tag from {@value #KEY} in the loaded tag, if it exists.
+     *
+     * @param tag the tag that the entity loads from
+     * @param ci the callback info
+     */
     @Inject(method = "load", at = @At("HEAD"))
     private void atlantis$loadPersistentData(CompoundTag tag, CallbackInfo ci) {
         if (tag.contains(KEY, Tag.TAG_COMPOUND)) {

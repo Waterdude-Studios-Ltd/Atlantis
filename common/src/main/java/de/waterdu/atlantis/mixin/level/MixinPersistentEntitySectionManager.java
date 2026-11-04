@@ -17,6 +17,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(PersistentEntitySectionManager.class)
 public abstract class MixinPersistentEntitySectionManager {
 
+    /**
+     * Emits ENTITY_JOIN_LEVEL for an entity in a server level. If a listener cancels it, the entity is not added.
+     *
+     * @param access the entity to add
+     * @param loadedFromDisk {@code true} if the entity is loaded with its chunk
+     * @param cir the callback that returns {@code false} when the event is canceled
+     */
     @Inject(method = "addEntity", at = @At("HEAD"), cancellable = true)
     private void atlantis$emitEntityJoinLevel(EntityAccess access, boolean loadedFromDisk, CallbackInfoReturnable<Boolean> cir) {
         if (access instanceof Entity entity && entity.level() instanceof ServerLevel level && Mods.events().emitEntityJoinLevel(entity, level, loadedFromDisk)) {

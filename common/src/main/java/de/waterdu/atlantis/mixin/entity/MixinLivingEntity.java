@@ -20,6 +20,16 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(LivingEntity.class)
 public abstract class MixinLivingEntity {
 
+    /**
+     * Emits ACTUALLY_HURT and records the damage that the listeners return. Records nothing if that damage is
+     * {@code 0}. Shares the difference to the original damage with {@link #atlantis$applyActuallyHurt}.
+     *
+     * @param tracker the combat tracker of the entity
+     * @param source the source of the damage
+     * @param damage the damage after armor, effects and absorption
+     * @param original the original {@code recordDamage} call
+     * @param reduction the shared amount by which the listeners reduced the damage
+     */
     @WrapOperation(method = "actuallyHurt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;recordDamage(Lnet/minecraft/world/damagesource/DamageSource;F)V"))
     private void atlantis$emitActuallyHurt(CombatTracker tracker, DamageSource source, float damage, Operation<Void> original, @Share("reduction") LocalFloatRef reduction) {
         var applied = Mods.events().emitActuallyHurt((LivingEntity) (Object) this, source, damage);
@@ -29,6 +39,13 @@ public abstract class MixinLivingEntity {
         }
     }
 
+    /**
+     * Adds the reduction from {@link #atlantis$emitActuallyHurt} back to the new health.
+     *
+     * @param health the health after the original damage
+     * @param reduction the shared amount by which the listeners reduced the damage
+     * @return the health after the damage that the listeners return
+     */
     @ModifyArg(method = "actuallyHurt", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;setHealth(F)V"))
     private float atlantis$applyActuallyHurt(float health, @Share("reduction") LocalFloatRef reduction) {
         return health + reduction.get();

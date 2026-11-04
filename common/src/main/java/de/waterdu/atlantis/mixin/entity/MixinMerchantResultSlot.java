@@ -18,9 +18,17 @@ import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+/**
+ * Emits the villager trade events when a player takes the result of a trade.
+ */
 @Mixin(value = MerchantResultSlot.class)
 public abstract class MixinMerchantResultSlot {
 
+    /**
+     * Awards the stats and the advancements for the taken stack.
+     *
+     * @param p_75208_1_ the taken stack
+     */
     @Shadow
     protected abstract void checkTakeAchievements(ItemStack p_75208_1_);
 
@@ -68,6 +76,14 @@ public abstract class MixinMerchantResultSlot {
         }
     }
 
+    /**
+     * Undoes a cancelled trade. If the taken stack is not empty, sets its count to {@code 0}. If not, removes the
+     * result from the inventory of the player and updates the slots on the next tick.
+     *
+     * @param player the player who traded
+     * @param stack the taken stack
+     * @param offer the active offer
+     */
     @Unique
     private void atlantis$returnResult(Player player, ItemStack stack, MerchantOffer offer) {
         if (!stack.isEmpty()) {
