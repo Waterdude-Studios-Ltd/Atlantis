@@ -18,34 +18,59 @@ public class EntityJoinLevelEventPayload implements EventPayload, Cancellable {
     private final boolean loadedFromDisk;
     private boolean cancelled = false;
 
+    /**
+     * Creates the payload for an entity that joins a level.
+     *
+     * @param entity the entity that joins the level
+     * @param level the level that the entity joins
+     * @param loadedFromDisk {@code true} if the entity was loaded from disk, {@code false} if it is new
+     */
     public EntityJoinLevelEventPayload(Entity entity, ServerLevel level, boolean loadedFromDisk) {
         this.entity = entity;
         this.level = level;
         this.loadedFromDisk = loadedFromDisk;
     }
 
+    /**
+     * @return {@link UEvent#ENTITY_JOIN_LEVEL}
+     */
     @Override
     public Key<?> type() {
         return UEvent.ENTITY_JOIN_LEVEL;
     }
 
+    /**
+     * @return the entity that joins the level
+     */
     public Entity entity() {
         return this.entity;
     }
 
+    /**
+     * @return the level that the entity joins
+     */
     public ServerLevel level() {
         return this.level;
     }
 
+    /**
+     * @return {@code true} if the entity was loaded from disk, {@code false} if it is new
+     */
     public boolean loadedFromDisk() {
         return this.loadedFromDisk;
     }
 
+    /**
+     * Cancels the event. The entity then stays out of the level.
+     */
     @Override
     public void cancel() {
         this.cancelled = true;
     }
 
+    /**
+     * @return {@code true} if the event is cancelled
+     */
     @Override
     public boolean cancelled() {
         return this.cancelled;

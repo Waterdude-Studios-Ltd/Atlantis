@@ -22,6 +22,14 @@ public class InteractEntityEventPayload implements EventPayload, Cancellable {
     private final @Nullable InteractionHand hand;
     private boolean cancelled = false;
 
+    /**
+     * Creates the payload for a player that attacks or right-clicks an entity.
+     *
+     * @param player the player that acts
+     * @param entity the entity that the player acts on
+     * @param action the kind of action
+     * @param hand the hand used, or {@code null} for {@link Action#ATTACK}
+     */
     public InteractEntityEventPayload(ServerPlayer player, Entity entity, Action action, @Nullable InteractionHand hand) {
         this.player = player;
         this.entity = entity;
@@ -29,19 +37,31 @@ public class InteractEntityEventPayload implements EventPayload, Cancellable {
         this.hand = hand;
     }
 
+    /**
+     * @return {@link UEvent#PLAYER_INTERACT_ENTITY}
+     */
     @Override
     public Key<?> type() {
         return UEvent.PLAYER_INTERACT_ENTITY;
     }
 
+    /**
+     * @return the player that acts
+     */
     public ServerPlayer player() {
         return this.player;
     }
 
+    /**
+     * @return the entity that the player acts on
+     */
     public Entity entity() {
         return this.entity;
     }
 
+    /**
+     * @return the kind of action
+     */
     public Action action() {
         return this.action;
     }
@@ -53,16 +73,25 @@ public class InteractEntityEventPayload implements EventPayload, Cancellable {
         return this.hand;
     }
 
+    /**
+     * Cancels the event. The entity and other mods then do not handle the action.
+     */
     @Override
     public void cancel() {
         this.cancelled = true;
     }
 
+    /**
+     * @return {@code true} if the event is cancelled
+     */
     @Override
     public boolean cancelled() {
         return this.cancelled;
     }
 
+    /**
+     * Lists the kinds of action that a player can do on an entity.
+     */
     public enum Action {
 
         ATTACK,

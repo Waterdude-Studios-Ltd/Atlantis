@@ -58,14 +58,25 @@ public final class ShowdownFormat {
                 block.add(trimmed);
             }
         }
+
         read(delegate, block, formAliases, pokemon);
         return pokemon;
     }
 
+    /**
+     * Parses one set and adds the Pokémon to {@code into}. Does nothing if the lines are empty or the species is not
+     * found.
+     *
+     * @param delegate the Pokémon delegate that creates the Pokémon
+     * @param lines the lines of the set. The first line is the header.
+     * @param formAliases maps Showdown forme names to the mod's form names
+     * @param into the list to add the Pokémon to
+     */
     private static void read(PokemonDelegate delegate, List<String> lines, Map<String, String> formAliases, List<UPokemon<?>> into) {
         if (lines.isEmpty()) {
             return;
         }
+
         var set = new ShowdownSet();
         set.readHeader(lines.getFirst());
         for (var i = 1; i < lines.size(); i++) {
@@ -77,6 +88,12 @@ public final class ShowdownFormat {
         }
     }
 
+    /**
+     * Writes each Pokémon of the team as a Showdown set, with a blank line after each set.
+     *
+     * @param team the team to write
+     * @return the team in the Showdown text format
+     */
     public static String write(List<? extends UPokemon<?>> team) {
         var out = new StringBuilder();
         for (var pokemon : team) {
@@ -85,8 +102,16 @@ public final class ShowdownFormat {
         return out.toString();
     }
 
+    /**
+     * Writes the Pokémon as a Showdown set. The level and the happiness are left out when they have the default
+     * values of 100 and 255.
+     *
+     * @param pokemon the Pokémon to write
+     * @return the set in the Showdown text format, with a line break after each line
+     */
     public static String write(UPokemon<?> pokemon) {
         var out = new StringBuilder();
+
         var name = speciesName(pokemon);
         var nickname = pokemon.nickname();
         if (nickname != null && !nickname.isBlank() && !nickname.equals(pokemon.species().displayName().getString())) {
@@ -94,48 +119,72 @@ public final class ShowdownFormat {
         } else {
             out.append(name);
         }
+
         if (pokemon.gender().isMale()) {
             out.append(" (M)");
         } else if (pokemon.gender().isFemale()) {
             out.append(" (F)");
         }
+
         var held = pokemon.heldItem();
         if (!held.isEmpty()) {
             out.append(" @ ").append(held.getHoverName().getString());
         }
+
         out.append('\n');
         out.append("Ability: ").append(pokemon.ability().displayName().getString()).append('\n');
+
         if (pokemon.level() != DEFAULT_LEVEL) {
             out.append("Level: ").append(pokemon.level()).append('\n');
         }
+
         if (pokemon.isShiny()) {
             out.append("Shiny: Yes\n");
         }
+
         if (pokemon.friendship() != MAX_FRIENDSHIP) {
             out.append("Happiness: ").append(pokemon.friendship()).append('\n');
         }
+
         out.append("Poke Ball: ").append(pokemon.pokeBall().displayName().getString()).append('\n');
         if (pokemon.hasGigantamaxFactor()) {
             out.append("Gigantamax: Yes\n");
         }
+
         out.append("EVs: ").append(stats(pokemon.evs())).append('\n');
         out.append(pokemon.effectiveNature().displayName().getString()).append(" Nature\n");
         out.append("IVs: ").append(stats(pokemon.ivs())).append('\n');
+
         for (var move : pokemon.moveset().moves()) {
             out.append("- ").append(move.template().displayName().getString()).append('\n');
         }
+
         return out.toString();
     }
 
+    /**
+     * Gets the Showdown species name of the Pokémon, such as {@code Rotom-Wash}.
+     *
+     * @param pokemon the Pokémon
+     * @return the species name, followed by {@code -} and the capitalized form name if the form is not the default
+     */
     private static String speciesName(UPokemon<?> pokemon) {
         var species = pokemon.species().displayName().getString();
         var form = pokemon.form();
         if (form.name().equalsIgnoreCase(pokemon.species().defaultForm().name()) || form.name().isBlank()) {
             return species;
         }
+
         return species + "-" + capitalise(form.name());
     }
 
+    /**
+     * Writes the stats in the Showdown format, such as {@code 252 Atk / 4 SpD / 252 Spe}. Skips stats that the
+     * Pokémon mod does not have.
+     *
+     * @param store the EVs or IVs to write
+     * @return the stats, separated by slashes
+     */
     private static String stats(UStatsStore<?> store) {
         var parts = new ArrayList<String>();
         var delegate = Mods.pokemon();
@@ -148,6 +197,12 @@ public final class ShowdownFormat {
         return String.join(" / ", parts);
     }
 
+    /**
+     * Changes underscores to hyphens and makes the first letter of each word upper case.
+     *
+     * @param text the text to capitalize
+     * @return the words, joined with {@code -}
+     */
     private static String capitalise(String text) {
         var words = text.replace('_', '-').split("-");
         var out = new ArrayList<String>();
@@ -173,6 +228,11 @@ public final class ShowdownFormat {
         return variants.stream().distinct().toList();
     }
 
+    /**
+     * Calls {@code finder} with each of the {@link #variants(String)} of {@code name} in turn.
+     *
+     * @return the first result that is not null, or null if no variant matches
+     */
     public static <T> @Nullable T lookup(Function<String, @Nullable T> finder, String name) {
         for (var variant : variants(name)) {
             var found = finder.apply(variant);
@@ -183,6 +243,15 @@ public final class ShowdownFormat {
         return null;
     }
 
+    /**
+     * Finds a form of the species by its Showdown forme name. Tries the aliases of the forme first, then the forme
+     * itself. Each name is matched by its {@link #variants(String)}, then by its letters and digits only.
+     *
+     * @param species the species
+     * @param forme the Showdown forme name, such as {@code Alola}
+     * @param formAliases maps Showdown forme names to the mod's form names, matched case-insensitively
+     * @return the form, or {@code null} if no form matches
+     */
     private static @Nullable UForm<?> findForm(USpecies<?> species, String forme, Map<String, String> formAliases) {
         var names = new ArrayList<String>();
         formAliases.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(forme)).map(Map.Entry::getValue).forEach(names::add);
@@ -192,6 +261,7 @@ public final class ShowdownFormat {
             if (form != null) {
                 return form;
             }
+
             var wanted = name.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
             for (var candidate : species.forms()) {
                 if (candidate.name().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "").equals(wanted)) {
@@ -202,6 +272,9 @@ public final class ShowdownFormat {
         return null;
     }
 
+    /**
+     * Holds the values of one Showdown set while it is parsed.
+     */
     private static final class ShowdownSet {
 
         private String species = "";
@@ -220,11 +293,18 @@ public final class ShowdownFormat {
         private final Map<String, Integer> ivs = new LinkedHashMap<>();
         private final List<String> moves = new ArrayList<>();
 
+        /**
+         * Reads the nickname, the species, the gender and the held item from the first line of the set, such as
+         * {@code Nick (Garchomp) (M) @ Choice Scarf}.
+         *
+         * @param line the first line of the set
+         */
         private void readHeader(String line) {
             var parts = line.split(" @ ", 2);
             if (parts.length > 1) {
                 this.item = parts[1].trim();
             }
+
             var name = parts[0].trim();
             if (name.endsWith(" (M)")) {
                 this.gender = UGender.MALE;
@@ -233,6 +313,7 @@ public final class ShowdownFormat {
                 this.gender = UGender.FEMALE;
                 name = name.substring(0, name.length() - 4).trim();
             }
+
             if (name.endsWith(")") && name.contains("(")) {
                 var open = name.lastIndexOf('(');
                 this.species = name.substring(open + 1, name.length() - 1).trim();
@@ -242,6 +323,12 @@ public final class ShowdownFormat {
             }
         }
 
+        /**
+         * Reads one line of the set after the header, such as an ability, EV, nature or move line. Ignores lines that
+         * it does not know.
+         *
+         * @param line the trimmed line
+         */
         private void readLine(String line) {
             if (line.startsWith("Ability: ") || line.startsWith("Trait: ")) {
                 this.ability = value(line);
@@ -270,6 +357,14 @@ public final class ShowdownFormat {
             }
         }
 
+        /**
+         * Creates a Pokémon from the values of this set. Values that the delegate cannot find are skipped. Missing
+         * EVs are 0 and missing IVs are 31. The Pokémon is healed and its moves get full PP.
+         *
+         * @param delegate the Pokémon delegate that finds the species, the moves and the other values
+         * @param formAliases maps Showdown forme names to the mod's form names
+         * @return the Pokémon, or {@code null} if the species is not found
+         */
         private @Nullable UPokemon<?> create(PokemonDelegate delegate, Map<String, String> formAliases) {
             USpecies<?> species = null;
             UForm<?> form = null;
@@ -285,12 +380,15 @@ public final class ShowdownFormat {
                     }
                 }
             }
+
             if (species == null) {
                 species = lookup(name -> delegate.hasSpecies(name) ? delegate.species(name) : null, this.species);
             }
+
             if (species == null) {
                 return null;
             }
+
             if (form == null && this.gender != null) {
                 form = species.form(this.gender);
             }
@@ -300,47 +398,57 @@ public final class ShowdownFormat {
             if (this.nickname != null && !this.nickname.isBlank()) {
                 pokemon.setNickname(this.nickname);
             }
+
             if (this.gender != null) {
                 var gender = delegate.gender(this.gender);
                 if (gender != null) {
                     pokemon.setGender(gender);
                 }
             }
+
             pokemon.setShiny(this.shiny);
             pokemon.setFriendship(this.friendship);
+
             if (form != null) {
                 pokemon.setForm(form);
             }
+
             if (this.item != null) {
                 var item = delegate.showdownItem(this.item);
                 if (!item.isEmpty()) {
                     pokemon.setHeldItem(item);
                 }
             }
+
             if (this.ability != null) {
                 var ability = lookup(delegate::ability, this.ability);
                 if (ability != null) {
                     pokemon.setAbility(ability);
                 }
             }
+
             if (this.nature != null) {
                 var nature = lookup(delegate::nature, this.nature);
                 if (nature != null) {
                     pokemon.setNature(nature);
                 }
             }
+
             if (this.pokeBall != null) {
                 var ball = lookup(delegate::pokeBall, this.pokeBall);
                 if (ball != null) {
                     pokemon.setPokeBall(ball);
                 }
             }
+
             if (this.gigantamax) {
                 pokemon.setGigantamaxFactor(true);
             }
+
             if (this.dynamaxLevel >= 0) {
                 pokemon.setDynamaxLevel(this.dynamaxLevel);
             }
+
             applyStats(delegate, pokemon.evs(), this.evs, 0);
             applyStats(delegate, pokemon.ivs(), this.ivs, MAX_IV);
 
@@ -351,6 +459,7 @@ public final class ShowdownFormat {
                     moves.add(move);
                 }
             }
+
             if (!moves.isEmpty()) {
                 var moveset = pokemon.moveset();
                 for (var slot = 0; slot < UMoveset.SIZE; slot++) {
@@ -358,10 +467,20 @@ public final class ShowdownFormat {
                 }
                 moveset.restorePP();
             }
+
             pokemon.heal();
+
             return pokemon;
         }
 
+        /**
+         * Sets each stat in the store to its parsed value, or to the fallback if the set has no value for it.
+         *
+         * @param delegate the Pokémon delegate that finds the stats
+         * @param store the EVs or IVs of the Pokémon
+         * @param values the parsed values, keyed by the lower case Showdown stat name
+         * @param fallback the value for stats that the set does not list
+         */
         private static void applyStats(PokemonDelegate delegate, UStatsStore<?> store, Map<String, Integer> values, int fallback) {
             for (var i = 0; i < STATS.length; i++) {
                 var stat = delegate.stat(STATS[i]);
@@ -371,6 +490,12 @@ public final class ShowdownFormat {
             }
         }
 
+        /**
+         * Parses stats such as {@code 252 Atk / 4 SpD} into the map.
+         *
+         * @param text the stats, separated by {@code /}
+         * @param into the map that gets the values, keyed by the lower case stat name
+         */
         private static void readStats(String text, Map<String, Integer> into) {
             for (var part : text.split("/")) {
                 var pieces = part.trim().split(" ");
@@ -380,10 +505,23 @@ public final class ShowdownFormat {
             }
         }
 
+        /**
+         * Gets the text after the first {@code :} of the line.
+         *
+         * @param line the line
+         * @return the trimmed value
+         */
         private static String value(String line) {
             return line.substring(line.indexOf(':') + 1).trim();
         }
 
+        /**
+         * Parses the text as an integer.
+         *
+         * @param text the text to parse
+         * @param fallback the value to return if the text is not an integer
+         * @return the integer, or the fallback
+         */
         private static int integer(String text, int fallback) {
             try {
                 return Integer.parseInt(text.trim());

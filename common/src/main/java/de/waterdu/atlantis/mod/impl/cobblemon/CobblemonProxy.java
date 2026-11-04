@@ -12,6 +12,7 @@ import com.cobblemon.mod.common.api.pokemon.PokemonProperties;
 import com.cobblemon.mod.common.api.pokemon.PokemonSpecies;
 import com.cobblemon.mod.common.api.storage.PokemonStoreManager;
 import com.cobblemon.mod.common.api.types.ElementalTypes;
+import com.cobblemon.mod.common.api.types.tera.TeraTypes;
 import com.cobblemon.mod.common.api.npc.NPCClasses;
 import com.cobblemon.mod.common.api.npc.configuration.interaction.NoneNPCInteractionConfiguration;
 import com.cobblemon.mod.common.api.storage.party.NPCPartyStore;
@@ -45,6 +46,7 @@ import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.CobblemonPokeBall;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.CobblemonSpecies;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.CobblemonStatus;
+import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.CobblemonTeraType;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.moves.CobblemonMoveCategory;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.moves.CobblemonMoveTemplate;
 import de.waterdu.atlantis.mod.impl.cobblemon.wrapper.pokemon.pokemon.properties.stats.CobblemonStat;
@@ -65,6 +67,7 @@ import de.waterdu.atlantis.util.config.Configurable;
 import de.waterdu.atlantis.util.entity.PlayerReference;
 import de.waterdu.atlantis.util.server.ServerUtils;
 import de.waterdu.atlantis.util.text.TextUtils;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -82,16 +85,28 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Implements {@link PokemonDelegate} with Cobblemon.
+ */
 public class CobblemonProxy implements PokemonDelegate {
 
     private static final String FALLBACK_SPECIES = "bulbasaur";
     private static final List<String> TRAINER_AIS = List.of("0", "1", "2", "3", "4", "5");
 
+    /**
+     * Registers the Cobblemon event handlers with {@link CobblemonEventBridge#register()}.
+     */
     @Override
     public void setup() {
         CobblemonEventBridge.register();
     }
 
+    /**
+     * Registers config serializers for Cobblemon species, moves, abilities and Poké Balls. A species is read from its
+     * name or its Pokédex number and is written as its name.
+     *
+     * @param gson the Gson builder to register the serializers with
+     */
     @Override
     public void registerConfigurableContexts(GsonBuilder gson) {
         Configurable.registerContext(gson, Species.class,
@@ -121,58 +136,121 @@ public class CobblemonProxy implements PokemonDelegate {
         );
     }
 
+    /**
+     * Gets the party of the player from the Cobblemon storage.
+     *
+     * @param player the player
+     * @return the wrapped party
+     */
     @Override
     public CobblemonParty party(PlayerReference player) {
         return new CobblemonParty(this.storage().getParty(player.uuid(), ServerUtils.registryAccess()));
     }
 
+    /**
+     * Gets the PC of the player from the Cobblemon storage.
+     *
+     * @param player the player
+     * @return the wrapped PC
+     */
     @Override
     public CobblemonPC pc(PlayerReference player) {
         return new CobblemonPC(this.storage().getPC(player.uuid(), ServerUtils.registryAccess()));
     }
 
+    /**
+     * Gets the Pokédex data of the player from the Cobblemon player data.
+     *
+     * @param player the player
+     * @return the wrapped Pokédex
+     */
     @Override
     public CobblemonPokedex pokedex(PlayerReference player) {
         return new CobblemonPokedex(Cobblemon.INSTANCE.getPlayerDataManager().getPokedexData(player.uuid()));
     }
 
+    /**
+     * Checks if the player selected a starter, from the Cobblemon player data.
+     *
+     * @param player the player
+     * @return {@code true} if the player selected a starter
+     */
     @Override
     public boolean hasChosenStarter(PlayerReference player) {
         return Cobblemon.INSTANCE.getPlayerDataManager().getGenericData(player.uuid()).getStarterSelected();
     }
 
+    /**
+     * Sets if the player selected a starter, in the Cobblemon player data.
+     *
+     * @param player the player
+     * @param chosen {@code true} to mark the starter as selected
+     */
     @Override
     public void setChosenStarter(PlayerReference player, boolean chosen) {
         Cobblemon.INSTANCE.getPlayerDataManager().getGenericData(player.uuid()).setStarterSelected(chosen);
     }
 
+    /**
+     * Joins the specs and parses them as Cobblemon Pokémon properties.
+     *
+     * @param specs the parts of the spec
+     * @return the wrapped spec
+     */
     @Override
     public CobblemonPokemonSpec spec(String... specs) {
         return new CobblemonPokemonSpec(PokemonProperties.Companion.parse(TextUtils.concat(specs)));
     }
 
+    /**
+     * @return {@code =}, the separator between a key and its value in a Cobblemon spec
+     */
     @Override
     public String specDelimiter() {
         return "=";
     }
 
+    /**
+     * Gets a species by name. The name is trimmed, put in lower case, and stripped of characters that are not valid
+     * in a resource path.
+     *
+     * @param name the name of the species
+     * @return the species, or the fallback species if no species has the name
+     */
     @Override
     public CobblemonSpecies species(String name) {
         var species = this.findSpecies(name);
         return new CobblemonSpecies(species == null ? this.fallbackSpecies() : species);
     }
 
+    /**
+     * Gets a Cobblemon species by its Pokédex number.
+     *
+     * @param dex the Pokédex number
+     * @return the species, or the fallback species if no species has the number
+     */
     @Override
     public CobblemonSpecies species(int dex) {
         var species = PokemonSpecies.getByPokedexNumber(dex, Cobblemon.MODID);
         return new CobblemonSpecies(species == null ? this.fallbackSpecies() : species);
     }
 
+    /**
+     * Checks if a species has the name.
+     *
+     * @param name the name of the species
+     * @return {@code true} if a species has the name
+     */
     @Override
     public boolean hasSpecies(String name) {
         return this.findSpecies(name) != null;
     }
 
+    /**
+     * Gets every species that Cobblemon implements.
+     *
+     * @return the implemented species
+     */
     @Override
     public List<CobblemonSpecies> allSpecies() {
         var species = new ArrayList<CobblemonSpecies>();
@@ -182,70 +260,169 @@ public class CobblemonProxy implements PokemonDelegate {
         return species;
     }
 
+    /**
+     * Gets a random species from Cobblemon.
+     *
+     * @return the random species
+     */
     @Override
     public CobblemonSpecies randomSpecies() {
         return new CobblemonSpecies(PokemonSpecies.random());
     }
 
+    /**
+     * Gets an ability by name.
+     *
+     * @param name the name of the ability
+     * @return the ability, or {@code null} if no ability has the name
+     */
     @Override
     public @Nullable CobblemonAbility ability(String name) {
         var ability = Abilities.get(name);
         return ability == null ? null : new CobblemonAbility(ability);
     }
 
+    /**
+     * Gets every Cobblemon ability.
+     *
+     * @return the abilities
+     */
     @Override
     public List<CobblemonAbility> abilities() {
         return Abilities.all().stream().map(CobblemonAbility::new).toList();
     }
 
+    /**
+     * Gets a move by name.
+     *
+     * @param name the name of the move
+     * @return the move, or {@code null} if no move has the name
+     */
     @Override
     public @Nullable CobblemonMoveTemplate move(String name) {
         var move = Moves.getByName(name);
         return move == null ? null : new CobblemonMoveTemplate(move);
     }
 
+    /**
+     * Gets every Cobblemon move.
+     *
+     * @return the moves
+     */
     @Override
     public List<CobblemonMoveTemplate> moves() {
         return Moves.all().stream().map(CobblemonMoveTemplate::new).toList();
     }
 
+    /**
+     * Gets a Poké Ball by name. A name without a namespace uses the Cobblemon namespace.
+     *
+     * @param name the name or resource location of the Poké Ball
+     * @return the Poké Ball, or {@code null} if no Poké Ball has the name
+     */
     @Override
     public @Nullable CobblemonPokeBall pokeBall(String name) {
         var ball = this.findPokeBall(name);
         return ball == null ? null : new CobblemonPokeBall(ball);
     }
 
+    /**
+     * Gets every Cobblemon Poké Ball.
+     *
+     * @return the Poké Balls
+     */
     @Override
     public List<CobblemonPokeBall> pokeBalls() {
         return PokeBalls.all().stream().map(CobblemonPokeBall::new).toList();
     }
 
+    /**
+     * Gets an elemental type by name.
+     *
+     * @param name the name of the type
+     * @return the type, or {@code null} if no type has the name
+     */
     @Override
     public @Nullable CobblemonElementalType elementalType(String name) {
         var type = ElementalTypes.get(name);
         return type == null ? null : new CobblemonElementalType(type);
     }
 
+    /**
+     * Gets every Cobblemon elemental type.
+     *
+     * @return the elemental types
+     */
     @Override
     public List<CobblemonElementalType> elementalTypes() {
         return ElementalTypes.all().stream().map(CobblemonElementalType::new).toList();
     }
 
+    /**
+     * Gets a Tera type by name. The name is trimmed and put in lower case.
+     *
+     * @param name the name of the Tera type
+     * @return the Tera type, or {@code null} if no Tera type has the name or the name is not a valid resource path
+     */
+    @Override
+    public @Nullable CobblemonTeraType teraType(String name) {
+        try {
+            var type = TeraTypes.get(name.trim().toLowerCase(Locale.ROOT));
+            return type == null ? null : new CobblemonTeraType(type);
+        } catch (ResourceLocationException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Gets every Cobblemon Tera type.
+     *
+     * @return the Tera types
+     */
+    @Override
+    public List<CobblemonTeraType> teraTypes() {
+        var types = new ArrayList<CobblemonTeraType>();
+        TeraTypes.INSTANCE.forEach(type -> types.add(new CobblemonTeraType(type)));
+        return types;
+    }
+
+    /**
+     * Gets a stat by name with {@link CobblemonStat#of}.
+     *
+     * @param name the name of the stat
+     * @return the stat, or {@code null} if no stat has the name
+     */
     @Override
     public @Nullable CobblemonStat stat(String name) {
         return CobblemonStat.of(name);
     }
 
+    /**
+     * Gets every Cobblemon stat.
+     *
+     * @return the stats
+     */
     @Override
     public List<CobblemonStat> stats() {
         return CobblemonStat.all();
     }
 
+    /**
+     * Gets the stats that are permanent.
+     *
+     * @return the stats for which {@link CobblemonStat#isPermanent} is {@code true}
+     */
     @Override
     public List<CobblemonStat> permanentStats() {
         return CobblemonStat.all().stream().filter(CobblemonStat::isPermanent).toList();
     }
 
+    /**
+     * Gets a nature by name, in the Cobblemon namespace. The name is trimmed and put in lower case.
+     *
+     * @param name the name of the nature
+     * @return the nature, or {@code null} if no nature has the name
+     */
     @Override
     public @Nullable CobblemonNature nature(String name) {
         var resource = ResourceLocation.tryBuild(Cobblemon.MODID, name.trim().toLowerCase(Locale.ROOT));
@@ -253,16 +430,32 @@ public class CobblemonProxy implements PokemonDelegate {
         return nature == null ? null : new CobblemonNature(nature);
     }
 
+    /**
+     * Gets every Cobblemon nature.
+     *
+     * @return the natures
+     */
     @Override
     public List<CobblemonNature> natures() {
         return Natures.all().stream().map(CobblemonNature::new).toList();
     }
 
+    /**
+     * Gets a random nature from Cobblemon.
+     *
+     * @return the random nature
+     */
     @Override
     public CobblemonNature randomNature() {
         return new CobblemonNature(Natures.getRandomNature());
     }
 
+    /**
+     * Gets a gender by name, ignoring case.
+     *
+     * @param name the name of the gender
+     * @return the gender, or {@code null} if no gender has the name
+     */
     @Override
     public @Nullable CobblemonGender gender(String name) {
         for (var gender : Gender.values()) {
@@ -273,6 +466,11 @@ public class CobblemonProxy implements PokemonDelegate {
         return null;
     }
 
+    /**
+     * Gets every Cobblemon gender.
+     *
+     * @return the genders
+     */
     @Override
     public List<CobblemonGender> genders() {
         var genders = new ArrayList<CobblemonGender>();
@@ -282,6 +480,12 @@ public class CobblemonProxy implements PokemonDelegate {
         return genders;
     }
 
+    /**
+     * Gets a status by name, ignoring case.
+     *
+     * @param name the name of the status
+     * @return the status, or {@code null} if no status has the name
+     */
     @Override
     public @Nullable CobblemonStatus status(String name) {
         for (var status : CobblemonStatus.all()) {
@@ -292,17 +496,33 @@ public class CobblemonProxy implements PokemonDelegate {
         return null;
     }
 
+    /**
+     * Gets every status from {@link CobblemonStatus#all()}.
+     *
+     * @return the statuses
+     */
     @Override
     public List<CobblemonStatus> statuses() {
         return CobblemonStatus.all();
     }
 
+    /**
+     * Gets a move category by name. The name is put in lower case.
+     *
+     * @param name the name of the category
+     * @return the category, or {@code null} if no category has the name
+     */
     @Override
     public @Nullable CobblemonMoveCategory moveCategory(String name) {
         var category = DamageCategories.INSTANCE.get(name.toLowerCase(Locale.ROOT));
         return category == null ? null : new CobblemonMoveCategory(category);
     }
 
+    /**
+     * Gets the physical, special and status move categories.
+     *
+     * @return the three move categories, in that order
+     */
     @Override
     public List<CobblemonMoveCategory> moveCategories() {
         var categories = DamageCategories.INSTANCE;
@@ -313,6 +533,13 @@ public class CobblemonProxy implements PokemonDelegate {
         );
     }
 
+    /**
+     * Loads a Pokémon from NBT. If the tag is not valid, logs an error and creates a level 5 Pokémon of the fallback
+     * species.
+     *
+     * @param tag the NBT of the Pokémon
+     * @return the loaded Pokémon, or the fallback Pokémon
+     */
     @Override
     public CobblemonPokemon pokemonFromTag(CompoundTag tag) {
         Pokemon pokemon;
@@ -325,6 +552,13 @@ public class CobblemonProxy implements PokemonDelegate {
         return new CobblemonPokemon(pokemon);
     }
 
+    /**
+     * Loads a Pokémon from JSON. If the JSON is not valid, logs an error and creates a level 5 Pokémon of the fallback
+     * species.
+     *
+     * @param json the JSON object of the Pokémon
+     * @return the loaded Pokémon, or the fallback Pokémon
+     */
     @Override
     public CobblemonPokemon pokemonFromJson(JsonElement json) {
         Pokemon pokemon;
@@ -337,23 +571,53 @@ public class CobblemonProxy implements PokemonDelegate {
         return new CobblemonPokemon(pokemon);
     }
 
+    /**
+     * Wraps the entity if it is a Cobblemon Pokémon entity.
+     *
+     * @param entity the entity
+     * @return the wrapped entity, or {@code null} if the entity is not a Pokémon
+     */
     @Override
     public @Nullable CobblemonPokemonEntity pokemonEntity(Entity entity) {
         return entity instanceof PokemonEntity pokemon ? new CobblemonPokemonEntity(pokemon) : null;
     }
 
+    /**
+     * Gets the battle that the player takes part in, from the Cobblemon battle registry.
+     *
+     * @param player the player
+     * @return the battle, or {@code null} if the player is not in a battle
+     */
     @Override
     public @Nullable CobblemonBattle battle(ServerPlayer player) {
         var battle = BattleRegistry.getBattleByParticipatingPlayer(player);
         return battle == null ? null : new CobblemonBattle(battle);
     }
 
+    /**
+     * Starts a battle between the player and the wild Pokémon. The future is already complete.
+     *
+     * @param player the player
+     * @param wild the wild Pokémon entity
+     * @return the battle, or {@code null} if the battle did not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startWildBattle(ServerPlayer player, UPokemonEntity<?> wild) {
         var result = BattleBuilder.INSTANCE.pve(player, (PokemonEntity) wild.dereference());
         return CompletableFuture.completedFuture(result instanceof SuccessfulBattleStart start ? new CobblemonBattle(start.getBattle()) : null);
     }
 
+    /**
+     * Starts a battle between two players. The future is already complete. If the battle does not start, both players
+     * get the error.
+     *
+     * @param player1 the first player
+     * @param team1 the team of the first player, or {@code null} for their party
+     * @param player2 the second player
+     * @param team2 the team of the second player, or {@code null} for their party
+     * @param settings the battle settings
+     * @return the battle, or {@code null} if the battle did not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startPlayerBattle(ServerPlayer player1, @Nullable List<? extends UPokemon<?>> team1, ServerPlayer player2, @Nullable List<? extends UPokemon<?>> team2, BattleSettings settings) {
         var party1 = this.battleParty(player1, team1, settings);
@@ -363,6 +627,19 @@ public class CobblemonProxy implements PokemonDelegate {
         return CompletableFuture.completedFuture(this.battle(result, player1, player2));
     }
 
+    /**
+     * Starts a battle between the player and the trainer. The future is already complete. Sets the team of the trainer
+     * to healed copies of its team, trimmed to the team size and lowered to the level cap. Sets the skill of the NPC
+     * from the trainer AI.
+     *
+     * @param player the player
+     * @param team the team of the player, or {@code null} for their party
+     * @param trainer the trainer
+     * @param trainerSettings the trainer settings
+     * @param settings the battle settings
+     * @return the battle, or {@code null} if the trainer is not a Cobblemon trainer, is in a battle, or the battle did
+     *     not start
+     */
     @Override
     public CompletableFuture<@Nullable UBattle<?>> startTrainerBattle(ServerPlayer player, @Nullable List<? extends UPokemon<?>> team, UTrainer<?> trainer, TrainerSettings trainerSettings, BattleSettings settings) {
         if (!(trainer instanceof CobblemonTrainer cobblemonTrainer) || trainer.isInBattle()) {
@@ -387,6 +664,16 @@ public class CobblemonProxy implements PokemonDelegate {
         return CompletableFuture.completedFuture(this.battle(result, player));
     }
 
+    /**
+     * Spawns a persistent NPC with the dummy NPC class and an empty party. The NPC cannot move, despawn or take
+     * damage, and has no interaction.
+     *
+     * @param level the level to spawn in
+     * @param position the position of the NPC
+     * @param yaw the yaw of the body and the head
+     * @param name the custom name of the NPC
+     * @return the spawned trainer
+     */
     @Override
     public CobblemonTrainer spawnTrainer(ServerLevel level, Vec3 position, float yaw, Component name) {
         var npc = new NPCEntity(level);
@@ -406,11 +693,24 @@ public class CobblemonProxy implements PokemonDelegate {
         return new CobblemonTrainer(npc);
     }
 
+    /**
+     * Wraps the entity if it is a Cobblemon NPC.
+     *
+     * @param entity the entity
+     * @return the wrapped trainer, or {@code null} if the entity is not an NPC
+     */
     @Override
     public @Nullable CobblemonTrainer trainer(Entity entity) {
         return entity instanceof NPCEntity npc ? new CobblemonTrainer(npc) : null;
     }
 
+    /**
+     * Checks if Cobblemon supports the feature. Trainer battles, level caps, raising to the cap, battle AI and
+     * in-battle clauses are supported.
+     *
+     * @param feature the feature to check
+     * @return {@code true} if the feature is supported
+     */
     @Override
     public boolean supports(PokemonFeature feature) {
         return switch (feature) {
@@ -419,21 +719,40 @@ public class CobblemonProxy implements PokemonDelegate {
         };
     }
 
+    /**
+     * @return the default team clauses, {@link TeamClause#DEFAULTS}
+     */
     @Override
     public List<TeamClause> battleClauses() {
         return TeamClause.DEFAULTS;
     }
 
+    /**
+     * @return the skill levels {@code 0} to {@code 5} of a Cobblemon NPC, as strings
+     */
     @Override
     public List<String> trainerAIs() {
         return TRAINER_AIS;
     }
 
+    /**
+     * Finds a held item by its Showdown name, first in the Cobblemon namespace, then in the Minecraft namespace.
+     *
+     * @param name the Showdown name of the item
+     * @return the item, or {@link ItemStack#EMPTY} if no item has the name
+     */
     @Override
     public ItemStack showdownItem(String name) {
         return ShowdownFormat.item(name, Cobblemon.MODID, "minecraft");
     }
 
+    /**
+     * Parses a trainer AI as an NPC skill level.
+     *
+     * @param ai the trainer AI, or {@code null} for none
+     * @return the skill level, clamped to {@code 0} to {@code 5}, or {@code null} if the AI is {@code null} or not a
+     *     number
+     */
     private @Nullable Integer skill(@Nullable String ai) {
         if (ai == null) {
             return null;
@@ -445,10 +764,24 @@ public class CobblemonProxy implements PokemonDelegate {
         }
     }
 
+    /**
+     * Checks if the battle must use copies of the parties. This is so when the settings clone the teams or give no
+     * experience.
+     *
+     * @param settings the battle settings
+     * @return {@code true} if the battle must clone the parties
+     */
     private boolean cloneParties(BattleSettings settings) {
         return settings.cloneTeams() || !settings.experience();
     }
 
+    /**
+     * Creates the Gen 9 battle format for the settings. Adds the Showdown rule of each team clause in the settings. If
+     * the settings raise Pokémon to the level cap, the format adjusts levels to the cap.
+     *
+     * @param settings the battle settings
+     * @return the battle format
+     */
     private BattleFormat battleFormat(BattleSettings settings) {
         var base = switch (settings.format()) {
             case SINGLES -> BattleFormat.Companion.getGEN_9_SINGLES();
@@ -494,6 +827,13 @@ public class CobblemonProxy implements PokemonDelegate {
         return store;
     }
 
+    /**
+     * Wraps the battle of a successful start. If the start failed with an error, sends the error to each player.
+     *
+     * @param result the result of the battle start
+     * @param players the players that get the error
+     * @return the battle, or {@code null} if the battle did not start
+     */
     private @Nullable CobblemonBattle battle(BattleStartResult result, ServerPlayer... players) {
         if (result instanceof SuccessfulBattleStart start) {
             return new CobblemonBattle(start.getBattle());
@@ -506,21 +846,43 @@ public class CobblemonProxy implements PokemonDelegate {
         return null;
     }
 
+    /**
+     * @return the Cobblemon storage manager
+     */
     private PokemonStoreManager storage() {
         return Cobblemon.INSTANCE.getStorage();
     }
 
+    /**
+     * Finds a species by name, in the Cobblemon namespace. The name is trimmed, put in lower case, and stripped of
+     * characters that are not valid in a resource path.
+     *
+     * @param name the name of the species
+     * @return the species, or {@code null} if no species has the name
+     */
     private @Nullable Species findSpecies(String name) {
         var resource = ResourceLocation.tryBuild(Cobblemon.MODID, name.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_.-]", ""));
         return resource == null ? null : PokemonSpecies.getByIdentifier(resource);
     }
 
+    /**
+     * Finds a Poké Ball by name. The name is trimmed and put in lower case. A name without a namespace uses the
+     * Cobblemon namespace.
+     *
+     * @param name the name or resource location of the Poké Ball
+     * @return the Poké Ball, or {@code null} if no Poké Ball has the name
+     */
     private @Nullable PokeBall findPokeBall(String name) {
         var trimmed = name.trim().toLowerCase(Locale.ROOT);
         var resource = trimmed.contains(":") ? ResourceLocation.tryParse(trimmed) : ResourceLocation.tryBuild(Cobblemon.MODID, trimmed);
         return resource == null ? null : PokeBalls.getPokeBall(resource);
     }
 
+    /**
+     * Gets the species to use when a lookup fails.
+     *
+     * @return Bulbasaur, or a random species if Bulbasaur is not registered
+     */
     private Species fallbackSpecies() {
         var species = this.findSpecies(FALLBACK_SPECIES);
         return species == null ? PokemonSpecies.random() : species;

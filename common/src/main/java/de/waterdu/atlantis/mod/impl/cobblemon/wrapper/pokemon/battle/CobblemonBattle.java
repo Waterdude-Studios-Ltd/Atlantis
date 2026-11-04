@@ -12,19 +12,37 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Wraps a Cobblemon battle.
+ */
 public class CobblemonBattle extends UBattle<PokemonBattle> {
 
     public static final ModObjectKey TYPE = new ModObjectKey(Cobblemon.MODID, "battle");
 
+    /**
+     * Creates a wrapper for a Cobblemon battle.
+     *
+     * @param battle the battle to wrap
+     */
     public CobblemonBattle(PokemonBattle battle) {
         super(TYPE, battle);
     }
 
+    /**
+     * Gets the battle ID of this battle as a string.
+     *
+     * @return the battle ID
+     */
     @Override
     public String id() {
         return this.dereference().getBattleId().toString();
     }
 
+    /**
+     * Gets a new wrapper for each actor in the battle.
+     *
+     * @return the participants of the battle
+     */
     @Override
     public List<CobblemonBattleParticipant> participants() {
         var participants = new ArrayList<CobblemonBattleParticipant>();
@@ -34,31 +52,55 @@ public class CobblemonBattle extends UBattle<PokemonBattle> {
         return participants;
     }
 
+    /**
+     * @return the players in the battle
+     */
     @Override
     public List<ServerPlayer> players() {
         return this.dereference().getPlayers();
     }
 
+    /**
+     * Checks if the battle is between players only, as Cobblemon decides it.
+     *
+     * @return {@code true} if the battle is player versus player
+     */
     @Override
     public boolean isPvP() {
         return this.dereference().isPvP();
     }
 
+    /**
+     * @return the current turn number of the battle
+     */
     @Override
     public int turn() {
         return this.dereference().getTurn();
     }
 
+    /**
+     * Checks if the battle has ended.
+     *
+     * @return {@code true} if the battle has ended
+     */
     @Override
     public boolean hasEnded() {
         return this.dereference().getEnded();
     }
 
+    /**
+     * Stops the battle at once.
+     */
     @Override
     public void end() {
         this.dereference().stop();
     }
 
+    /**
+     * Sends a Showdown {@code >forcewin} action for the side that does not contain the given participant.
+     *
+     * @param loser the participant whose side loses
+     */
     @Override
     public void forfeit(UBattleParticipant<?> loser) {
         var battle = this.dereference();

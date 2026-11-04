@@ -17,24 +17,42 @@ public class CommandEventPayload implements EventPayload, Cancellable {
     private final String command;
     private boolean cancelled = false;
 
+    /**
+     * Creates the payload for a parsed command.
+     *
+     * @param parse the parse results of the command
+     * @param command the command string
+     */
     public CommandEventPayload(ParseResults<CommandSourceStack> parse, String command) {
         this.parse = parse;
         this.command = command;
     }
 
+    /**
+     * @return {@link UEvent#COMMAND}
+     */
     @Override
     public Key<?> type() {
         return UEvent.COMMAND;
     }
 
+    /**
+     * @return the source that runs the command, from the parse context
+     */
     public CommandSourceStack source() {
         return this.parse.getContext().getSource();
     }
 
+    /**
+     * @return the parse results of the command
+     */
     public ParseResults<CommandSourceStack> parse() {
         return this.parse;
     }
 
+    /**
+     * @return the command string
+     */
     public String command() {
         return this.command;
     }
@@ -53,11 +71,17 @@ public class CommandEventPayload implements EventPayload, Cancellable {
         return root.isEmpty() ? null : root;
     }
 
+    /**
+     * Cancels the event. The command then stops silently.
+     */
     @Override
     public void cancel() {
         this.cancelled = true;
     }
 
+    /**
+     * @return {@code true} if the event is cancelled
+     */
     @Override
     public boolean cancelled() {
         return this.cancelled;

@@ -53,12 +53,20 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Forwards Cobblemon events to the loader-neutral Pokémon events in {@link UEvent}.
+ */
 public final class CobblemonEventBridge {
 
     private CobblemonEventBridge() {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Subscribes to the Cobblemon events. Each handler emits the matching {@link UEvent}. For cancelable events, a
+     * canceled payload cancels the Cobblemon event. Changed values, such as the new level, go back to the Cobblemon
+     * event.
+     */
     public static void register() {
         on(CobblemonEvents.THROWN_POKEBALL_HIT, event -> {
             if (event.getPokeBall().getOwner() instanceof ServerPlayer player) {
@@ -192,22 +200,56 @@ public final class CobblemonEventBridge {
         on(CobblemonEvents.HELD_ITEM_POST, event -> emit(UEvent.POKEMON_HELD_ITEM_POST, new HeldItemEventPayload.Post(event, event.getPokemon().getOwnerPlayer(), pokemon(event.getPokemon()), event.getReceived())));
     }
 
+    /**
+     * Subscribes the handler to the Cobblemon event with normal priority.
+     *
+     * @param observable the Cobblemon event
+     * @param handler the handler
+     * @param <T> the type of the Cobblemon event
+     */
     private static <T> void on(Observable<T> observable, Consumer<T> handler) {
         observable.subscribe(Priority.NORMAL, handler);
     }
 
+    /**
+     * Emits the loader-neutral event.
+     *
+     * @param key the key of the event
+     * @param payload the payload to emit
+     * @param <P> the type of the payload
+     * @return the payload after all listeners ran
+     */
     private static <P extends EventPayload> P emit(Key<UEvent<P>> key, P payload) {
         return Mods.modLoader().event(key).emit(payload);
     }
 
+    /**
+     * Wraps a Cobblemon Pokémon.
+     *
+     * @param pokemon the Cobblemon Pokémon
+     * @return the wrapped Pokémon
+     */
     private static CobblemonPokemon pokemon(Pokemon pokemon) {
         return new CobblemonPokemon(pokemon);
     }
 
+    /**
+     * Gets the player of a trade participant.
+     *
+     * @param participant the trade participant
+     * @return the player, or {@code null} if the participant is not a player
+     */
     private static @Nullable ServerPlayer player(TradeParticipant participant) {
         return participant instanceof PlayerTradeParticipant player ? player.getPlayer() : null;
     }
 
+    /**
+     * Gets the result of each actor in the battle, in actor order.
+     *
+     * @param battle the battle
+     * @param result gets the result of an actor
+     * @return the result of each actor, keyed by the wrapped actor
+     */
     private static Map<UBattleParticipant<?>, UBattleResult<?>> results(PokemonBattle battle, Function<BattleActor, UBattleResult<?>> result) {
         var results = new LinkedHashMap<UBattleParticipant<?>, UBattleResult<?>>();
         for (var actor : battle.getActors()) {

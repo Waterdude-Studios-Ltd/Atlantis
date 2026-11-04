@@ -19,14 +19,27 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Wraps a Cobblemon NPC entity that acts as a trainer.
+ */
 public class CobblemonTrainer extends UTrainer<NPCEntity> {
 
     public static final ModObjectKey TYPE = new ModObjectKey(Cobblemon.MODID, "trainer");
 
+    /**
+     * Creates a wrapper for a Cobblemon NPC.
+     *
+     * @param trainer the NPC to wrap
+     */
     public CobblemonTrainer(NPCEntity trainer) {
         super(TYPE, trainer);
     }
 
+    /**
+     * Gets a new wrapper for each Pokémon in the party of the NPC.
+     *
+     * @return the team, or an empty list if the NPC has no party
+     */
     @Override
     public List<CobblemonPokemon> team() {
         var team = new ArrayList<CobblemonPokemon>();
@@ -39,6 +52,11 @@ public class CobblemonTrainer extends UTrainer<NPCEntity> {
         return team;
     }
 
+    /**
+     * Gives the NPC a new party with copies of the first six Pokémon of the team.
+     *
+     * @param team the Cobblemon Pokémon to copy into the party
+     */
     @Override
     public void setTeam(List<? extends UPokemon<?>> team) {
         var npc = this.dereference();
@@ -49,6 +67,12 @@ public class CobblemonTrainer extends UTrainer<NPCEntity> {
         npc.setParty(party);
     }
 
+    /**
+     * Looks up the skin of the player asynchronously, downloads it, then applies the texture and model aspect on the
+     * server thread. If no skin is found, nothing changes. If the download fails, a warning is logged.
+     *
+     * @param playerName the name of the player whose skin to use
+     */
     @Override
     public void setSkin(String playerName) {
         var npc = this.dereference();
@@ -71,25 +95,45 @@ public class CobblemonTrainer extends UTrainer<NPCEntity> {
         });
     }
 
+    /**
+     * Sets if the NPC cannot move.
+     *
+     * @param immovable {@code true} to stop the NPC from moving
+     */
     @Override
     public void setImmovable(boolean immovable) {
         this.dereference().setMovable(!immovable);
     }
 
+    /**
+     * Sets if the NPC cannot take damage.
+     *
+     * @param invulnerable {@code true} to make the NPC invulnerable
+     */
     @Override
     public void setInvulnerable(boolean invulnerable) {
         this.dereference().setInvulnerable(Boolean.valueOf(invulnerable));
     }
 
+    /**
+     * Sets if the name tag of the NPC shows.
+     *
+     * @param visible {@code true} to show the name tag
+     */
     @Override
     public void setNameVisible(boolean visible) {
         this.dereference().setHideNameTag(!visible);
     }
 
+    /**
+     * Gets the first battle of the NPC that has not ended.
+     *
+     * @return the battle, or {@code null} if the NPC is in no active battle
+     */
     @Override
     public @Nullable CobblemonBattle battle() {
         for (var id : this.dereference().getBattleIds()) {
-            var battle = BattleRegistry.INSTANCE.getBattle(id);
+            var battle = BattleRegistry.getBattle(id);
             if (battle != null && !battle.getEnded()) {
                 return new CobblemonBattle(battle);
             }
