@@ -41,6 +41,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Remaps Mojang-named Tine jars to intermediary for Fabric production. It caches the remapped jars, the Mojang
+ * mappings and the named class path in {@link #CACHE}. Bump {@link #FORMAT} when the output changes.
+ */
 final class TineRemapper {
 
     static final String CACHE = Trident.DIRECTORY + "/.cache";
@@ -57,6 +61,15 @@ final class TineRemapper {
         ExceptionUtils.throwCannotInstantiateClassException();
     }
 
+    /**
+     * Remaps the Tine jars to intermediary if the runtime namespace is intermediary. In other namespaces it returns
+     * the paths unchanged.
+     *
+     * @param paths the jars and directories of the Tines
+     * @param configDir the config directory of the loader
+     * @return the paths to add to the class path, in the same order
+     * @throws UncheckedIOException if the remapping fails
+     */
     static List<Path> remap(List<Path> paths, Path configDir) {
         var namespace = FabricLoader.getInstance().getMappingResolver().getCurrentRuntimeNamespace();
         if (NAMED.equals(namespace)) {
@@ -75,6 +88,14 @@ final class TineRemapper {
         }
     }
 
+    /**
+     * Remaps each jar that has no cached output yet. Directories are not remapped.
+     *
+     * @param paths the jars and directories of the Tines
+     * @param configDir the config directory of the loader
+     * @return the cached remapped jars, and the directories unchanged, in the same order
+     * @throws IOException if a file operation or the remapping fails
+     */
     private static List<Path> remapToIntermediary(List<Path> paths, Path configDir) throws IOException {
         var minecraft = TineRemapper.minecraftVersion();
         var cache = Files.createDirectories(configDir.resolve(CACHE));
@@ -102,6 +123,16 @@ final class TineRemapper {
         return List.copyOf(outputs.values());
     }
 
+    /**
+     * Builds the hierarchy class path for remapping Tines. It remaps the Minecraft and Atlantis jars from
+     * intermediary to named if they are not in the cache, and adds the other launcher class path entries as they are.
+     *
+     * @param cache the cache directory
+     * @param minecraft the Minecraft version
+     * @param mappings the mappings with the named and intermediary namespaces
+     * @return the named Minecraft and Atlantis jars, followed by the libraries
+     * @throws IOException if a file operation or the remapping fails
+     */
     private static List<Path> namedClassPath(Path cache, String minecraft, MemoryMappingTree mappings) throws IOException {
         var intermediary = new LinkedHashMap<Path, Path>();
         var sources = new HashSet<Path>();
@@ -138,6 +169,17 @@ final class TineRemapper {
         return classpath;
     }
 
+    /**
+     * Remaps the jars with tiny-remapper. Each output is written to a temporary file first and then moved into place.
+     *
+     * @param mappings the mappings to use
+     * @param from the source namespace
+     * @param to the target namespace
+     * @param jars the input jars, mapped to their output jars
+     * @param classpath the class path that gives the class hierarchy
+     * @param mixins {@code true} to also remap mixin annotations with {@link MixinExtension}
+     * @throws IOException if a file operation fails
+     */
     private static void run(MemoryMappingTree mappings, String from, String to, Map<Path, Path> jars, List<Path> classpath, boolean mixins) throws IOException {
         var builder = TinyRemapper.newRemapper()
                 .withMappings(TinyUtils.createMappingProvider(mappings, from, to))
@@ -177,6 +219,15 @@ final class TineRemapper {
         }
     }
 
+    /**
+     * Reads the Mojang and intermediary mappings into one tree. Classes without an intermediary name get their
+     * official name as the intermediary name.
+     *
+     * @param cache the cache directory
+     * @param minecraft the Minecraft version
+     * @return the mappings with the official, named and intermediary namespaces
+     * @throws IOException if the mappings cannot be read, or the intermediary mappings are not on the class path
+     */
     private static MemoryMappingTree mappings(Path cache, String minecraft) throws IOException {
         var tree = new MemoryMappingTree();
         try (var reader = Files.newBufferedReader(TineRemapper.mojangMappings(cache, minecraft))) {
@@ -202,6 +253,15 @@ final class TineRemapper {
         return tree;
     }
 
+    /**
+     * Gets the file of the Mojang client mappings. The {@link #MAPPINGS_PROPERTY} system property overrides it. If the
+     * file is not in the cache, it is downloaded and its SHA-1 is checked.
+     *
+     * @param cache the cache directory
+     * @param minecraft the Minecraft version
+     * @return the path of the mappings file
+     * @throws IOException if the download fails, the version is not in the manifest or the SHA-1 does not match
+     */
     private static Path mojangMappings(Path cache, String minecraft) throws IOException {
         var override = System.getProperty(MAPPINGS_PROPERTY);
         if (override != null && !override.isBlank()) {
@@ -247,6 +307,15 @@ final class TineRemapper {
         }
     }
 
+    /**
+     * Gets a JSON object over HTTP.
+     *
+     * @param client the HTTP client
+     * @param url the URL to get
+     * @return the parsed JSON object
+     * @throws IOException if the request fails or the status code is not 200
+     * @throws InterruptedException if the thread is interrupted during the request
+     */
     private static JsonObject json(HttpClient client, String url) throws IOException, InterruptedException {
         var response = client.send(HttpRequest.newBuilder(URI.create(url)).build(), HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
@@ -255,10 +324,22 @@ final class TineRemapper {
         return JsonParser.parseString(response.body()).getAsJsonObject();
     }
 
+    /**
+     * @return the version of the loaded Minecraft
+     */
     private static String minecraftVersion() {
         return FabricLoader.getInstance().getModContainer("minecraft").orElseThrow().getMetadata().getVersion().getFriendlyString();
     }
 
+    /**
+     * Gets the cache key of a jar. It is the SHA-256 of {@link #FORMAT}, the Minecraft version, the Atlantis version
+     * and the jar contents.
+     *
+     * @param jar the jar
+     * @param minecraft the Minecraft version
+     * @return the hash as lowercase hex
+     * @throws IOException if the jar cannot be read
+     */
     private static String sha256(Path jar, String minecraft) throws IOException {
         var digest = TineRemapper.digest("SHA-256");
         digest.update((FORMAT + ":" + minecraft + ":" + Atlantis.VERSION + ":").getBytes(StandardCharsets.UTF_8));
@@ -268,10 +349,24 @@ final class TineRemapper {
         return HexFormat.of().formatHex(digest.digest());
     }
 
+    /**
+     * Hashes the bytes.
+     *
+     * @param algorithm the name of the digest algorithm
+     * @param bytes the bytes to hash
+     * @return the hash as lowercase hex
+     */
     private static String hex(String algorithm, byte[] bytes) {
         return HexFormat.of().formatHex(TineRemapper.digest(algorithm).digest(bytes));
     }
 
+    /**
+     * Creates a message digest.
+     *
+     * @param algorithm the name of the digest algorithm
+     * @return the new message digest
+     * @throws IllegalStateException if the algorithm is not available
+     */
     private static MessageDigest digest(String algorithm) {
         try {
             return MessageDigest.getInstance(algorithm);
