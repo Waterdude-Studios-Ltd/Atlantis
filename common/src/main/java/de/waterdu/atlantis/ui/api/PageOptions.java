@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -35,8 +36,6 @@ public class PageOptions {
     private long refreshRate = 1;
     private boolean inventoryHidden = false;
     private Consumer<Click> outsideScreenClick = OUTSIDE_SCREEN_CLICK_SINK;
-
-    private transient int hashCode = -1;
 
     /**
      * @return the form factor of the page
@@ -99,28 +98,18 @@ public class PageOptions {
     }
 
     /**
-     * Calculates a hash code from all options, and caches it after the first call.
+     * Calculates a hash code from all options.
      *
      * @return the hash code of the options
      */
     @Override
     public int hashCode() {
-        if (this.hashCode == -1) {
-            this.hashCode = Long.hashCode(Long.parseLong(
-                    this.rows + "" +
-                            this.title.get().length() +
-                            this.formFactor.slots +
-                            (this.draggable ? "1" : "0") +
-                            this.refreshRate +
-                            (this.inventoryHidden ? "1" : "0") +
-                            this.outsideScreenClick.hashCode()
-            ) + this.title.hashCode());
-        }
-        return this.hashCode;
+        return Objects.hash(this.formFactor, this.title, this.rows, this.draggable, this.refreshRate, this.inventoryHidden, this.outsideScreenClick);
     }
 
     /**
-     * Checks if the object is a {@link PageOptions} with the same hash code.
+     * Checks if the object is a {@link PageOptions} with the same options. The outside screen click handlers must be
+     * the same instance.
      *
      * @param obj the object to compare
      * @return {@code true} if the options are equal
@@ -130,10 +119,16 @@ public class PageOptions {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof PageOptions)) {
+        if (!(obj instanceof PageOptions other)) {
             return false;
         }
-        return this.hashCode() == obj.hashCode();
+        return this.rows == other.rows
+                && this.draggable == other.draggable
+                && this.refreshRate == other.refreshRate
+                && this.inventoryHidden == other.inventoryHidden
+                && Objects.equals(this.formFactor, other.formFactor)
+                && Objects.equals(this.title, other.title)
+                && Objects.equals(this.outsideScreenClick, other.outsideScreenClick);
     }
 
     /**

@@ -6,7 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.function.Consumer;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Tests {@link PageOptions}, its builder and its form factors.
@@ -86,5 +89,80 @@ class PageOptionsTest {
 
         assertThat(options.isDraggable()).isTrue();
         assertThat(options.isInventoryHidden()).isFalse();
+    }
+
+    /**
+     * Checks that the hash code does not throw when the click handler has a negative hash code or the joined values
+     * do not fit in a long.
+     */
+    @Test
+    void hashCodeDoesNotThrowForAnyValues() {
+        Consumer<Click> negative = new Consumer<>() {
+            @Override
+            public void accept(Click click) {}
+
+            @Override
+            public int hashCode() {
+                return -42;
+            }
+        };
+        var withNegativeHandler = PageOptions.builder().outsideScreenClick(negative).build();
+        var withLargeRate = PageOptions.builder().refreshRate(Long.MAX_VALUE).title("A long title for the page").build();
+
+        assertThatCode(withNegativeHandler::hashCode).doesNotThrowAnyException();
+        assertThatCode(withLargeRate::hashCode).doesNotThrowAnyException();
+    }
+
+    /**
+     * Checks that options with the same values are equal and have the same hash code.
+     */
+    @Test
+    void optionsWithTheSameValuesAreEqual() {
+        var first = PageOptions.builder().formFactor(PageOptions.FormFactor.HOPPER).title("Title").refreshRate(20).build();
+        var second = PageOptions.builder().formFactor(PageOptions.FormFactor.HOPPER).title("Title").refreshRate(20).build();
+
+        assertThat(first).isEqualTo(second).hasSameHashCodeAs(second);
+    }
+
+    /**
+     * Checks that options are not equal when one value is different.
+     */
+    @Test
+    void optionsWithADifferentValueAreNotEqual() {
+        var base = PageOptions.builder().title("Title").build();
+
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Other").build());
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Title").rows(4).build());
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Title").draggable(true).build());
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Title").refreshRate(5).build());
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Title").hideInventory().build());
+        assertThat(base).isNotEqualTo(PageOptions.builder().title("Title").outsideScreenClick(click -> {}).build());
+    }
+
+    /**
+     * Checks that two form factors with the same number of slots do not make the options equal.
+     */
+    @Test
+    void formFactorsWithTheSameSlotsAreNotEqual() {
+        assertThat(PageOptions.FormFactor.FURNACE.slots()).isEqualTo(PageOptions.FormFactor.SMOKER.slots());
+
+        var furnace = PageOptions.builder().formFactor(PageOptions.FormFactor.FURNACE).build();
+        var smoker = PageOptions.builder().formFactor(PageOptions.FormFactor.SMOKER).build();
+
+        assertThat(furnace).isNotEqualTo(smoker);
+    }
+
+    /**
+     * Checks that the hash code follows a change that the builder makes after {@code build}.
+     */
+    @Test
+    void hashCodeFollowsLaterChanges() {
+        var builder = PageOptions.builder();
+        var options = builder.build();
+        var before = options.hashCode();
+
+        builder.rows(6);
+
+        assertThat(options.hashCode()).isNotEqualTo(before).isEqualTo(PageOptions.builder().rows(6).build().hashCode());
     }
 }
