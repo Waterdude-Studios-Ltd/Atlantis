@@ -57,6 +57,16 @@ public final class StorageTestConfigs {
     }
 
     /**
+     * Registers {@link SampleData} as AON data with the given storage, at the path from its annotation.
+     *
+     * @param storage the storage of the config
+     * @return the registered config
+     */
+    public static Config<SampleData> aonData(Storage storage) {
+        return ConfigTestSupport.register(SampleData.class, storage, false, true);
+    }
+
+    /**
      * Registers any configuration class under the test mod, at the given path.
      */
     public static <T extends Configuration> Config<T> register(Class<T> clazz, String path, Storage storage) {

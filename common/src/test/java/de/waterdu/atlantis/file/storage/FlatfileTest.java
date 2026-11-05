@@ -1,6 +1,7 @@
 package de.waterdu.atlantis.file.storage;
 
 import de.waterdu.atlantis.Atlantis;
+import de.waterdu.atlantis.Settings;
 import de.waterdu.atlantis.file.AtlantisConfig;
 import de.waterdu.atlantis.file.StorageTestConfigs;
 import de.waterdu.atlantis.test.AtlantisTestEnvironment;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -342,7 +344,8 @@ class FlatfileTest {
         }
 
         /**
-         * Checks that a full read skips a corrupt file and leaves it in place.
+         * Checks that a full read skips a corrupt file, and that the cleanup after the read renames it to
+         * {@code .invalid}.
          *
          * @throws IOException if the file cannot be written
          * @throws InterruptedException if the wait for the write is interrupted
@@ -358,7 +361,8 @@ class FlatfileTest {
             assertThat(await(config.read())).isTrue();
 
             assertThat(config.all()).containsExactly(good);
-            assertThat(corrupt).exists();
+            awaitUntil("the corrupt file is marked invalid", () -> Files.exists(dir().resolve("corrupt.json.invalid")));
+            assertThat(corrupt).doesNotExist();
         }
 
         /**
@@ -397,6 +401,168 @@ class FlatfileTest {
          */
         private static Path file(String identifier) {
             return dir().resolve(identifier + ".json");
+        }
+    }
+
+    /**
+     * Tests the cleanup of data files that a full read runs after it loads the directory.
+     */
+    @Nested
+    @MinecraftBootstrapped
+    @ExtendWith(AtlantisTestEnvironment.class)
+    class CleanFolder {
+
+        /**
+         * Checks that a file whose name does not match the identifier of its instance is marked invalid, and that
+         * the instance stays in memory.
+         *
+         * @throws IOException if the file cannot be written
+         * @throws InterruptedException if the wait for the write is interrupted
+         */
+        @Test
+        void misnamedFileIsMarkedInvalidAndItsInstanceStaysLoaded() throws IOException, InterruptedException {
+            var config = StorageTestConfigs.data(new Flatfile());
+            var data = StorageTestConfigs.newData(5);
+            await(config.storage().writeSpecific(config, data));
+            Files.move(dir().resolve(data.uuid() + ".json"), dir().resolve("stale.json"));
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitUntil("the misnamed file is marked invalid", () -> Files.exists(dir().resolve("stale.json.invalid")));
+            assertThat(dir().resolve("stale.json")).doesNotExist();
+            assertThat(StorageTestConfigs.value(config.now(data.uuid()))).isEqualTo(5);
+        }
+
+        /**
+         * Checks that the files of loaded instances stay after the cleanup.
+         *
+         * @throws Exception if a file cannot be written or a wait fails
+         */
+        @Test
+        void filesOfLoadedInstancesAreKept() throws Exception {
+            var config = StorageTestConfigs.data(new Flatfile());
+            var first = StorageTestConfigs.newData(1);
+            var second = StorageTestConfigs.newData(2);
+            await(config.storage().writeSpecific(config, first));
+            await(config.storage().writeSpecific(config, second));
+            Files.writeString(dir().resolve("corrupt.json"), "{\"value\": \"oops\"}");
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.json.invalid")));
+            awaitScheduledCleanup();
+            assertThat(dir().resolve(first.uuid() + ".json")).exists();
+            assertThat(dir().resolve(second.uuid() + ".json")).exists();
+        }
+
+        /**
+         * Checks that hidden files, temporary files and files without the data file extension stay after the
+         * cleanup.
+         *
+         * @throws Exception if a file cannot be written or a wait fails
+         */
+        @Test
+        void hiddenTemporaryAndForeignFilesAreKept() throws Exception {
+            var config = StorageTestConfigs.data(new Flatfile());
+            var hidden = dir().resolve(".hidden.json");
+            var temp = dir().resolve("pending.json.temp");
+            var foreign = dir().resolve("notes.txt");
+            Files.writeString(hidden, "hidden");
+            Files.writeString(temp, "partial");
+            Files.writeString(foreign, "notes");
+            Files.writeString(dir().resolve("corrupt.json"), "{\"value\": \"oops\"}");
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.json.invalid")));
+            awaitScheduledCleanup();
+            assertThat(hidden).exists();
+            assertThat(temp).exists();
+            assertThat(foreign).exists();
+        }
+
+        /**
+         * Checks that the cleanup also goes through subdirectories.
+         *
+         * @throws IOException if the file cannot be written
+         */
+        @Test
+        void orphanedFilesInSubdirectoriesAreMarkedInvalid() throws IOException {
+            var config = StorageTestConfigs.data(new Flatfile());
+            var sub = Files.createDirectories(dir().resolve("sub"));
+            Files.writeString(sub.resolve("corrupt.json"), "{\"value\": \"oops\"}");
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitUntil("the file in the subdirectory is marked invalid", () -> Files.exists(sub.resolve("corrupt.json.invalid")));
+            assertThat(sub.resolve("corrupt.json")).doesNotExist();
+        }
+
+        /**
+         * Checks that AON data files of loaded instances stay after the cleanup. The file name map of the config
+         * uses {@code .json} for every instance, so the cleanup must not depend on it.
+         *
+         * @throws Exception if a file cannot be written or a wait fails
+         */
+        @Test
+        void aonFilesOfLoadedInstancesAreKept() throws Exception {
+            var config = StorageTestConfigs.aonData(new Flatfile());
+            var data = StorageTestConfigs.newData(3);
+            await(config.storage().writeSpecific(config, data));
+            var file = dir().resolve(data.uuid() + ".aon");
+            assertThat(file).exists();
+            Files.writeString(dir().resolve("corrupt.aon"), "{\"value\": \"oops\"}");
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.aon.invalid")));
+            awaitScheduledCleanup();
+            assertThat(file).exists();
+            assertThat(StorageTestConfigs.value(config.now(data.uuid()))).isEqualTo(3);
+        }
+
+        /**
+         * Checks that an orphaned file is moved to the {@code bin} directory of Atlantis when the error bin is
+         * enabled.
+         *
+         * @throws IOException if the file cannot be written
+         */
+        @Test
+        void orphanedFileIsMovedToTheErrorBinWhenEnabled() throws IOException {
+            var settings = Settings.get();
+            var useBin = settings.isUseErrorBin();
+            settings.setUseErrorBin(true);
+            try {
+                var config = StorageTestConfigs.data(new Flatfile());
+                var corrupt = dir().resolve("corrupt.json");
+                Files.writeString(corrupt, "{\"value\": \"oops\"}");
+
+                assertThat(await(config.read())).isTrue();
+
+                var bin = AtlantisConfig.dirOf(Atlantis.ID).toPath().resolve("bin");
+                var backup = bin.resolve("corrupt.json_" + StorageTestConfigs.MOD + "_" + config.key() + ".backup");
+                awaitUntil("the file is moved to the error bin", () -> Files.exists(backup));
+                assertThat(corrupt).doesNotExist();
+            } finally {
+                settings.setUseErrorBin(useBin);
+            }
+        }
+
+        /**
+         * Waits until a task scheduled after every cleanup task has run. The cleanup schedules each removal one data
+         * save delay after the one before it, so this also waits for removals that come after the first one.
+         *
+         * @throws Exception if the wait fails or takes longer than five seconds
+         */
+        private static void awaitScheduledCleanup() throws Exception {
+            Atlantis.THREAD_POOL.schedule(() -> {}, Settings.get().getDataSaveDelay() * 20).get(5, TimeUnit.SECONDS);
+        }
+
+        /**
+         * @return the path of the data directory in the mod directory
+         */
+        private static Path dir() {
+            return modDir().resolve("sampledata");
         }
     }
 }

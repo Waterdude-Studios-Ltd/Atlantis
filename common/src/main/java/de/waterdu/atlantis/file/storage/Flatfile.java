@@ -32,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Stores a configuration in one file, or data in one file per instance inside a directory.
@@ -616,39 +617,72 @@ public class Flatfile implements Storage {
     }
 
     /**
-     * Goes through the directory and its subdirectories to remove the files of instances that are not in memory. It
-     * moves them to the error bin or marks them as invalid. The file check uses {@code startsWith("")}, which is
-     * always {@code true}, so no file is removed at the moment.
+     * Goes through the directory and its subdirectories to remove the data files of instances that are not in
+     * memory. It moves them to the error bin or marks them as invalid. Only files with the data file extension of
+     * the config are removed. Hidden files and temporary files stay. Each removal checks again that no instance in
+     * memory uses the file name.
      *
      * @param config the config of the data
      * @param file the directory to clean
      * @param <T> the configuration type
      */
     private <T extends Configuration> void cleanFolder(Config<T> config, File file) {
+        this.cleanFolder(config, file, Flatfile.loadedFileNames(config), new AtomicLong(Settings.get().getDataSaveDelay()));
+    }
+
+    /**
+     * Goes through the directory and its subdirectories to remove the data files that are not in the set of loaded
+     * file names.
+     *
+     * @param config the config of the data
+     * @param file the directory to clean
+     * @param loaded the file names of the instances in memory
+     * @param delay the delay of the next removal in milliseconds. Each removal adds the data save delay to it.
+     * @param <T> the configuration type
+     */
+    private <T extends Configuration> void cleanFolder(Config<T> config, File file, Set<String> loaded, AtomicLong delay) {
         if (!this.isServerAlive()) {
             return;
         }
         var useBin = Settings.get().isUseErrorBin();
-        var delay = Settings.get().getDataSaveDelay();
+        var extension = config.dataFileExtension();
         var dir = file.listFiles();
         if (dir != null) {
             for (var f : dir) {
-                if (f.isFile() && !f.getName().startsWith("") && !f.getName().endsWith(INVALID_EXT)) {
-                    if (!config.filenameDataMap().containsKey(f.getName())) {
-                        Atlantis.THREAD_POOL.schedule(() -> {
-                            if (useBin ? this.moveToBin(config, f) : this.markAsError(config, f)) {
-                                AtlantisLogger.debug("Deleted instance of {} {}", config.name(), f.getName());
-                            } else {
-                                AtlantisLogger.error("Failed to delete instance of {} {}", config.name(), f.getName());
-                            }
-                        }, delay);
-                        delay += Settings.get().getDataSaveDelay();
-                    }
+                var name = f.getName();
+                if (f.isFile() && !name.startsWith(".") && name.endsWith(extension) && !loaded.contains(name)) {
+                    Atlantis.THREAD_POOL.schedule(() -> {
+                        if (!this.isServerAlive() || !f.isFile() || Flatfile.loadedFileNames(config).contains(name)) {
+                            return;
+                        }
+                        if (useBin ? this.moveToBin(config, f) : this.markAsError(config, f)) {
+                            AtlantisLogger.debug("Deleted instance of {} {}", config.name(), name);
+                        } else {
+                            AtlantisLogger.error("Failed to delete instance of {} {}", config.name(), name);
+                        }
+                    }, delay.getAndAdd(Settings.get().getDataSaveDelay()));
                 } else if (f.isDirectory()) {
-                    this.cleanFolder(config, f);
+                    this.cleanFolder(config, f, loaded, delay);
                 }
             }
         }
+    }
+
+    /**
+     * Gets the file names of the data instances in memory. The names use the data file extension of the config.
+     *
+     * @param config the config of the data
+     * @param <T> the configuration type
+     * @return the file names
+     */
+    private static <T extends Configuration> Set<String> loadedFileNames(Config<T> config) {
+        var names = new HashSet<String>();
+        for (var data : config.uuidDataMap().values()) {
+            if (data != null) {
+                names.add(data.identifier() + config.dataFileExtension());
+            }
+        }
+        return names;
     }
 
     /**
