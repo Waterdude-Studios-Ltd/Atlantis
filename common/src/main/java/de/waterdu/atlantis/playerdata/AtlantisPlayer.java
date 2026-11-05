@@ -17,6 +17,7 @@ import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.level.block.Blocks;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Stores the name, the skin and the last login time of a player. Each player is a file in the {@code players}
@@ -201,7 +202,7 @@ public class AtlantisPlayer implements PlayerData {
         if (this.lastSkinFetch == -1) {
             this.lastSkinFetch = time;
         }
-        if ((!this.skinObject.hasSkin() || time - this.lastSkinFetch >= Settings.get().getSkinRefetchGapSeconds()) && this.uuid() != null) {
+        if ((!this.skinObject.hasSkin() || time - this.lastSkinFetch >= TimeUnit.SECONDS.toMillis(Settings.get().getSkinRefetchGapSeconds())) && this.uuid() != null) {
             this.lastSkinFetch = time;
             SkinQuery.from(this.uuid).to(this).query();
         }
