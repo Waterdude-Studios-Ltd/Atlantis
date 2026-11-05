@@ -14,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,6 +83,16 @@ class FlatfileTest {
         }
 
         assertThat(missing).hasValue(0);
+    }
+
+    /**
+     * Waits until a task scheduled after the delayed tasks of a read has run. The cleanup and the rewrites after a
+     * read are scheduled one data save delay apart, so this also waits for the tasks that come after the first one.
+     *
+     * @throws Exception if the wait fails or takes longer than five seconds
+     */
+    private static void awaitScheduledTasks() throws Exception {
+        Atlantis.THREAD_POOL.schedule(() -> {}, Settings.get().getDataSaveDelay() * 20).get(5, TimeUnit.SECONDS);
     }
 
     /**
@@ -310,6 +321,28 @@ class FlatfileTest {
         }
 
         /**
+         * Checks that a second read of AON data does not write the files again. The file names in memory must use
+         * the {@code .aon} extension, or each file looks new to the read.
+         *
+         * @throws Exception if a file cannot be changed or a wait fails
+         */
+        @Test
+        void readingAonDataAgainDoesNotRewriteTheFiles() throws Exception {
+            var config = StorageTestConfigs.aonData(new Flatfile());
+            var data = StorageTestConfigs.newData(6);
+            await(config.storage().writeSpecific(config, data));
+            assertThat(await(config.read())).isTrue();
+            var file = dir().resolve(data.uuid() + ".aon");
+            var old = FileTime.fromMillis(0);
+            Files.setLastModifiedTime(file, old);
+
+            assertThat(await(config.read())).isTrue();
+
+            awaitScheduledTasks();
+            assertThat(Files.getLastModifiedTime(file)).isEqualTo(old);
+        }
+
+        /**
          * Checks that a read by UUID loads one file and puts the instance in the config.
          *
          * @throws InterruptedException if the wait for the write is interrupted
@@ -450,7 +483,7 @@ class FlatfileTest {
             assertThat(await(config.read())).isTrue();
 
             awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.json.invalid")));
-            awaitScheduledCleanup();
+            awaitScheduledTasks();
             assertThat(dir().resolve(first.uuid() + ".json")).exists();
             assertThat(dir().resolve(second.uuid() + ".json")).exists();
         }
@@ -475,7 +508,7 @@ class FlatfileTest {
             assertThat(await(config.read())).isTrue();
 
             awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.json.invalid")));
-            awaitScheduledCleanup();
+            awaitScheduledTasks();
             assertThat(hidden).exists();
             assertThat(temp).exists();
             assertThat(foreign).exists();
@@ -499,8 +532,7 @@ class FlatfileTest {
         }
 
         /**
-         * Checks that AON data files of loaded instances stay after the cleanup. The file name map of the config
-         * uses {@code .json} for every instance, so the cleanup must not depend on it.
+         * Checks that AON data files of loaded instances stay after the cleanup. The file names use the {@code .aon} extension of the config.
          *
          * @throws Exception if a file cannot be written or a wait fails
          */
@@ -516,7 +548,7 @@ class FlatfileTest {
             assertThat(await(config.read())).isTrue();
 
             awaitUntil("the cleanup has run", () -> Files.exists(dir().resolve("corrupt.aon.invalid")));
-            awaitScheduledCleanup();
+            awaitScheduledTasks();
             assertThat(file).exists();
             assertThat(StorageTestConfigs.value(config.now(data.uuid()))).isEqualTo(3);
         }
@@ -546,16 +578,6 @@ class FlatfileTest {
             } finally {
                 settings.setUseErrorBin(useBin);
             }
-        }
-
-        /**
-         * Waits until a task scheduled after every cleanup task has run. The cleanup schedules each removal one data
-         * save delay after the one before it, so this also waits for removals that come after the first one.
-         *
-         * @throws Exception if the wait fails or takes longer than five seconds
-         */
-        private static void awaitScheduledCleanup() throws Exception {
-            Atlantis.THREAD_POOL.schedule(() -> {}, Settings.get().getDataSaveDelay() * 20).get(5, TimeUnit.SECONDS);
         }
 
         /**

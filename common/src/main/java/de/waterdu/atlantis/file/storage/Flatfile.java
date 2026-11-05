@@ -10,6 +10,7 @@ import de.waterdu.atlantis.file.ClassHolder;
 import de.waterdu.atlantis.file.Config;
 import de.waterdu.atlantis.file.FileExtensions;
 import de.waterdu.atlantis.file.datatypes.Configuration;
+import de.waterdu.atlantis.file.datatypes.Data;
 import de.waterdu.atlantis.file.datatypes.NamedData;
 import org.apache.commons.io.IOUtils;
 
@@ -403,7 +404,7 @@ public class Flatfile implements Storage {
                                      var br = new BufferedReader(ir)) {
                                     var in = config.gson().fromJson(br, config.classes().getConfigurationClass());
                                     config.putUnsafe(in, false);
-                                    if (!names.isEmpty() && !names.contains(in.identifier() + config.dataFileExtension())) {
+                                    if (!names.isEmpty() && !names.contains(config.filename((Data) in))) {
                                         this.writeSpecific(config, in);
                                     }
                                 }
@@ -520,7 +521,7 @@ public class Flatfile implements Storage {
         Atlantis.THREAD_POOL.submit(() -> {
             try {
                 var removed = config.uuidDataMap().remove(data.uuid());
-                config.filenameDataMap().remove(data.identifier() + config.dataFileExtension());
+                config.filenameDataMap().remove(config.filename((Data) data));
                 if (data instanceof NamedData namedData) {
                     config.nameDataMap().remove(namedData.name());
                 }
@@ -679,7 +680,7 @@ public class Flatfile implements Storage {
         var names = new HashSet<String>();
         for (var data : config.uuidDataMap().values()) {
             if (data != null) {
-                names.add(data.identifier() + config.dataFileExtension());
+                names.add(config.filename((Data) data));
             }
         }
         return names;

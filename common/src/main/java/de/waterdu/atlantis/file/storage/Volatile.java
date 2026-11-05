@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import de.waterdu.atlantis.file.ClassHolder;
 import de.waterdu.atlantis.file.Config;
 import de.waterdu.atlantis.file.datatypes.Configuration;
+import de.waterdu.atlantis.file.datatypes.Data;
 import de.waterdu.atlantis.file.datatypes.NamedData;
 
 import java.io.File;
@@ -148,7 +149,7 @@ public class Volatile implements Storage {
             return result;
         }
         var removed = config.uuidDataMap().remove(data.uuid());
-        config.filenameDataMap().remove(data.identifier() + config.dataFileExtension());
+        config.filenameDataMap().remove(config.filename((Data) data));
         if (data instanceof NamedData namedData) {
             config.nameDataMap().remove(namedData.name());
         }

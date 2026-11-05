@@ -215,13 +215,13 @@ public class Config<T extends Configuration> {
     }
 
     /**
-     * Gets the file name of the instance. This always uses the {@code .json} extension.
+     * Gets the file name of the instance, with the data file extension of this config.
      *
      * @param data the instance
-     * @return the identifier of the instance followed by {@code .json}
+     * @return the identifier of the instance followed by {@link #dataFileExtension()}
      */
     public String filename(Data data) {
-        return data.identifier() + ".json";
+        return data.identifier() + this.dataFileExtension();
     }
 
     /**
@@ -496,8 +496,11 @@ public class Config<T extends Configuration> {
         try {
             if (player != null) {
                 var uuid = AtlantisConfig.copyUUID(player.getUUID());
-                this.dataSet.remove(this.uuidDataMap.remove(uuid));
-                this.filenameDataMap.remove(uuid + ".json");
+                var removed = this.uuidDataMap.remove(uuid);
+                if (removed != null) {
+                    this.dataSet.remove(removed);
+                    this.filenameDataMap.remove(this.filename((Data) removed));
+                }
                 this.nameDataMap.remove(player.getName().getString());
             }
         } finally {

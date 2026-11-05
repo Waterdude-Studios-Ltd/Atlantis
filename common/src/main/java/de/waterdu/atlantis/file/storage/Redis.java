@@ -316,7 +316,7 @@ public class Redis implements Storage {
         Atlantis.THREAD_POOL.submit(() -> {
             try {
                 var removed = config.uuidDataMap().remove(data.uuid());
-                config.filenameDataMap().remove(data.identifier() + config.dataFileExtension());
+                config.filenameDataMap().remove(config.filename((Data) data));
                 if (data instanceof NamedData namedData) {
                     config.nameDataMap().remove(namedData.name());
                 }

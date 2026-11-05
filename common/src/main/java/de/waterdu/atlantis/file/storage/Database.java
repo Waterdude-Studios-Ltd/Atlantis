@@ -522,7 +522,7 @@ public class Database implements Storage {
                     stmt.execute(query);
                     T removed = config.uuidDataMap().remove(uuid);
                     if (removed != null) {
-                        config.filenameDataMap().remove(removed.identifier());
+                        config.filenameDataMap().remove(config.filename((Data) removed));
                         if (removed instanceof NamedData namedData) {
                             config.nameDataMap().remove(namedData.name());
                         }

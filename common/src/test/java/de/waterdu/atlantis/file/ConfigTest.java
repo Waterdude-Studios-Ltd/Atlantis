@@ -86,6 +86,20 @@ class ConfigTest {
         }
 
         /**
+         * Checks that AON data uses the {@code .aon} extension in its file name and in the filename map.
+         */
+        @Test
+        void aonDataUsesTheAonFileName() {
+            Config<SampleData> config = register(SampleData.class, new Volatile(), false, true);
+            var data = new SampleData(UUID.randomUUID(), 5);
+
+            config.put(data);
+
+            assertThat(config.filename(data)).isEqualTo(data.uuid() + FileExtensions.AON);
+            assertThat(config.filenameDataMap()).containsOnlyKeys(data.uuid() + FileExtensions.AON);
+        }
+
+        /**
          * Checks that a put of an instance of another class, even a subclass, returns {@code false} and adds
          * nothing.
          */
